@@ -5,7 +5,9 @@ import { WizardState } from '@/lib/types'
 import { useLanguage } from '@/lib/context'
 import { Input, TextArea } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { ChevronLeft, Phone, Calendar, CheckCircle2, Download, PlusCircle, Sparkles } from 'lucide-react'
+import VideoPreview from './VideoPreview'
+import { ChevronLeft, Phone, Calendar, CheckCircle2, PlusCircle } from 'lucide-react'
+import { PRODUCT_TYPES } from '@/lib/data'
 import Link from 'next/link'
 
 interface Props {
@@ -24,6 +26,10 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
   const [downloadClicked, setDownloadClicked] = useState(false)
   const orderRef = `TWN-${Date.now().toString().slice(-6)}`
 
+  const productType = PRODUCT_TYPES.find(p => p.id === state.productType)
+  const productName = lang === 'ar' ? productType?.nameAr : productType?.name
+  const templateName = lang === 'ar' ? state.template?.nameAr : state.template?.name
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -32,86 +38,82 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
     setSubmitted(true)
   }
 
+  /* ── Success screen ─────────────────────────────────────────── */
   if (submitted) {
     return (
-      <div className="flex flex-col items-center gap-8 text-center max-w-lg mx-auto py-8">
-        {/* Success Icon */}
-        <div
-          className="w-20 h-20 rounded-full flex items-center justify-center shadow-purple"
-          style={{ background: 'linear-gradient(135deg, rgba(154,120,254,0.15), rgba(66,34,102,0.1))' }}
-        >
-          <CheckCircle2 className="w-10 h-10 text-brand-purple" />
-        </div>
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 py-4 animate-fade-in">
 
-        <div>
-          <h2 className="text-3xl font-bold text-content-primary">{tr.create.requestSent}</h2>
-          <p className="mt-3 text-content-muted leading-relaxed">{tr.create.requestSentSub}</p>
-        </div>
-
-        {/* Order Reference */}
-        <div className="w-full p-4 rounded-2xl bg-white border border-brand-purple/20 shadow-card">
-          <p className="text-xs text-content-muted mb-1">{tr.create.orderRef}</p>
-          <p className="text-xl font-bold text-brand-purple font-mono">{orderRef}</p>
-        </div>
-
-        {/* Download Section */}
-        <div
-          className="w-full p-5 rounded-2xl border border-brand-purple/25 flex flex-col gap-4"
-          style={{ background: 'linear-gradient(145deg, #FAF7FF, #F3EEFF)' }}
-        >
-          <div className="flex items-center gap-2 text-brand-purple">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-semibold">{lang === 'ar' ? 'معاينة الفيديو' : 'Video Preview'}</span>
-          </div>
-
-          {/* Mock Video Player */}
+        {/* ── Header ── */}
+        <div className="text-center">
           <div
-            className="w-full aspect-video rounded-xl flex items-center justify-center relative overflow-hidden"
-            style={{ background: 'linear-gradient(135deg, #EDE5FF, #D4C5FF)' }}
+            className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 shadow-purple-sm"
+            style={{ background: 'linear-gradient(135deg, rgba(154,120,254,0.18), rgba(66,34,102,0.10))' }}
           >
-            <div className="flex flex-col items-center gap-3 z-10">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center shadow-purple"
-                style={{ background: 'linear-gradient(135deg, #9a78fe, #422266)' }}
-              >
-                <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[18px] border-l-white ml-1" />
-              </div>
-              <p className="text-xs text-content-muted">
-                {lang === 'ar' ? 'المعاينة متاحة بعد المكالمة' : 'Preview available after the call'}
-              </p>
+            <CheckCircle2 className="w-7 h-7 text-brand-purple" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-content-primary">{tr.create.requestSent}</h2>
+          <p className="mt-2 text-content-muted text-sm leading-relaxed max-w-md mx-auto">
+            {tr.create.requestSentSub}
+          </p>
+        </div>
+
+        {/* ── Order reference pill ── */}
+        <div className="flex items-center justify-center gap-3 p-3 rounded-xl bg-white border border-brand-purple/18 shadow-card w-fit mx-auto">
+          <span className="text-xs text-content-muted">{tr.create.orderRef}</span>
+          <span className="text-sm font-bold text-brand-purple font-mono">{orderRef}</span>
+        </div>
+
+        {/* ── Video Preview (the main focus) ── */}
+        <div className="rounded-2xl border border-brand-purple/20 overflow-hidden"
+          style={{ background: 'linear-gradient(145deg, #FAF7FF, #F3EEFF)' }}>
+          <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-brand-purple/10">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse" />
+              <span className="text-sm font-semibold text-content-primary">
+                {lang === 'ar' ? 'معاينة الفيديو' : 'Video Preview'}
+              </span>
             </div>
             {state.celebrity && (
-              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 rounded-lg text-xs font-bold flex items-center justify-center text-white"
+                  className="w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center text-white"
                   style={{ background: state.celebrity.avatarColor }}
                 >
                   {state.celebrity.initials}
                 </div>
-                <span className="text-xs text-content-secondary font-medium">
+                <span className="text-xs text-content-muted">
                   {lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name}
                 </span>
               </div>
             )}
           </div>
-
-          <p className="text-xs text-content-muted text-center">{tr.create.downloadReady}</p>
-
-          <Button
-            fullWidth
-            variant={downloadClicked ? 'secondary' : 'primary'}
-            icon={<Download className="w-4 h-4" />}
-            onClick={() => setDownloadClicked(true)}
-          >
-            {downloadClicked ? (lang === 'ar' ? 'تم بدء التنزيل...' : 'Download started...') : tr.create.downloadBtn}
-          </Button>
+          <div className="p-4">
+            <VideoPreview
+              celebrity={state.celebrity}
+              templateName={templateName ?? 'Custom Video'}
+              productType={productName ?? 'Avatar Studio'}
+              duration={state.duration ?? '30s'}
+              onDownload={() => setDownloadClicked(true)}
+              downloadClicked={downloadClicked}
+              lang={lang}
+            />
+          </div>
         </div>
 
-        <div className="flex gap-3 w-full">
+        {/* ── Bottom actions ── */}
+        <div className="flex gap-3">
           <Link href="/dashboard" className="flex-1">
-            <Button variant="secondary" fullWidth>{lang === 'ar' ? 'لوحة التحكم' : 'My Dashboard'}</Button>
+            <Button variant="secondary" fullWidth>
+              {lang === 'ar' ? 'لوحة التحكم' : 'My Dashboard'}
+            </Button>
           </Link>
-          <Button variant="ghost" fullWidth className="flex-1" icon={<PlusCircle className="w-4 h-4" />} onClick={onReset}>
+          <Button
+            variant="ghost"
+            fullWidth
+            className="flex-1"
+            icon={<PlusCircle className="w-4 h-4" />}
+            onClick={onReset}
+          >
             {tr.create.newVideo}
           </Button>
         </div>
@@ -119,6 +121,7 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
     )
   }
 
+  /* ── Book Call form ─────────────────────────────────────────── */
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center max-w-xl mx-auto">
@@ -148,9 +151,9 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'morning', label: tr.create.morning },
+                  { id: 'morning',   label: tr.create.morning   },
                   { id: 'afternoon', label: tr.create.afternoon },
-                  { id: 'evening', label: tr.create.evening },
+                  { id: 'evening',   label: tr.create.evening   },
                 ].map(t => (
                   <button
                     key={t.id}
@@ -179,7 +182,9 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
 
           {/* Price reminder */}
           <div className="flex items-center justify-between p-4 rounded-xl bg-surface-subtle border border-brand-purple/18">
-            <span className="text-sm text-content-secondary">{lang === 'ar' ? 'التكلفة التقديرية' : 'Estimated Cost'}</span>
+            <span className="text-sm text-content-secondary">
+              {lang === 'ar' ? 'التكلفة التقديرية' : 'Estimated Cost'}
+            </span>
             <span className="text-lg font-bold text-content-primary">
               {state.celebrity && state.productType
                 ? `$${state.celebrity.priceRange[state.productType].min.toLocaleString()} – $${state.celebrity.priceRange[state.productType].max.toLocaleString()}`
@@ -188,7 +193,12 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
           </div>
 
           <div className="flex gap-3">
-            <Button variant="ghost" onClick={onBack} icon={<ChevronLeft className="w-4 h-4" />} type="button">
+            <Button
+              variant="ghost"
+              onClick={onBack}
+              icon={<ChevronLeft className="w-4 h-4" />}
+              type="button"
+            >
               {tr.create.back}
             </Button>
             <Button size="lg" fullWidth type="submit" loading={loading} icon={<Phone className="w-4 h-4" />}>
