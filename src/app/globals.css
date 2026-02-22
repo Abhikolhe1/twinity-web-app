@@ -1,0 +1,211 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Aeonik Pro Fonts ─────────────────────────────────────── */
+@font-face {
+  font-family: 'AeonikPro';
+  src: url('/fonts/AeonikProTRIAL-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AeonikPro';
+  src: url('/fonts/AeonikProTRIAL-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AeonikPro';
+  src: url('/fonts/AeonikProTRIAL-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AeonikPro';
+  src: url('/fonts/AeonikProTRIAL-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AeonikPro';
+  src: url('/fonts/AeonikProTRIAL-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'AeonikPro';
+  src: url('/fonts/AeonikProTRIAL-BoldItalic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ─── CSS Variables (White + Purple Theme) ───────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-page: #F8F5FF;
+  --bg-white: #FFFFFF;
+  --bg-subtle: #F0EBFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FAF7FF;
+  --bg-elevated: #EDE5FF;
+
+  /* Brand */
+  --brand-purple: #9a78fe;
+  --brand-dark: #422266;
+  --brand-mid: #6B3FA0;
+  --brand-black: #301b4c;
+
+  /* Text */
+  --text-primary: #1a0a30;
+  --text-secondary: #4a3465;
+  --text-muted: #8b7aaa;
+  --text-placeholder: #c4b8d8;
+
+  /* Borders */
+  --border: rgba(154, 120, 254, 0.18);
+  --border-hover: rgba(154, 120, 254, 0.45);
+  --border-subtle: rgba(154, 120, 254, 0.10);
+}
+
+/* ─── Base Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: 'AeonikPro', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ─── RTL ────────────────────────────────────────────────────── */
+[dir='rtl'] {
+  font-family: 'AeonikPro', 'Noto Sans Arabic', 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
+
+/* ─── Custom Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-subtle); }
+::-webkit-scrollbar-thumb {
+  background: rgba(154, 120, 254, 0.35);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(154, 120, 254, 0.6); }
+
+/* ─── Selection ──────────────────────────────────────────────── */
+::selection {
+  background: rgba(154, 120, 254, 0.18);
+  color: #1a0a30;
+}
+
+/* ─── Utility Classes ────────────────────────────────────────── */
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, #9a78fe 0%, #422266 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* White glassmorphism card */
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(154, 120, 254, 0.15);
+}
+
+/* Purple glassmorphism (for dark sections/pills) */
+.glass-purple {
+  background: rgba(154, 120, 254, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(154, 120, 254, 0.2);
+}
+
+/* Cards */
+.card {
+  background: #FFFFFF;
+  border: 1px solid rgba(154, 120, 254, 0.14);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(154, 120, 254, 0.06), 0 4px 16px rgba(154, 120, 254, 0.04);
+}
+.card:hover {
+  border-color: rgba(154, 120, 254, 0.35);
+  box-shadow: 0 4px 20px rgba(154, 120, 254, 0.12), 0 8px 40px rgba(154, 120, 254, 0.06);
+}
+
+/* Gradient border */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(154,120,254,0.6), rgba(66,34,102,0.3));
+  border-radius: inherit;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Purple glow */
+.glow-purple {
+  box-shadow: 0 0 30px rgba(154, 120, 254, 0.2), 0 0 80px rgba(154, 120, 254, 0.08);
+}
+
+/* Animated background — subtle purple wash */
+.animated-bg {
+  background: linear-gradient(135deg, #F8F5FF 0%, #FFFFFF 40%, #F3EEFF 100%);
+}
+
+/* Decorative orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  animation: float 10s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50%       { transform: translateY(-20px) scale(1.04); }
+}
+
+/* Step active indicator */
+.step-active {
+  background: linear-gradient(135deg, #9a78fe, #422266);
+  box-shadow: 0 0 16px rgba(154, 120, 254, 0.4);
+}
+
+/* Shimmer */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(154,120,254,0.04) 25%,
+    rgba(154,120,254,0.1) 50%,
+    rgba(154,120,254,0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}

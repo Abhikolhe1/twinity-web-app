@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(file:*)",
+      "Bash(find:*)",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(unzip:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(echo:*)",
+      "Bash(taskkill:*)",
+      "Bash(pkill:*)"
+    ]
+  }
+}
