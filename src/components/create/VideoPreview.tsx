@@ -254,12 +254,22 @@ export default function VideoPreview({
 
         {/* Celebrity avatar — centre stage */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
-          <div
-            className="w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-white/25 shadow-2xl"
-            style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)' }}
-          >
-            {celebrity?.initials ?? 'TW'}
-          </div>
+          {celebrity?.image ? (
+            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
+              <img
+                src={celebrity.image}
+                alt={lang === 'ar' ? celebrity.nameAr : celebrity.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div
+              className="w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-white/25 shadow-2xl"
+              style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)' }}
+            >
+              {celebrity?.initials ?? 'TW'}
+            </div>
+          )}
           {celebrity && (
             <div className="text-center">
               <p className="text-white font-bold text-base sm:text-lg drop-shadow">

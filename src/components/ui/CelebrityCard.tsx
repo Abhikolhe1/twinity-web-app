@@ -49,19 +49,30 @@ export default function CelebrityCard({
 
       <div className={`flex ${compact ? 'gap-3' : 'flex-col gap-3'}`}>
         {/* Avatar */}
-        <div
-          className={`shrink-0 rounded-xl flex items-center justify-center font-bold text-white select-none ${
-            compact ? 'w-12 h-12 text-sm' : 'w-full h-36 text-3xl'
-          }`}
-          style={{ background: celebrity.avatarColor }}
-        >
-          {compact ? celebrity.initials : (
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-4xl">{celebrity.initials}</span>
-              <span className="text-xs font-normal opacity-80">{nationalityLabel}</span>
-            </div>
-          )}
-        </div>
+        {compact ? (
+          <div
+            className="shrink-0 w-12 h-12 rounded-xl overflow-hidden"
+            style={{ background: celebrity.avatarColor }}
+          >
+            <img
+              src={celebrity.image}
+              alt={name}
+              className="w-full h-full object-cover object-top"
+            />
+          </div>
+        ) : (
+          /* Full-bleed portrait — no border, fills card width */
+          <div
+            className="w-full rounded-xl overflow-hidden"
+            style={{ aspectRatio: '4/5', background: celebrity.avatarColor }}
+          >
+            <img
+              src={celebrity.image}
+              alt={name}
+              className="w-full h-full object-cover object-top"
+            />
+          </div>
+        )}
 
         {/* Info */}
         <div className="flex-1 min-w-0">

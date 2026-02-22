@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 380" width="300" height="380">
+  <defs>
+    <linearGradient id="bg-weeknd" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="floor-weeknd" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f0e2e"/>
+      <stop offset="100%" stop-color="#0f0e2e" stop-opacity="0.6"/>
+    </linearGradient>
+    <linearGradient id="namebar-weeknd" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(0,0,0,0)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.82)"/>
+    </linearGradient>
+    <radialGradient id="spotlight-weeknd" cx="50%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.20)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background gradient fills full frame – no clip -->
+  <rect width="300" height="380" fill="url(#bg-weeknd)"/>
+  <rect width="300" height="380" fill="url(#spotlight-weeknd)"/>
+
+  <!-- Floor / lower darker band -->
+  <rect x="0" y="273.59999999999997" width="300" height="106.4" fill="url(#floor-weeknd)"/>
+
+  <!-- Subtle decorative orbs -->
+  <circle cx="30"  cy="30"  r="80"  fill="rgba(255,255,255,0.05)"/>
+  <circle cx="280" cy="360" r="90" fill="rgba(0,0,0,0.07)"/>
+
+  <!-- Clothes / shirt collar area -->
+  <ellipse cx="150" cy="390" rx="110" ry="121.60000000000001" fill="#1e1b4bdd"/>
+  <ellipse cx="150" cy="390" rx="90.19999999999999" ry="102.60000000000001" fill="#1e1b4bff"/>
+
+  <!-- Neck -->
+  <rect x="125.8" y="221" width="48.400000000000006" height="40" rx="16.94" fill="#4a2810"/>
+
+  <!-- ── Hair behind head ── -->
+  
+        <ellipse cx="150" cy="91" rx="57" ry="40.5" fill="#080808"/>
+        <ellipse cx="100" cy="129" rx="9" ry="20" fill="#080808"/>
+        <ellipse cx="200" cy="129" rx="9" ry="20" fill="#080808"/>
+      
+
+  <!-- ── Head ── -->
+  <ellipse cx="150" cy="175" rx="47" ry="54" fill="#4a2810"/>
+
+  <!-- Ears -->
+  <ellipse cx="102" cy="178.24" rx="7" ry="9" fill="#4a2810"/>
+  <ellipse cx="198" cy="178.24" rx="7" ry="9" fill="#4a2810"/>
+  <ellipse cx="102" cy="178.24" rx="3.5" ry="5" fill="#4a2810" opacity="0.7"/>
+  <ellipse cx="198" cy="178.24" rx="3.5" ry="5" fill="#4a2810" opacity="0.7"/>
+
+  <!-- ── Eyebrows ── -->
+  <path d="M 118 159.1 Q 132 152.1 144 157.1"
+    stroke="#080808" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+  <path d="M 156 157.1 Q 168 152.1 182 159.1"
+    stroke="#080808" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+
+  <!-- ── Eyes ── -->
+  <ellipse cx="132" cy="166.9" rx="7.5" ry="5.5" fill="white"/>
+  <ellipse cx="168" cy="166.9" rx="7.5" ry="5.5" fill="white"/>
+  <!-- Iris -->
+  <circle cx="132" cy="166.9" r="4.2" fill="#2c1810"/>
+  <circle cx="168" cy="166.9" r="4.2" fill="#2c1810"/>
+  <!-- Pupil -->
+  <circle cx="132" cy="166.9" r="2.6" fill="rgba(0,0,0,0.88)"/>
+  <circle cx="168" cy="166.9" r="2.6" fill="rgba(0,0,0,0.88)"/>
+  <!-- Highlight -->
+  <circle cx="133.5" cy="165.4" r="1.3" fill="rgba(255,255,255,0.92)"/>
+  <circle cx="169.5" cy="165.4" r="1.3" fill="rgba(255,255,255,0.92)"/>
+  
+
+  <!-- ── Nose ── -->
+  <path d="M 146 181.48 L 143 197.68 Q 150 200.92 157 197.68 L 154 181.48"
+    stroke="rgba(0,0,0,0.10)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <ellipse cx="143.5" cy="198.22" rx="4" ry="2.5" fill="rgba(0,0,0,0.07)"/>
+  <ellipse cx="156.5" cy="198.22" rx="4" ry="2.5" fill="rgba(0,0,0,0.07)"/>
+
+  <!-- ── Mouth / Beard / Stubble ── -->
+  <path d="M 137 204.7 Q 150 213.7 163 204.7" stroke="rgba(0,0,0,0.22)" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <ellipse cx="150" cy="207.4" rx="31.68" ry="15.120000000000001" fill="#080808" opacity="0.62"/>
+       <ellipse cx="150" cy="197.68" rx="25.52" ry="9.719999999999999" fill="#080808" opacity="0.45"/>
+  
+
+  <!-- ── Bottom name bar ── -->
+  <rect x="0" y="281.2" width="300" height="98.8" fill="url(#namebar-weeknd)"/>
+
+  <text x="150" y="346"
+    text-anchor="middle" dominant-baseline="middle"
+    font-family="Arial Black, Arial, sans-serif"
+    font-size="16" font-weight="900"
+    fill="rgba(255,255,255,0.97)" letter-spacing="0.3">The Weeknd</text>
+
+  <text x="150" y="366"
+    text-anchor="middle" dominant-baseline="middle"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="11" font-weight="400"
+    fill="rgba(255,255,255,0.68)" letter-spacing="0.5">R&B · Canada</text>
+</svg>

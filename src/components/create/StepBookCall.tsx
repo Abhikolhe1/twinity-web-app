@@ -75,11 +75,12 @@ export default function StepBookCall({ state, onBack, onReset }: Props) {
             </div>
             {state.celebrity && (
               <div className="flex items-center gap-2">
-                <div
-                  className="w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center text-white"
-                  style={{ background: state.celebrity.avatarColor }}
-                >
-                  {state.celebrity.initials}
+                <div className="w-6 h-6 rounded-md overflow-hidden border border-brand-purple/20">
+                  <img
+                    src={state.celebrity.image}
+                    alt={lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <span className="text-xs text-content-muted">
                   {lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name}

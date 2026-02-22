@@ -41,8 +41,9 @@ export interface Celebrity {
   languages: string[]
   tags: string[]
   tagsAr: string[]
-  avatarColor: string // CSS gradient string
+  avatarColor: string // CSS gradient string (fallback)
   initials: string
+  image: string       // path to /public/celebs/<id>.svg
   priceRange: {
     'avatar-studio': { min: number; max: number }
     'full-body': { min: number; max: number }

@@ -9,7 +9,8 @@
       "Bash(npm run build:*)",
       "Bash(echo:*)",
       "Bash(taskkill:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(node scripts/generate-avatars.mjs:*)"
     ]
   }
 }

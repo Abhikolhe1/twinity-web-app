@@ -14,6 +14,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['كرة القدم', 'أيقونة عالمية', 'النصر'],
     avatarColor: 'linear-gradient(135deg, #1a56db 0%, #0e9f6e 100%)',
     initials: 'CR',
+    image: '/celebs/cr7.svg',
     priceRange: {
       'avatar-studio': { min: 4500, max: 9000 },
       'full-body': { min: 12000, max: 25000 },
@@ -33,6 +34,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['كرة القدم', 'ليفربول', 'أيقونة عربية'],
     avatarColor: 'linear-gradient(135deg, #c62a47 0%, #ff6b35 100%)',
     initials: 'MS',
+    image: '/celebs/salah.svg',
     priceRange: {
       'avatar-studio': { min: 3500, max: 7000 },
       'full-body': { min: 9000, max: 18000 },
@@ -52,6 +54,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['بوب', 'أسطورة', 'موسيقى عربية'],
     avatarColor: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
     initials: 'AD',
+    image: '/celebs/amr-diab.svg',
     priceRange: {
       'avatar-studio': { min: 2000, max: 5000 },
       'full-body': { min: 6000, max: 14000 },
@@ -71,6 +74,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['بوب', 'عربي', 'مقدمة تلفزيون'],
     avatarColor: 'linear-gradient(135deg, #ec4899 0%, #a855f7 100%)',
     initials: 'NA',
+    image: '/celebs/nancy-ajram.svg',
     priceRange: {
       'avatar-studio': { min: 1800, max: 4000 },
       'full-body': { min: 5000, max: 11000 },
@@ -90,6 +94,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['كرة القدم', 'الهلال', 'نجم عالمي'],
     avatarColor: 'linear-gradient(135deg, #fbbf24 0%, #10b981 100%)',
     initials: 'NJ',
+    image: '/celebs/neymar.svg',
     priceRange: {
       'avatar-studio': { min: 4000, max: 8000 },
       'full-body': { min: 10000, max: 22000 },
@@ -109,6 +114,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['يوتيوب', 'خيري', 'فيروسي'],
     avatarColor: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
     initials: 'MB',
+    image: '/celebs/mrbeast.svg',
     priceRange: {
       'avatar-studio': { min: 3000, max: 7000 },
       'full-body': { min: 8000, max: 18000 },
@@ -128,6 +134,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['بوب', 'عربي', 'رومانسي'],
     avatarColor: 'linear-gradient(135deg, #f472b6 0%, #db2777 100%)',
     initials: 'EL',
+    image: '/celebs/elissa.svg',
     priceRange: {
       'avatar-studio': { min: 1200, max: 3000 },
       'full-body': { min: 3500, max: 8000 },
@@ -147,6 +154,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['بوليوود', 'ملك بوليوود', 'أيقونة'],
     avatarColor: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
     initials: 'SK',
+    image: '/celebs/srk.svg',
     priceRange: {
       'avatar-studio': { min: 3000, max: 7000 },
       'full-body': { min: 8000, max: 18000 },
@@ -166,6 +174,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['تيك توك', 'كوميديا', 'فيروسي'],
     avatarColor: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     initials: 'KL',
+    image: '/celebs/khaby.svg',
     priceRange: {
       'avatar-studio': { min: 1500, max: 3500 },
       'full-body': { min: 4000, max: 9000 },
@@ -185,6 +194,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['بوب', 'ممثل', 'نجم الجيل'],
     avatarColor: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)',
     initials: 'TH',
+    image: '/celebs/tamer-hosny.svg',
     priceRange: {
       'avatar-studio': { min: 1000, max: 2500 },
       'full-body': { min: 3000, max: 7000 },
@@ -204,6 +214,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['رياديّ', 'تسويق', 'NFT'],
     avatarColor: 'linear-gradient(135deg, #6366f1 0%, #4338ca 100%)',
     initials: 'GV',
+    image: '/celebs/gary-vee.svg',
     priceRange: {
       'avatar-studio': { min: 1200, max: 3000 },
       'full-body': { min: 3500, max: 8000 },
@@ -223,6 +234,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['مغنية', 'ممثلة', 'أيقونة'],
     avatarColor: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 100%)',
     initials: 'HW',
+    image: '/celebs/haifa.svg',
     priceRange: {
       'avatar-studio': { min: 1500, max: 3500 },
       'full-body': { min: 4000, max: 9000 },
@@ -242,6 +254,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['تنس', 'أعظم لاعب', 'أيقونة عالمية'],
     avatarColor: 'linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%)',
     initials: 'RF',
+    image: '/celebs/federer.svg',
     priceRange: {
       'avatar-studio': { min: 3500, max: 7500 },
       'full-body': { min: 9000, max: 20000 },
@@ -261,6 +274,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['R&B', 'بوب', 'بيلبورد'],
     avatarColor: 'linear-gradient(135deg, #1e1b4b 0%, #7c3aed 100%)',
     initials: 'WK',
+    image: '/celebs/weeknd.svg',
     priceRange: {
       'avatar-studio': { min: 4000, max: 8500 },
       'full-body': { min: 11000, max: 23000 },
@@ -280,6 +294,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['كرة القدم', 'أعظم لاعب', 'إنتر ميامي'],
     avatarColor: 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)',
     initials: 'LM',
+    image: '/celebs/messi.svg',
     priceRange: {
       'avatar-studio': { min: 5000, max: 10000 },
       'full-body': { min: 14000, max: 30000 },
@@ -299,6 +314,7 @@ export const CELEBRITIES: Celebrity[] = [
     tagsAr: ['تسلا', 'سبيس إكس', 'إكس (تويتر)'],
     avatarColor: 'linear-gradient(135deg, #374151 0%, #111827 100%)',
     initials: 'EM',
+    image: '/celebs/elon.svg',
     priceRange: {
       'avatar-studio': { min: 6000, max: 15000 },
       'full-body': { min: 18000, max: 40000 },
