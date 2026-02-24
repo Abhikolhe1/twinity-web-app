@@ -9,8 +9,6 @@ import { CheckCircle2, Clock, FileText } from 'lucide-react'
 interface Props {
   state: WizardState
   onSelect: (template: Template) => void
-  onNext: () => void
-  onBack: () => void
 }
 
 export default function StepTemplate({ state, onSelect }: Props) {

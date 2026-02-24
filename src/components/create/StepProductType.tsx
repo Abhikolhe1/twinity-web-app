@@ -8,10 +8,9 @@ import { CheckCircle2, Clock } from 'lucide-react'
 interface Props {
   state: WizardState
   onSelect: (id: ProductTypeId) => void
-  onNext: () => void
 }
 
-export default function StepProductType({ state, onSelect, onNext }: Props) {
+export default function StepProductType({ state, onSelect }: Props) {
   const { lang, tr } = useLanguage()
 
   return (

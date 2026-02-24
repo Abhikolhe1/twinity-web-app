@@ -19,8 +19,8 @@ interface VideoPreviewProps {
   templateName: string
   productType: string
   duration: string           // e.g. "30s"
-  onDownload: () => void
-  downloadClicked: boolean
+  onDownload?: () => void    // optional — if absent, download button is hidden
+  downloadClicked?: boolean  // optional — defaults to false
   lang: string
 }
 
@@ -43,7 +43,7 @@ export default function VideoPreview({
   productType,
   duration,
   onDownload,
-  downloadClicked,
+  downloadClicked = false,
   lang,
 }: VideoPreviewProps) {
   const totalSeconds = durationToSeconds(duration || '30s')
@@ -383,25 +383,29 @@ export default function VideoPreview({
           </span>
         </div>
 
-        {/* Download button — always visible but morphs after click */}
-        <Button
-          fullWidth
-          size="lg"
-          variant={downloadClicked ? 'secondary' : 'primary'}
-          icon={<Download className="w-5 h-5" />}
-          onClick={onDownload}
-        >
-          {downloadClicked
-            ? (lang === 'ar' ? '✓ جارٍ التنزيل...' : '✓ Downloading...')
-            : (lang === 'ar' ? 'تنزيل الفيديو' : 'Download Video')}
-        </Button>
+        {/* Download button — only shown when onDownload is provided */}
+        {onDownload && (
+          <>
+            <Button
+              fullWidth
+              size="lg"
+              variant={downloadClicked ? 'secondary' : 'primary'}
+              icon={<Download className="w-5 h-5" />}
+              onClick={onDownload}
+            >
+              {downloadClicked
+                ? (lang === 'ar' ? '✓ جارٍ التنزيل...' : '✓ Downloading...')
+                : (lang === 'ar' ? 'تنزيل الفيديو' : 'Download Video')}
+            </Button>
 
-        {!downloadClicked && (
-          <p className="text-xs text-center text-content-muted">
-            {lang === 'ar'
-              ? 'صيغة MP4 · دقة 1080p · علامة مائية خلال الفترة التجريبية'
-              : 'MP4 format · 1080p · Watermarked during trial period'}
-          </p>
+            {!downloadClicked && (
+              <p className="text-xs text-center text-content-muted">
+                {lang === 'ar'
+                  ? 'صيغة MP4 · دقة 1080p · علامة مائية خلال الفترة التجريبية'
+                  : 'MP4 format · 1080p · Watermarked during trial period'}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

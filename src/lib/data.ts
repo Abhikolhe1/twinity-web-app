@@ -556,11 +556,23 @@ export const CHANNELS = [
 ]
 
 export const DURATIONS = [
-  { id: '15s', en: '15 seconds', ar: '15 ثانية' },
-  { id: '30s', en: '30 seconds', ar: '30 ثانية' },
-  { id: '60s', en: '60 seconds', ar: '60 ثانية' },
-  { id: '90s', en: '90 seconds', ar: '90 ثانية' },
-  { id: '2min', en: '2 minutes', ar: 'دقيقتان' },
+  { id: '10s', en: '10 sec', ar: '10 ثوانٍ' },
+  { id: '15s', en: '15 sec', ar: '15 ثانية' },
+  { id: '30s', en: '30 sec', ar: '30 ثانية' },
+  { id: '60s', en: '60 sec', ar: '60 ثانية' },
+]
+
+export const ASPECT_RATIOS = [
+  { id: '16:9', label: '16:9', hint: 'Landscape', hintAr: 'أفقي'      },
+  { id: '9:16', label: '9:16', hint: 'Portrait',  hintAr: 'عمودي'     },
+  { id: '1:1',  label: '1:1',  hint: 'Square',    hintAr: 'مربع'      },
+  { id: '4:5',  label: '4:5',  hint: 'Social',    hintAr: 'اجتماعي'   },
+]
+
+export const RESOLUTIONS = [
+  { id: '720p',  label: '720p',  hint: 'HD',       hintAr: 'عالي الدقة'   },
+  { id: '1080p', label: '1080p', hint: 'Full HD',  hintAr: 'فائق الدقة'   },
+  { id: '4K',    label: '4K',    hint: 'Ultra HD', hintAr: 'فائق الجودة'  },
 ]
 
 export const MOCK_ORDERS = [

@@ -13,11 +13,9 @@ const INDUSTRIES: Industry[] = ['all', 'entertainment', 'sports', 'music', 'busi
 interface Props {
   state: WizardState
   onSelect: (celebrity: Celebrity) => void
-  onNext: () => void
-  onBack: () => void
 }
 
-export default function StepCelebrity({ state, onSelect, onNext, onBack }: Props) {
+export default function StepCelebrity({ state, onSelect }: Props) {
   const { lang, tr } = useLanguage()
   const [search, setSearch] = useState('')
   const [industry, setIndustry] = useState<Industry>('all')

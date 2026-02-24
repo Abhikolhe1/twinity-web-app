@@ -28,7 +28,11 @@ export type Channel =
   | 'event'
   | 'youtube'
 
-export type Duration = '15s' | '30s' | '60s' | '90s' | '2min'
+export type Duration = '10s' | '15s' | '30s' | '60s'
+
+export type AspectRatio = '16:9' | '9:16' | '1:1' | '4:5'
+
+export type Resolution = '720p' | '1080p' | '4K'
 
 export interface Celebrity {
   id: string
@@ -88,8 +92,9 @@ export interface WizardState {
   template: Template | null
   purpose: string
   customScript: string
-  tone: Tone | null
   duration: Duration | null
+  aspectRatio: AspectRatio | null
+  resolution: Resolution | null
   channels: Channel[]
   language: 'en' | 'ar'
   useCustomScript: boolean

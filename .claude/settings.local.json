@@ -10,7 +10,8 @@
       "Bash(echo:*)",
       "Bash(taskkill:*)",
       "Bash(pkill:*)",
-      "Bash(node scripts/generate-avatars.mjs:*)"
+      "Bash(node scripts/generate-avatars.mjs:*)",
+      "Bash(cd C:/Technorthstar/Twinity/twinity-web-app && npx tsc --noEmit 2>&1)"
     ]
   }
 }

@@ -1,32 +1,28 @@
 'use client'
 
 import { WizardState } from '@/lib/types'
-import { PRODUCT_TYPES, TONES, CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/lib/data'
+import { PRODUCT_TYPES, CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
-import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import { Info } from 'lucide-react'
 
 interface Props {
   state: WizardState
-  onNext: () => void
-  onBack: () => void
 }
 
 function calcPrice(state: WizardState) {
   if (!state.celebrity || !state.productType) return { min: 0, max: 0, base: 0, complexity: 0, channels: 0, total: 0 }
   const range = state.celebrity.priceRange[state.productType]
   const base = Math.round((range.min + range.max) / 2)
-  const complexity = (state.duration === '90s' || state.duration === '2min') ? Math.round(base * 0.15) : 0
+  const complexity = state.duration === '60s' ? Math.round(base * 0.15) : 0
   const channelsFee = state.channels.length > 2 ? Math.round(base * 0.1) : 0
   return { min: range.min, max: range.max, base, complexity, channels: channelsFee, total: base + complexity + channelsFee }
 }
 
-export default function StepReview({ state, onNext, onBack }: Props) {
+export default function StepReview({ state }: Props) {
   const { lang, tr } = useLanguage()
   const price = calcPrice(state)
   const productType = PRODUCT_TYPES.find(p => p.id === state.productType)
-  const toneLabel = TONES.find(t => t.id === state.tone)?.[lang === 'ar' ? 'ar' : 'en']
   const durationLabel = DURATIONS.find(d => d.id === state.duration)?.[lang === 'ar' ? 'ar' : 'en']
 
   const channelLabels = state.channels.map(cId => {
@@ -72,8 +68,9 @@ export default function StepReview({ state, onNext, onBack }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <SummaryItem label={lang === 'ar' ? 'نوع الفيديو' : 'Video Type'} value={(lang === 'ar' ? productType?.nameAr : productType?.name) ?? '—'} />
             <SummaryItem label={lang === 'ar' ? 'القالب' : 'Template'} value={(lang === 'ar' ? state.template?.nameAr : state.template?.name) ?? '—'} />
-            <SummaryItem label={lang === 'ar' ? 'النبرة' : 'Tone'} value={toneLabel ?? '—'} />
             <SummaryItem label={lang === 'ar' ? 'المدة' : 'Duration'} value={durationLabel ?? '—'} />
+            <SummaryItem label={lang === 'ar' ? 'نسبة العرض' : 'Aspect Ratio'} value={state.aspectRatio ?? '—'} />
+            <SummaryItem label={lang === 'ar' ? 'الدقة' : 'Resolution'} value={state.resolution ?? '—'} />
             <SummaryItem label={lang === 'ar' ? 'لغة الفيديو' : 'Language'} value={state.language === 'ar' ? 'العربية' : 'English'} />
           </div>
 
