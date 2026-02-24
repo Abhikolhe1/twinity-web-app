@@ -60,7 +60,7 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/dashboard/pending">
+            <Link href="/dashboard/videos?f=pending">
               <div className="group p-5 rounded-2xl bg-white border border-brand-purple/15 hover:border-brand-purple/35 hover:shadow-card-hover transition-all cursor-pointer flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5 text-amber-600" />
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/dashboard/downloads">
+            <Link href="/dashboard/videos?f=delivered">
               <div className="group p-5 rounded-2xl bg-white border border-brand-purple/15 hover:border-brand-purple/35 hover:shadow-card-hover transition-all cursor-pointer flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
                   <Download className="w-5 h-5 text-emerald-600" />

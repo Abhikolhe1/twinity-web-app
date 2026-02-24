@@ -38,15 +38,6 @@ export default function Navbar() {
               <span className="hidden sm:inline">{lang === 'en' ? 'العربية' : 'English'}</span>
             </button>
 
-            {/* Sign In */}
-            <Link
-              href="/login"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-content-secondary hover:text-brand-purple hover:bg-surface-subtle transition-all"
-            >
-              <LogIn className="w-4 h-4" />
-              {tr.nav.signIn}
-            </Link>
-
             {/* Create CTA */}
             <Link
               href="/create"
