@@ -22,8 +22,9 @@ export default function Navbar() {
 
           {/* Center Nav */}
           <div className="hidden md:flex items-center gap-1">
-            <NavLink href="/celebrities" label={tr.nav.celebrities} active={isActive('/celebrities')} />
-            <NavLink href="/dashboard"  label={tr.nav.dashboard}   active={isActive('/dashboard')} />
+            <NavLink href="/celebrities"       label={tr.nav.celebrities} active={isActive('/celebrities')} />
+            <NavLink href="/dashboard/videos"  label={tr.nav.videos}      active={pathname.startsWith('/dashboard/videos')} />
+            <NavLink href="/dashboard"         label={tr.nav.dashboard}   active={isActive('/dashboard')} />
           </div>
 
           {/* Right Actions */}
@@ -39,7 +40,7 @@ export default function Navbar() {
 
             {/* Sign In */}
             <Link
-              href="/register"
+              href="/login"
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-content-secondary hover:text-brand-purple hover:bg-surface-subtle transition-all"
             >
               <LogIn className="w-4 h-4" />

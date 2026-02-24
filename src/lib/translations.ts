@@ -2,6 +2,7 @@ export const t = {
   en: {
     nav: {
       celebrities: 'Celebrities',
+      videos: 'Videos',
       howItWorks: 'How It Works',
       pricing: 'Pricing',
       signIn: 'Sign In',
@@ -113,6 +114,15 @@ export const t = {
       createNew: 'Create New Video',
       noOrders: "You haven't created any videos yet.",
       startCreating: 'Start Creating',
+      pendingOrders: 'Pending Orders',
+      readyDownload: 'Ready to Download',
+      downloadVideo: 'Download Video',
+      submittedOn: 'Submitted',
+      noPending: 'No pending orders',
+      allVideos: 'All Videos',
+      noPendingSub: 'All your videos have been delivered.',
+      noDownloads: 'No downloads yet',
+      noDownloadsSub: 'Videos will appear here once approved.',
       statusLabels: {
         pending: 'Pending',
         'in-progress': 'In Progress',
@@ -136,6 +146,7 @@ export const t = {
   ar: {
     nav: {
       celebrities: 'المشاهير',
+      videos: 'الفيديوهات',
       howItWorks: 'كيف يعمل',
       pricing: 'الأسعار',
       signIn: 'تسجيل الدخول',
@@ -247,6 +258,15 @@ export const t = {
       createNew: 'إنشاء فيديو جديد',
       noOrders: 'لم تنشئ أي مقاطع فيديو بعد.',
       startCreating: 'ابدأ الإنشاء',
+      pendingOrders: 'طلبات قيد المعالجة',
+      readyDownload: 'جاهز للتنزيل',
+      downloadVideo: 'تنزيل الفيديو',
+      submittedOn: 'مُرسَل في',
+      noPending: 'لا توجد طلبات معلّقة',
+      allVideos: 'جميع الفيديوهات',
+      noPendingSub: 'جميع فيديوهاتك تم تسليمها.',
+      noDownloads: 'لا توجد تنزيلات بعد',
+      noDownloadsSub: 'ستظهر الفيديوهات هنا عند الموافقة عليها.',
       statusLabels: {
         pending: 'في الانتظار',
         'in-progress': 'قيد التنفيذ',
