@@ -3,7 +3,7 @@
 import { ProductTypeId, WizardState } from '@/lib/types'
 import { PRODUCT_TYPES } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
-import { CheckCircle2, Clock } from 'lucide-react'
+import { Check, Clock } from 'lucide-react'
 
 interface Props {
   state: WizardState
@@ -54,7 +54,9 @@ export default function StepProductType({ state, onSelect }: Props) {
 
               {isSelected && !isComingSoon && (
                 <div className="absolute top-4 right-4">
-                  <CheckCircle2 className="w-5 h-5 text-brand-purple" fill="rgba(154,120,254,0.15)" />
+                  <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
+                    <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                  </div>
                 </div>
               )}
 
