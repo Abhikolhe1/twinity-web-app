@@ -6,7 +6,7 @@ import { CELEBRITIES, INDUSTRY_LABELS } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
 import CelebrityCard from '@/components/ui/CelebrityCard'
 import Button from '@/components/ui/Button'
-import { Search, ChevronRight, ChevronLeft, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 
 const INDUSTRIES: Industry[] = ['all', 'entertainment', 'sports', 'music', 'business', 'social-media', 'tv-film']
 
@@ -123,11 +123,6 @@ export default function StepCelebrity({ state, onSelect, onNext, onBack }: Props
         </div>
       )}
 
-      {/* Navigation */}
-      <div className="flex justify-between items-center pt-2">
-        <Button variant="ghost" onClick={onBack} icon={<ChevronLeft className="w-4 h-4" />}>{tr.create.back}</Button>
-        <Button size="lg" disabled={!state.celebrity} onClick={onNext} iconEnd={<ChevronRight className="w-5 h-5" />}>{tr.create.next}</Button>
-      </div>
     </div>
   )
 }

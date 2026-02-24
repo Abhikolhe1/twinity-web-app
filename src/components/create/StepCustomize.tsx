@@ -5,7 +5,7 @@ import { TONES, CHANNELS, DURATIONS } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
 import { TextArea } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { ChevronRight, ChevronLeft, ToggleLeft, ToggleRight } from 'lucide-react'
+import { ToggleLeft, ToggleRight } from 'lucide-react'
 
 interface Props {
   state: WizardState
@@ -178,10 +178,6 @@ export default function StepCustomize({ state, onChange, onNext, onBack }: Props
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-2">
-        <Button variant="ghost" onClick={onBack} icon={<ChevronLeft className="w-4 h-4" />}>{tr.create.back}</Button>
-        <Button size="lg" disabled={!canProceed} onClick={onNext} iconEnd={<ChevronRight className="w-5 h-5" />}>{tr.create.next}</Button>
-      </div>
     </div>
   )
 }

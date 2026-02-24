@@ -16,8 +16,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <img src="/logo/icon.svg" alt="Twinity Icon" className="w-7 h-7" />
-            <img src="/logo/logo.svg" alt="Twinity" className="h-5 hidden sm:block" />
+            <img src="/logo/icon.svg" alt="Twinity Icon" className="h-10 sm:hidden" />
+            <img src="/logo/logo.svg" alt="Twinity" className="h-24 hidden sm:block" />
           </Link>
 
           {/* Center Nav */}

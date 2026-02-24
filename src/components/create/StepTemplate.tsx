@@ -5,7 +5,7 @@ import { Template, WizardState } from '@/lib/types'
 import { TEMPLATES } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
 import Button from '@/components/ui/Button'
-import { CheckCircle2, Clock, ChevronRight, ChevronLeft, FileText } from 'lucide-react'
+import { CheckCircle2, Clock, FileText } from 'lucide-react'
 
 interface Props {
   state: WizardState
@@ -102,10 +102,6 @@ export default function StepTemplate({ state, onSelect, onNext, onBack }: Props)
         ))}
       </div>
 
-      <div className="flex justify-between items-center pt-2">
-        <Button variant="ghost" onClick={onBack} icon={<ChevronLeft className="w-4 h-4" />}>{tr.create.back}</Button>
-        <Button size="lg" disabled={!state.template} onClick={onNext} iconEnd={<ChevronRight className="w-5 h-5" />}>{tr.create.next}</Button>
-      </div>
     </div>
   )
 }

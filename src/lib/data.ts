@@ -325,6 +325,23 @@ export const CELEBRITIES: Celebrity[] = [
 
 export const PRODUCT_TYPES: ProductType[] = [
   {
+    id: 'greeting',
+    name: 'Celebrity Greetings',
+    nameAr: 'تحيات المشاهير',
+    description: 'Personal occasions',
+    descriptionAr: 'المناسبات الشخصية',
+    detail:
+      'Personalized celebrity messages for birthdays, weddings, graduations, and heartfelt appreciations.',
+    detailAr:
+      'رسائل مشاهير شخصية لأعياد الميلاد والأعراس والتخرج وعبارات الامتنان.',
+    icon: '🎉',
+    priceFrom: 149,
+    duration: 'Delivery in 1–2 business days',
+    durationAr: 'التسليم في غضون 1–2 يوم عمل',
+    useCases: ['Birthdays', 'Weddings', 'Graduations', 'Corporate Appreciation'],
+    useCasesAr: ['أعياد الميلاد', 'الأعراس', 'حفلات التخرج', 'التقدير المؤسسي'],
+  },
+  {
     id: 'avatar-studio',
     name: 'Avatar Studio',
     nameAr: 'استوديو الأفاتار',
@@ -357,23 +374,6 @@ export const PRODUCT_TYPES: ProductType[] = [
     durationAr: 'التسليم في غضون 7–14 يوم عمل',
     useCases: ['TV Commercials', 'Event Displays', 'Campaign Videos', 'Immersive Brand Experiences'],
     useCasesAr: ['إعلانات تلفزيونية', 'عروض الفعاليات', 'مقاطع فيديو الحملات', 'تجارب العلامة التجارية الغامرة'],
-  },
-  {
-    id: 'greeting',
-    name: 'Celebrity Greetings',
-    nameAr: 'تحيات المشاهير',
-    description: 'Personal occasions',
-    descriptionAr: 'المناسبات الشخصية',
-    detail:
-      'Personalized celebrity messages for birthdays, weddings, graduations, and heartfelt appreciations.',
-    detailAr:
-      'رسائل مشاهير شخصية لأعياد الميلاد والأعراس والتخرج وعبارات الامتنان.',
-    icon: '🎉',
-    priceFrom: 149,
-    duration: 'Delivery in 1–2 business days',
-    durationAr: 'التسليم في غضون 1–2 يوم عمل',
-    useCases: ['Birthdays', 'Weddings', 'Graduations', 'Corporate Appreciation'],
-    useCasesAr: ['أعياد الميلاد', 'الأعراس', 'حفلات التخرج', 'التقدير المؤسسي'],
   },
 ]
 

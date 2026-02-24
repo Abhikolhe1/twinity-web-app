@@ -5,7 +5,7 @@ import { PRODUCT_TYPES, TONES, CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/li
 import { useLanguage } from '@/lib/context'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
-import { ChevronRight, ChevronLeft, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 
 interface Props {
   state: WizardState
@@ -144,10 +144,6 @@ export default function StepReview({ state, onNext, onBack }: Props) {
         </div>
       </div>
 
-      <div className="flex justify-between items-center pt-2">
-        <Button variant="ghost" onClick={onBack} icon={<ChevronLeft className="w-4 h-4" />}>{tr.create.back}</Button>
-        <Button size="lg" onClick={onNext} iconEnd={<ChevronRight className="w-5 h-5" />}>{tr.create.bookCall}</Button>
-      </div>
     </div>
   )
 }

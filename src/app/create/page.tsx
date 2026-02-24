@@ -10,11 +10,12 @@ import StepTemplate from '@/components/create/StepTemplate'
 import StepCustomize from '@/components/create/StepCustomize'
 import StepReview from '@/components/create/StepReview'
 import StepBookCall from '@/components/create/StepBookCall'
+import StickyStepBar from '@/components/create/StickyStepBar'
 import { WizardState, Celebrity, ProductTypeId, Template } from '@/lib/types'
 import { useLanguage } from '@/lib/context'
 
 const INITIAL_STATE: WizardState = {
-  productType: null,
+  productType: 'greeting',
   celebrity: null,
   template: null,
   purpose: '',
@@ -27,7 +28,7 @@ const INITIAL_STATE: WizardState = {
 }
 
 export default function CreatePage() {
-  const { tr } = useLanguage()
+  const { lang, tr } = useLanguage()
   const [step, setStep] = useState(1)
   const [state, setState] = useState<WizardState>(INITIAL_STATE)
 
@@ -43,6 +44,19 @@ export default function CreatePage() {
   const update = (updates: Partial<WizardState>) => setState(prev => ({ ...prev, ...updates }))
   const reset = () => { setState(INITIAL_STATE); setStep(1) }
 
+  const canProceed =
+    step === 1 ? !!state.productType :
+    step === 2 ? !!state.celebrity :
+    step === 3 ? !!state.template :
+    true // steps 4 & 5 always allow continue
+
+  const handleNext = () => {
+    if (step < 6) setStep(s => s + 1)
+  }
+  const handleBack = () => {
+    if (step > 1) setStep(s => s - 1)
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-surface-page">
       <Navbar />
@@ -55,7 +69,7 @@ export default function CreatePage() {
           style={{ background: 'radial-gradient(circle, #422266, transparent)', bottom: '5%', left: '-5%', animationDelay: '4s' }} />
       </div>
 
-      <main className="flex-1 pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 pt-24 pb-32 px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-content-primary">{tr.create.title}</h1>
@@ -70,15 +84,24 @@ export default function CreatePage() {
 
           {/* Step Content */}
           <div className="animate-fade-in">
-            {step === 1 && <StepProductType state={state} onSelect={(id: ProductTypeId) => update({ productType: id })} onNext={() => setStep(2)} />}
-            {step === 2 && <StepCelebrity state={state} onSelect={(celebrity: Celebrity) => update({ celebrity })} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
-            {step === 3 && <StepTemplate state={state} onSelect={(template: Template) => update({ template })} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
-            {step === 4 && <StepCustomize state={state} onChange={update} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-            {step === 5 && <StepReview state={state} onNext={() => setStep(6)} onBack={() => setStep(4)} />}
-            {step === 6 && <StepBookCall state={state} onBack={() => setStep(5)} onReset={reset} />}
+            {step === 1 && <StepProductType state={state} onSelect={(id: ProductTypeId) => update({ productType: id })} onNext={handleNext} />}
+            {step === 2 && <StepCelebrity state={state} onSelect={(celebrity: Celebrity) => update({ celebrity })} onNext={handleNext} onBack={handleBack} />}
+            {step === 3 && <StepTemplate state={state} onSelect={(template: Template) => update({ template })} onNext={handleNext} onBack={handleBack} />}
+            {step === 4 && <StepCustomize state={state} onChange={update} onNext={handleNext} onBack={handleBack} />}
+            {step === 5 && <StepReview state={state} onNext={handleNext} onBack={handleBack} />}
+            {step === 6 && <StepBookCall state={state} onBack={handleBack} onReset={reset} />}
           </div>
         </div>
       </main>
+
+      <StickyStepBar
+        step={step}
+        state={state}
+        lang={lang}
+        canProceed={canProceed}
+        onNext={handleNext}
+        onBack={handleBack}
+      />
 
       <Footer />
     </div>

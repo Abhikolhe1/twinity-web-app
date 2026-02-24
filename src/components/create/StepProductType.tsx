@@ -3,8 +3,7 @@
 import { ProductTypeId, WizardState } from '@/lib/types'
 import { PRODUCT_TYPES } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
-import { CheckCircle2, Clock, ChevronRight } from 'lucide-react'
-import Button from '@/components/ui/Button'
+import { CheckCircle2, Clock } from 'lucide-react'
 
 interface Props {
   state: WizardState
@@ -24,25 +23,37 @@ export default function StepProductType({ state, onSelect, onNext }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {PRODUCT_TYPES.map(pt => {
-          const isSelected = state.productType === pt.id
-          const name      = lang === 'ar' ? pt.nameAr      : pt.name
-          const desc      = lang === 'ar' ? pt.descriptionAr : pt.description
-          const detail    = lang === 'ar' ? pt.detailAr    : pt.detail
-          const duration  = lang === 'ar' ? pt.durationAr  : pt.duration
-          const useCases  = lang === 'ar' ? pt.useCasesAr  : pt.useCases
+          const isComingSoon = pt.id === 'avatar-studio' || pt.id === 'full-body'
+          const isSelected   = state.productType === pt.id
+          const name         = lang === 'ar' ? pt.nameAr        : pt.name
+          const desc         = lang === 'ar' ? pt.descriptionAr : pt.description
+          const detail       = lang === 'ar' ? pt.detailAr      : pt.detail
+          const duration     = lang === 'ar' ? pt.durationAr    : pt.duration
+          const useCases     = lang === 'ar' ? pt.useCasesAr    : pt.useCases
 
           return (
             <div
               key={pt.id}
-              onClick={() => onSelect(pt.id)}
-              className={`relative rounded-2xl border p-6 cursor-pointer transition-all duration-300 flex flex-col gap-4 group ${
-                isSelected
-                  ? 'border-brand-purple bg-surface-subtle shadow-purple'
-                  : 'border-brand-purple/12 bg-white hover:border-brand-purple/40 hover:shadow-card-hover'
+              onClick={() => !isComingSoon && onSelect(pt.id)}
+              className={`relative rounded-2xl border p-6 transition-all duration-300 flex flex-col gap-4 group ${
+                isComingSoon
+                  ? 'border-brand-purple/10 bg-white/60 cursor-not-allowed'
+                  : isSelected
+                    ? 'border-brand-purple bg-surface-subtle shadow-purple cursor-pointer'
+                    : 'border-brand-purple/12 bg-white hover:border-brand-purple/40 hover:shadow-card-hover cursor-pointer'
               }`}
-              style={isSelected ? { boxShadow: '0 0 0 2px rgba(154,120,254,0.3), 0 4px 24px rgba(154,120,254,0.12)' } : undefined}
+              style={isSelected && !isComingSoon ? { boxShadow: '0 0 0 2px rgba(154,120,254,0.3), 0 4px 24px rgba(154,120,254,0.12)' } : undefined}
             >
-              {isSelected && (
+              {/* Coming Soon badge */}
+              {isComingSoon && (
+                <div className="absolute top-4 right-4">
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+                    {lang === 'ar' ? 'قريباً' : 'Coming Soon'}
+                  </span>
+                </div>
+              )}
+
+              {isSelected && !isComingSoon && (
                 <div className="absolute top-4 right-4">
                   <CheckCircle2 className="w-5 h-5 text-brand-purple" fill="rgba(154,120,254,0.15)" />
                 </div>
@@ -98,11 +109,6 @@ export default function StepProductType({ state, onSelect, onNext }: Props) {
         })}
       </div>
 
-      <div className="flex justify-center mt-2">
-        <Button size="lg" disabled={!state.productType} onClick={onNext} iconEnd={<ChevronRight className="w-5 h-5" />}>
-          {tr.create.next}
-        </Button>
-      </div>
     </div>
   )
 }
