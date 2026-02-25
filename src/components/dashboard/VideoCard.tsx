@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import { Play } from 'lucide-react'
 import { MOCK_ORDERS } from '@/lib/data'
@@ -31,7 +32,7 @@ export default function VideoCard({
   labels: Record<string, string>
 }) {
   return (
-    <div className="rounded-2xl bg-white border border-brand-purple/12 overflow-hidden hover:border-brand-purple/30 hover:shadow-card-hover transition-all group cursor-pointer">
+    <Link href={`/videos/${order.id}`} className="rounded-2xl bg-white border border-brand-purple/12 overflow-hidden hover:border-brand-purple/30 hover:shadow-card-hover transition-all group cursor-pointer block">
 
       {/* Thumbnail */}
       <div className="relative w-full" style={{ aspectRatio: '16/9', background: thumbnailGradient(order.status) }}>
@@ -79,6 +80,6 @@ export default function VideoCard({
         </div>
       </div>
 
-    </div>
+    </Link>
   )
 }
