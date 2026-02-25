@@ -35,7 +35,7 @@ export default function StepCustomize({ state, onChange }: Props) {
         <p className="mt-2 text-content-muted text-sm sm:text-base">{tr.create.customizeSub}</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-6 items-start">
 
         {/* ── Left column: all options + Generate ── */}
         <div className="flex flex-col gap-5">

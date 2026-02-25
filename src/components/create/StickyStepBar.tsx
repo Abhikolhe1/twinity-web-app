@@ -41,23 +41,8 @@ export default function StickyStepBar() {
   const handleBack = () => { if (prevSlug) router.push(`${BASE}/${prevSlug}`) }
   const handleNext = () => { if (nextSlug) router.push(`${BASE}/${nextSlug}`) }
 
-  // Step 6: only show Back (the form has its own Submit button)
-  if (step === 6) {
-    return (
-      <div className="fixed bottom-6 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-50 animate-slide-up">
-        <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-3 border border-brand-purple/20"
-          style={{ boxShadow: '0 4px 32px rgba(154,120,254,0.18), 0 1px 8px rgba(0,0,0,0.06)' }}>
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-medium text-content-secondary hover:text-brand-purple hover:bg-surface-subtle border border-brand-purple/15 transition-all"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>{lang === 'ar' ? 'رجوع' : 'Back'}</span>
-          </button>
-        </div>
-      </div>
-    )
-  }
+  // Step 6: no sticky bar — form has its own Submit button
+  if (step === 6) return null
 
   // Summary avatar / label for steps 1–5
   const pt = PRODUCT_TYPES.find(p => p.id === state.productType)

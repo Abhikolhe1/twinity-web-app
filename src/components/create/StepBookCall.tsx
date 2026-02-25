@@ -6,7 +6,7 @@ import { WizardState } from '@/lib/types'
 import { useLanguage } from '@/lib/context'
 import { Input, TextArea } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { Phone, Calendar } from 'lucide-react'
+import { Phone, Calendar, ChevronLeft } from 'lucide-react'
 import { PRODUCT_TYPES } from '@/lib/data'
 
 const ORDER_REF_KEY = 'twinity_order_ref'
@@ -102,9 +102,19 @@ export default function StepBookCall({ state }: Props) {
             </span>
           </div>
 
-          <Button size="lg" fullWidth type="submit" loading={loading} icon={<Phone className="w-4 h-4" />}>
-            {tr.create.submitRequest}
-          </Button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => router.push('/create/review')}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium border border-brand-purple/20 text-content-secondary hover:text-brand-purple hover:bg-surface-subtle transition-all shrink-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              {lang === 'ar' ? 'رجوع' : 'Back'}
+            </button>
+            <Button size="lg" fullWidth type="submit" loading={loading} icon={<Phone className="w-4 h-4" />}>
+              {tr.create.submitRequest}
+            </Button>
+          </div>
         </form>
       </div>
     </div>

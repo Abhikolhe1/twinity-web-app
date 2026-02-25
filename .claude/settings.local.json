@@ -12,7 +12,9 @@
       "Bash(pkill:*)",
       "Bash(node scripts/generate-avatars.mjs:*)",
       "Bash(cd C:/Technorthstar/Twinity/twinity-web-app && npx tsc --noEmit 2>&1)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(done)",
+      "Bash(head:*)"
     ]
   }
 }

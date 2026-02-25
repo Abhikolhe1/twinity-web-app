@@ -103,7 +103,7 @@ export default function StepCelebrity({ state, onSelect }: Props) {
 
       {/* Grid */}
       {filtered.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {filtered.map(c => (
             <CelebrityCard
               key={c.id}

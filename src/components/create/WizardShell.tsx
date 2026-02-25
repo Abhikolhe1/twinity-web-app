@@ -44,8 +44,8 @@ function Shell({ children }: { children: React.ReactNode }) {
           style={{ background: 'radial-gradient(circle, #422266, transparent)', bottom: '5%', left: '-5%', animationDelay: '4s' }} />
       </div>
 
-      <main className="flex-1 pt-24 pb-32 relative z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-1 pt-24 pb-24 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {!isSuccess && (
             <div className="mb-8 text-center">
               <h1 className="text-2xl font-bold text-content-primary">{tr.create.title}</h1>
@@ -53,7 +53,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           )}
 
           {!isSuccess && currentStep > 0 && (
-            <div className="mb-10">
+            <div className="mb-6">
               <StepIndicator steps={steps} currentStep={currentStep} />
             </div>
           )}
