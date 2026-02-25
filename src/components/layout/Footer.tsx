@@ -18,13 +18,13 @@ export default function Footer() {
             </span>
           </div>
           <div className="flex items-center gap-6 text-sm text-content-muted">
-            <Link href="#" className="hover:text-brand-purple transition-colors">
+            <Link href="/privacy" className="hover:text-brand-purple transition-colors">
               {lang === 'ar' ? 'سياسة الخصوصية' : 'Privacy'}
             </Link>
-            <Link href="#" className="hover:text-brand-purple transition-colors">
+            <Link href="/terms" className="hover:text-brand-purple transition-colors">
               {lang === 'ar' ? 'شروط الخدمة' : 'Terms'}
             </Link>
-            <Link href="#" className="hover:text-brand-purple transition-colors">
+            <Link href="/contact" className="hover:text-brand-purple transition-colors">
               {lang === 'ar' ? 'تواصل معنا' : 'Contact'}
             </Link>
           </div>

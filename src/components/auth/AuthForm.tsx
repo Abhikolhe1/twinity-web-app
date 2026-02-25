@@ -214,9 +214,9 @@ export default function AuthForm({ mode }: AuthFormProps) {
                   />
                   <span className="text-xs text-content-muted leading-relaxed">
                     {tr.auth.bySigningUp}{' '}
-                    <Link href="#" className="text-brand-purple hover:underline">{tr.auth.terms}</Link>
+                    <Link href="/terms" className="text-brand-purple hover:underline">{tr.auth.terms}</Link>
                     {' '}&amp;{' '}
-                    <Link href="#" className="text-brand-purple hover:underline">{tr.auth.privacy}</Link>
+                    <Link href="/privacy" className="text-brand-purple hover:underline">{tr.auth.privacy}</Link>
                   </span>
                 </label>
               </>
@@ -224,7 +224,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
 
             {mode === 'signin' && (
               <div className="flex justify-end">
-                <Link href="#" className="text-xs text-brand-purple hover:underline">{tr.auth.forgotPassword}</Link>
+                <Link href="/forgot-password" className="text-xs text-brand-purple hover:underline">{tr.auth.forgotPassword}</Link>
               </div>
             )}
 
