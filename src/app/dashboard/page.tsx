@@ -26,8 +26,8 @@ export default function DashboardPage() {
           style={{ background: 'radial-gradient(circle, #9a78fe, transparent)', top: '5%', right: '-5%' }} />
       </div>
 
-      <main className="flex-1 pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-4xl mx-auto flex flex-col gap-8">
+      <main className="flex-1 pt-24 pb-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
 
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -45,7 +45,7 @@ export default function DashboardPage() {
           {/* Nav cards: All Videos + Pending + Downloads */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-            <Link href="/dashboard/videos">
+            <Link href="/videos">
               <div className="group p-5 rounded-2xl bg-white border border-brand-purple/15 hover:border-brand-purple/35 hover:shadow-card-hover transition-all cursor-pointer flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-brand-purple/8 border border-brand-purple/15 flex items-center justify-center shrink-0">
                   <Film className="w-5 h-5 text-brand-purple" />
@@ -60,7 +60,7 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/dashboard/videos?f=pending">
+            <Link href="/videos?f=pending">
               <div className="group p-5 rounded-2xl bg-white border border-brand-purple/15 hover:border-brand-purple/35 hover:shadow-card-hover transition-all cursor-pointer flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
                   <Clock className="w-5 h-5 text-amber-600" />
@@ -75,7 +75,7 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/dashboard/videos?f=delivered">
+            <Link href="/videos?f=delivered">
               <div className="group p-5 rounded-2xl bg-white border border-brand-purple/15 hover:border-brand-purple/35 hover:shadow-card-hover transition-all cursor-pointer flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
                   <Download className="w-5 h-5 text-emerald-600" />
@@ -107,7 +107,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {recent.map(order => (
                   <VideoCard key={order.id} order={order} labels={labels} />
                 ))}

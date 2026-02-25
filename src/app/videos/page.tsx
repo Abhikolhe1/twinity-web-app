@@ -18,7 +18,6 @@ const FILTERS = [
   { id: 'delivered',   en: 'Ready',       ar: 'جاهز' },
 ]
 
-// Inner component reads search params (must be wrapped in Suspense for static build)
 function VideosContent() {
   const { lang, tr } = useLanguage()
   const labels = tr.dashboard.statusLabels as Record<string, string>
@@ -31,7 +30,7 @@ function VideosContent() {
     : MOCK_ORDERS.filter(o => o.status === filter)
 
   return (
-    <div className="max-w-5xl mx-auto flex flex-col gap-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6">
 
       {/* Back + Header */}
       <div>
@@ -98,7 +97,7 @@ function VideosContent() {
 
       {/* Video grid */}
       {filtered.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map(order => (
             <VideoCard key={order.id} order={order} labels={labels} />
           ))}
@@ -119,9 +118,11 @@ export default function VideosPage() {
           style={{ background: 'radial-gradient(circle, #9a78fe, transparent)', top: '5%', right: '-5%' }} />
       </div>
 
-      <main className="flex-1 pt-24 pb-16 px-4 sm:px-6 lg:px-8 relative z-10">
+      <main className="flex-1 pt-24 pb-16 relative z-10">
         <Suspense fallback={
-          <div className="max-w-5xl mx-auto pt-8 text-center text-content-muted text-sm">Loading…</div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 text-center text-content-muted text-sm">
+            Loading…
+          </div>
         }>
           <VideosContent />
         </Suspense>

@@ -23,7 +23,7 @@ export default function Navbar() {
           {/* Center Nav */}
           <div className="hidden md:flex items-center gap-1">
             <NavLink href="/celebrities"       label={tr.nav.celebrities} active={isActive('/celebrities')} />
-            <NavLink href="/dashboard/videos"  label={tr.nav.videos}      active={pathname.startsWith('/dashboard/videos')} />
+            <NavLink href="/videos"  label={tr.nav.videos}  active={pathname.startsWith('/videos')} />
             <NavLink href="/dashboard"         label={tr.nav.dashboard}   active={isActive('/dashboard')} />
           </div>
 
