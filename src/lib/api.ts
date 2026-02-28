@@ -101,6 +101,28 @@ export const jobApi = {
     api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/book-call`, { method: 'POST', body: JSON.stringify(body) }),
 }
 
+// ── Templates ──────────────────────────────────────────────
+export interface ApiTemplate {
+  _id: string
+  name: string
+  nameAr: string
+  description: string
+  descriptionAr: string
+  purpose: string
+  purposeAr: string
+  sampleScript: string
+  sampleScriptAr: string
+  productTypes: string[]
+  duration: string
+}
+
+export const templateApi = {
+  list: (productType?: string) => {
+    const qs = productType ? `?productType=${encodeURIComponent(productType)}` : ''
+    return api<{ success: boolean; data: ApiTemplate[]; total: number }>(`/templates${qs}`)
+  },
+}
+
 // ── Leads (contact form) ───────────────────────────────────
 export const leadApi = {
   contactForm: (body: { name: string; email: string; company?: string; message: string }) =>

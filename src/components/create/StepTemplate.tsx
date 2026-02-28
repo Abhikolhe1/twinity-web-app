@@ -1,25 +1,49 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Template, WizardState } from '@/lib/types'
-import { TEMPLATES } from '@/lib/data'
+import { templateApi, ApiTemplate } from '@/lib/api'
 import { useLanguage } from '@/lib/context'
-import { CheckCircle2, Clock, FileText } from 'lucide-react'
+import { CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react'
 
 interface Props {
   state: WizardState
   onSelect: (template: Template) => void
 }
 
+import type { ProductTypeId, Duration } from '@/lib/types'
+
+function mapApiTemplate(t: ApiTemplate): Template {
+  return {
+    id:             t._id,
+    name:           t.name,
+    nameAr:         t.nameAr,
+    description:    t.description,
+    descriptionAr:  t.descriptionAr,
+    purpose:        t.purpose,
+    purposeAr:      t.purposeAr,
+    sampleScript:   t.sampleScript,
+    sampleScriptAr: t.sampleScriptAr,
+    productTypes:   t.productTypes as ProductTypeId[],
+    duration:       t.duration as Duration,
+    tags:           [],
+  }
+}
+
 export default function StepTemplate({ state, onSelect }: Props) {
   const { lang, tr } = useLanguage()
   const [activeFilter, setActiveFilter] = useState<string>('all')
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [fetching, setFetching] = useState(true)
 
-  // Templates compatible with selected product type
-  const compatible = useMemo(
-    () => (!state.productType ? TEMPLATES : TEMPLATES.filter(t => t.productTypes.includes(state.productType!))),
-    [state.productType]
-  )
+  useEffect(() => {
+    setFetching(true)
+    templateApi
+      .list(state.productType ?? undefined)
+      .then(res => setTemplates(res.data.map(mapApiTemplate)))
+      .catch(() => setTemplates([]))
+      .finally(() => setFetching(false))
+  }, [state.productType])
 
   // Unique purpose labels for filter pills
   const filterLabels = useMemo(() => {
@@ -27,19 +51,19 @@ export default function StepTemplate({ state, onSelect }: Props) {
     const labels: { key: string; en: string; ar: string }[] = [
       { key: 'all', en: 'All', ar: 'الكل' },
     ]
-    compatible.forEach(t => {
+    templates.forEach(t => {
       if (!seen.has(t.purpose)) {
         seen.add(t.purpose)
         labels.push({ key: t.purpose, en: t.purpose, ar: t.purposeAr })
       }
     })
     return labels
-  }, [compatible])
+  }, [templates])
 
   // Apply filter
   const visible = useMemo(
-    () => activeFilter === 'all' ? compatible : compatible.filter(t => t.purpose === activeFilter),
-    [compatible, activeFilter]
+    () => activeFilter === 'all' ? templates : templates.filter(t => t.purpose === activeFilter),
+    [templates, activeFilter]
   )
 
   return (
@@ -70,7 +94,11 @@ export default function StepTemplate({ state, onSelect }: Props) {
       </div>
 
       {/* Grid */}
-      {visible.length === 0 ? (
+      {fetching ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-6 h-6 animate-spin text-brand-purple" />
+        </div>
+      ) : visible.length === 0 ? (
         <p className="text-center text-content-muted py-10">
           {lang === 'ar' ? 'لا توجد قوالب متاحة' : 'No templates available for this filter.'}
         </p>

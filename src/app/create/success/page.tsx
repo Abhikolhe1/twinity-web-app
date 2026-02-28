@@ -18,9 +18,9 @@ export default function SuccessPage() {
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(ORDER_REF_KEY)
-      setOrderRef(stored ?? `TWN-${Date.now().toString().slice(-6)}`)
+      setOrderRef(stored ?? '')
     } catch {
-      setOrderRef(`TWN-${Date.now().toString().slice(-6)}`)
+      setOrderRef('')
     }
   }, [])
 
