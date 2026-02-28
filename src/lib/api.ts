@@ -1,0 +1,146 @@
+/**
+ * Twinity API Client
+ * Connects the customer-facing app to twinity-api (Node.js backend).
+ * Falls back gracefully to mock data when the API is unavailable (dev mode).
+ */
+
+const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
+
+// ── Token management ───────────────────────────────────────
+export function getToken(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('twinity_token')
+}
+export function setToken(t: string): void {
+  if (typeof window !== 'undefined') localStorage.setItem('twinity_token', t)
+}
+export function clearToken(): void {
+  if (typeof window !== 'undefined') localStorage.removeItem('twinity_token')
+}
+
+// ── Base fetch ─────────────────────────────────────────────
+async function api<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = getToken()
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options?.headers || {}),
+    },
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.message || 'Request failed')
+  return data as T
+}
+
+// ── Types ──────────────────────────────────────────────────
+export interface ApiUser {
+  id: string; name: string; email: string; status: string; isEmailVerified: boolean
+}
+export interface ApiCelebrity {
+  _id: string; name: string; nameAr: string; slug: string; industry: string
+  nationality: string; nationalityAr: string; languages: string[]; tags: string[]; tagsAr: string[]
+  initials: string; avatarColor: string; thumbnailUrl?: string; isActive: boolean; isFeatured: boolean
+  priceRange: { greeting: {min:number;max:number}; 'avatar-studio': {min:number;max:number}; 'full-body': {min:number;max:number} }
+  totalOrders: number
+}
+export interface ApiVideoJob {
+  _id: string; referenceId: string; status: string; productType: string; purpose: string
+  script: string; estimatedPrice: number; currency: string; downloadEnabled: boolean
+  previewUrl?: string; watermarkedUrl?: string; finalVideoUrl?: string
+  celebrityId: { name: string; nameAr: string; initials: string; avatarColor: string }
+  createdAt: string
+}
+
+// ── Auth ───────────────────────────────────────────────────
+export const authApi = {
+  register: (body: { name: string; email: string; password: string; phone?: string; company?: string }) =>
+    api<{ success: boolean; token: string; user: ApiUser }>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+
+  login: (body: { email: string; password: string }) =>
+    api<{ success: boolean; token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
+
+  getMe: () =>
+    api<{ success: boolean; user: ApiUser }>('/auth/me'),
+
+  forgotPassword: (email: string) =>
+    api<{ success: boolean; message: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+
+  resetPassword: (token: string, password: string) =>
+    api<{ success: boolean; message: string }>(`/auth/reset-password/${token}`, { method: 'POST', body: JSON.stringify({ password }) }),
+}
+
+// ── Celebrities ────────────────────────────────────────────
+export const celebrityApi = {
+  list: (params?: { industry?: string; search?: string; featured?: boolean }) => {
+    const qs = new URLSearchParams(params as Record<string, string>).toString()
+    return api<{ success: boolean; data: ApiCelebrity[]; total: number }>(`/celebrities${qs ? '?' + qs : ''}`)
+  },
+
+  get: (slug: string) =>
+    api<{ success: boolean; data: ApiCelebrity }>(`/celebrities/${slug}`),
+}
+
+// ── Video Jobs ─────────────────────────────────────────────
+export const jobApi = {
+  create: (body: {
+    celebrityId: string; productType: string; purpose: string; script: string
+    templateId?: string; tone?: string; duration?: string; aspectRatio?: string; resolution?: string; channels?: string[]
+  }) => api<{ success: boolean; data: ApiVideoJob }>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
+
+  myJobs: (status?: string) => {
+    const qs = status && status !== 'all' ? `?status=${status}` : ''
+    return api<{ success: boolean; data: ApiVideoJob[]; total: number }>(`/jobs/my${qs}`)
+  },
+
+  getJob: (referenceId: string) =>
+    api<{ success: boolean; data: ApiVideoJob }>(`/jobs/my/${referenceId}`),
+
+  bookCall: (referenceId: string, body: { name: string; email: string; phone?: string; company?: string; notes?: string }) =>
+    api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/book-call`, { method: 'POST', body: JSON.stringify(body) }),
+}
+
+// ── Leads (contact form) ───────────────────────────────────
+export const leadApi = {
+  contactForm: (body: { name: string; email: string; company?: string; message: string }) =>
+    api<{ success: boolean; message: string }>('/leads/contact', { method: 'POST', body: JSON.stringify(body) }),
+}
+
+// ── Helpers ────────────────────────────────────────────────
+import type { Celebrity } from './types'
+
+export function mapApiCeleb(c: ApiCelebrity): Celebrity {
+  return {
+    id:            c._id,
+    name:          c.name,
+    nameAr:        c.nameAr,
+    industry:      c.industry as Celebrity['industry'],
+    verified:      c.isActive,
+    nationality:   c.nationality,
+    nationalityAr: c.nationalityAr,
+    languages:     c.languages,
+    tags:          c.tags,
+    tagsAr:        c.tagsAr,
+    avatarColor:   c.avatarColor,
+    initials:      c.initials,
+    image:         c.thumbnailUrl || '',
+    priceRange:    c.priceRange,
+  }
+}
+
+export function getUserInfo(): { name: string; email: string; company?: string } | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem('twinity_user')
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+export function setUserInfo(user: { name: string; email: string; company?: string }): void {
+  if (typeof window !== 'undefined') localStorage.setItem('twinity_user', JSON.stringify(user))
+}
+
+export function clearUserInfo(): void {
+  if (typeof window !== 'undefined') localStorage.removeItem('twinity_user')
+}

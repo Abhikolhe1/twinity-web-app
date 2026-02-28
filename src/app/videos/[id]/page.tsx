@@ -1,12 +1,12 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { useLanguage } from '@/lib/context'
-import { MOCK_ORDERS } from '@/lib/data'
+import { jobApi, getToken, type ApiVideoJob } from '@/lib/api'
 import { thumbnailGradient, statusBadge } from '@/components/dashboard/VideoCard'
 import {
   ArrowLeft, Play, User, Tag, Calendar, DollarSign,
@@ -30,10 +30,34 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
   const { lang, tr } = useLanguage()
   const router = useRouter()
   const labels = tr.dashboard.statusLabels as Record<string, string>
+  const [order, setOrder] = useState<ApiVideoJob | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
-  const order = MOCK_ORDERS.find(o => o.id === id)
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace('/login')
+      return
+    }
+    jobApi.getJob(id)
+      .then(res => setOrder(res.data))
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false))
+  }, [id, router])
 
-  if (!order) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-surface-page">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-content-muted">{lang === 'ar' ? 'جار التحميل...' : 'Loading...'}</p>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (notFound || !order) {
     return (
       <div className="min-h-screen flex flex-col bg-surface-page">
         <Navbar />
@@ -52,6 +76,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
     )
   }
 
+  const celeb = order.celebrityId as { name: string; nameAr: string; initials: string; avatarColor: string }
   const currentStep = stepIndex(order.status)
 
   return (
@@ -82,11 +107,9 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
               <div className="rounded-3xl overflow-hidden border border-brand-purple/12 shadow-card relative"
                 style={{ aspectRatio: '16/9', background: thumbnailGradient(order.status) }}>
 
-                {/* Scan-line texture */}
                 <div className="absolute inset-0 opacity-10 pointer-events-none"
                   style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.4) 3px,rgba(0,0,0,0.4) 4px)' }} />
 
-                {/* Play button */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <button className="w-16 h-16 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
                     style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
@@ -94,22 +117,19 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                   </button>
                 </div>
 
-                {/* Status badge */}
                 <div className="absolute top-4 right-4">
                   {statusBadge(order.status, labels)}
                 </div>
 
-                {/* Duration */}
                 <div className="absolute bottom-4 right-4">
                   <span className="text-xs font-bold tracking-widest uppercase text-white/80 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
                     30s
                   </span>
                 </div>
 
-                {/* Order ref */}
                 <div className="absolute bottom-4 left-4">
                   <span className="text-xs font-mono text-white/70 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                    {order.id}
+                    {order.referenceId}
                   </span>
                 </div>
               </div>
@@ -161,13 +181,18 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                   {lang === 'ar' ? 'الإجراءات' : 'Actions'}
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {order.status === 'delivered' && (
-                    <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-brand-purple text-white hover:opacity-90 transition-all">
+                  {order.status === 'delivered' && order.downloadEnabled && (
+                    <a
+                      href={order.finalVideoUrl || order.watermarkedUrl || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-brand-purple text-white hover:opacity-90 transition-all"
+                    >
                       <Download className="w-4 h-4" />
                       {lang === 'ar' ? 'تحميل الفيديو' : 'Download Video'}
-                    </button>
+                    </a>
                   )}
-                  <button 
+                  <button
                     onClick={() => router.push('/contact')}
                     className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-brand-purple/20 text-content-secondary hover:border-brand-purple/40 hover:text-brand-purple transition-all">
                     <MessageSquare className="w-4 h-4" />
@@ -187,15 +212,13 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
             {/* ── Right column — Order details ── */}
             <div className="flex flex-col gap-4">
 
-              {/* Header */}
               <div className="bg-white rounded-2xl border border-brand-purple/12 p-6">
-                <p className="text-xs font-mono text-content-muted mb-1">{order.id}</p>
-                <h1 className="text-xl font-bold text-content-primary leading-tight">{order.celebrity}</h1>
-                <p className="text-sm text-content-muted mt-0.5">{order.productType}</p>
+                <p className="text-xs font-mono text-content-muted mb-1">{order.referenceId}</p>
+                <h1 className="text-xl font-bold text-content-primary leading-tight">{celeb?.name ?? '—'}</h1>
+                <p className="text-sm text-content-muted mt-0.5 capitalize">{order.productType}</p>
                 <div className="mt-3">{statusBadge(order.status, labels)}</div>
               </div>
 
-              {/* Details list */}
               <div className="bg-white rounded-2xl border border-brand-purple/12 p-6">
                 <h3 className="text-sm font-bold text-content-primary mb-4">
                   {lang === 'ar' ? 'تفاصيل الطلب' : 'Order Details'}
@@ -205,7 +228,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                     {
                       icon: <User className="w-4 h-4 text-brand-purple" />,
                       label: lang === 'ar' ? 'المشهور' : 'Celebrity',
-                      value: order.celebrity,
+                      value: lang === 'ar' ? (celeb?.nameAr || celeb?.name) : celeb?.name,
                     },
                     {
                       icon: <Package className="w-4 h-4 text-brand-purple" />,
@@ -242,21 +265,20 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                       </div>
                       <div>
                         <p className="text-xs text-content-muted font-medium">{item.label}</p>
-                        <p className="text-sm font-semibold text-content-primary mt-0.5">{item.value}</p>
+                        <p className="text-sm font-semibold text-content-primary mt-0.5 capitalize">{item.value}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Price */}
               <div className="bg-white rounded-2xl border border-brand-purple/12 p-6">
                 <h3 className="text-sm font-bold text-content-primary mb-3">
                   {lang === 'ar' ? 'الفاتورة' : 'Billing'}
                 </h3>
                 <div className="flex items-center justify-between py-2 border-b border-brand-purple/8">
                   <span className="text-sm text-content-muted">{lang === 'ar' ? 'تقدير الطلب' : 'Estimated price'}</span>
-                  <span className="text-sm font-semibold text-content-primary">${order.estimatedPrice.toLocaleString()}</span>
+                  <span className="text-sm font-semibold text-content-primary">${(order.estimatedPrice || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center justify-between pt-3">
                   <div className="flex items-center gap-1.5">
@@ -264,7 +286,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                     <span className="text-sm font-bold text-content-primary">{lang === 'ar' ? 'الإجمالي' : 'Total'}</span>
                   </div>
                   <span className="text-lg font-bold text-brand-purple">
-                    ${order.estimatedPrice.toLocaleString()} {order.currency}
+                    ${(order.estimatedPrice || 0).toLocaleString()} {order.currency || 'USD'}
                   </span>
                 </div>
                 <p className="text-[10px] text-content-muted mt-2 leading-relaxed">

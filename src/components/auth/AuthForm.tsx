@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/context'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { Eye, EyeOff, Mail, Lock, User, Globe } from 'lucide-react'
+import { authApi, setToken, setUserInfo } from '@/lib/api'
+import { Eye, EyeOff, Mail, Lock, User, Globe, AlertCircle } from 'lucide-react'
 
 interface AuthFormProps {
   mode: 'signin' | 'signup'
@@ -17,14 +18,32 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', agree: false })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+    if (mode === 'signup' && form.password !== form.confirmPassword) {
+      setError('Passwords do not match.')
+      return
+    }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
-    setLoading(false)
-    router.push('/dashboard')
+    try {
+      let res
+      if (mode === 'signup') {
+        res = await authApi.register({ name: form.name, email: form.email, password: form.password })
+      } else {
+        res = await authApi.login({ email: form.email, password: form.password })
+      }
+      setToken(res.token)
+      setUserInfo({ name: res.user.name, email: res.user.email })
+      router.push('/dashboard')
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -146,6 +165,14 @@ export default function AuthForm({ mode }: AuthFormProps) {
                 </div>
               </div>
             </>
+          )}
+
+          {/* Error */}
+          {error && (
+            <div className="mb-4 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+              {error}
+            </div>
           )}
 
           {/* Form */}

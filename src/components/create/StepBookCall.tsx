@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { WizardState } from '@/lib/types'
 import { useLanguage } from '@/lib/context'
 import { Input, TextArea } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { Phone, Calendar, ChevronLeft } from 'lucide-react'
+import { Phone, Calendar, ChevronLeft, AlertCircle } from 'lucide-react'
 import { PRODUCT_TYPES } from '@/lib/data'
+import { jobApi, authApi, getUserInfo } from '@/lib/api'
 
 const ORDER_REF_KEY = 'twinity_order_ref'
 
@@ -22,14 +23,65 @@ export default function StepBookCall({ state }: Props) {
   const [phone, setPhone] = useState('')
   const [preferredTime, setPreferredTime] = useState('morning')
   const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [userInfo, setUserInfo2] = useState<{ name: string; email: string } | null>(null)
+
+  useEffect(() => {
+    const cached = getUserInfo()
+    if (cached) {
+      setUserInfo2(cached)
+    } else {
+      authApi.getMe()
+        .then(res => setUserInfo2({ name: res.user.name, email: res.user.email }))
+        .catch(() => null)
+    }
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!state.celebrity || !state.productType) {
+      setError('Please complete the previous steps first.')
+      return
+    }
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    setLoading(false)
-    const orderRef = `TWN-${Date.now().toString().slice(-6)}`
-    try { sessionStorage.setItem(ORDER_REF_KEY, orderRef) } catch {}
-    router.push('/create/success')
+    setError('')
+    try {
+      const script = state.useCustomScript
+        ? state.customScript
+        : `${state.productType} video for ${state.purpose}`
+
+      const jobRes = await jobApi.create({
+        celebrityId:  state.celebrity.id,
+        productType:  state.productType,
+        purpose:      state.purpose || 'General purpose video',
+        script:       script || 'To be provided',
+        templateId:   state.template?.id,
+        tone:         'professional',
+        duration:     state.duration || '30s',
+        aspectRatio:  state.aspectRatio || '16:9',
+        resolution:   state.resolution || '1080p',
+        channels:     state.channels,
+      }) as any
+
+      const referenceId = jobRes.data?.referenceId
+      if (!referenceId) throw new Error('Failed to create order')
+
+      if (userInfo) {
+        await jobApi.bookCall(referenceId, {
+          name:    userInfo.name,
+          email:   userInfo.email,
+          phone:   phone || undefined,
+          notes:   `Preferred time: ${preferredTime}. ${message}`.trim(),
+        })
+      }
+
+      try { sessionStorage.setItem(ORDER_REF_KEY, referenceId) } catch {}
+      router.push('/create/success')
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit request. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -40,6 +92,12 @@ export default function StepBookCall({ state }: Props) {
       </div>
 
       <div className="max-w-lg mx-auto w-full">
+        {error && (
+          <div className="mb-4 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="p-5 rounded-2xl bg-white border border-brand-purple/14 shadow-card flex flex-col gap-4">
             <h3 className="font-semibold text-content-primary">{tr.create.yourDetails}</h3>

@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useDebounce } from '@/lib/hooks'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import CelebrityCard from '@/components/ui/CelebrityCard'
 import { useLanguage } from '@/lib/context'
-import { CELEBRITIES, INDUSTRY_LABELS } from '@/lib/data'
+import { INDUSTRY_LABELS } from '@/lib/data'
 import { Industry, Celebrity } from '@/lib/types'
+import { celebrityApi, mapApiCeleb } from '@/lib/api'
 import { Search, SlidersHorizontal, X } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
@@ -18,25 +20,33 @@ export default function CelebritiesPage() {
   const [search, setSearch] = useState('')
   const [industry, setIndustry] = useState<Industry>('all')
   const [selected, setSelected] = useState<Celebrity | null>(null)
+  const [celebrities, setCelebrities] = useState<Celebrity[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const debouncedSearch = useDebounce(search, 300)
+
+  useEffect(() => {
+    const params: { industry?: string; search?: string } = {}
+    if (industry && industry !== 'all') params.industry = industry
+    if (debouncedSearch) params.search = debouncedSearch
+    setLoading(true)
+    celebrityApi.list(params)
+      .then(res => setCelebrities((res.data || []).map(mapApiCeleb)))
+      .catch(() => null)
+      .finally(() => setLoading(false))
+  }, [industry, debouncedSearch])
 
   const filtered = useMemo(() => {
-    return CELEBRITIES.filter(c => {
-      const name = lang === 'ar' ? c.nameAr : c.name
-      const matchSearch =
-        !search ||
-        name.toLowerCase().includes(search.toLowerCase()) ||
-        c.name.toLowerCase().includes(search.toLowerCase()) ||
-        c.tags.some(t => t.toLowerCase().includes(search.toLowerCase()))
-      const matchIndustry = industry === 'all' || c.industry === industry
-      return matchSearch && matchIndustry
-    })
-  }, [search, industry, lang])
+    return celebrities.filter(c => c.verified)
+  }, [celebrities])
+
+  const countFor = (ind: Industry) =>
+    ind === 'all' ? celebrities.length : celebrities.filter(c => c.industry === ind).length
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-page">
       <Navbar />
 
-      {/* Decorative orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="orb w-[500px] h-[500px] opacity-15"
           style={{ background: 'radial-gradient(circle, #9a78fe, transparent)', top: '-10%', right: '-5%' }} />
@@ -79,7 +89,7 @@ export default function CelebritiesPage() {
           <div className="flex gap-2 flex-wrap mb-8">
             {INDUSTRIES.map(ind => {
               const label = INDUSTRY_LABELS[ind]?.[lang] ?? ind
-              const count = ind === 'all' ? CELEBRITIES.length : CELEBRITIES.filter(c => c.industry === ind).length
+              const count = countFor(ind)
               return (
                 <button
                   key={ind}
@@ -94,7 +104,7 @@ export default function CelebritiesPage() {
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                     industry === ind ? 'bg-brand-purple/20 text-brand-purple' : 'bg-surface-subtle text-content-muted'
                   }`}>
-                    {count}
+                    {loading ? '—' : count}
                   </span>
                 </button>
               )
@@ -104,7 +114,7 @@ export default function CelebritiesPage() {
           {/* Results header */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-content-muted">
-              {filtered.length} {lang === 'ar' ? 'مشهور' : 'celebrities'}
+              {loading ? '—' : filtered.length} {lang === 'ar' ? 'مشهور' : 'celebrities'}
               {search && ` ${lang === 'ar' ? 'لـ' : 'for'} "${search}"`}
             </p>
             {selected && (
@@ -118,7 +128,11 @@ export default function CelebritiesPage() {
           </div>
 
           {/* Grid */}
-          {filtered.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-20 text-sm text-content-muted">
+              {lang === 'ar' ? 'جار التحميل...' : 'Loading...'}
+            </div>
+          ) : filtered.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filtered.map(c => (
                 <CelebrityCard

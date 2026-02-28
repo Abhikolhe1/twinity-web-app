@@ -1,21 +1,37 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/context'
-import { MOCK_ORDERS } from '@/lib/data'
+import { jobApi, getToken, type ApiVideoJob } from '@/lib/api'
 import { PlusCircle, Clock, Download, ArrowRight, Film } from 'lucide-react'
 import VideoCard from '@/components/dashboard/VideoCard'
 
 export default function DashboardPage() {
   const { lang, tr } = useLanguage()
+  const router = useRouter()
   const labels = tr.dashboard.statusLabels as Record<string, string>
+  const [jobs, setJobs] = useState<ApiVideoJob[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const pendingOrders = MOCK_ORDERS.filter(o => o.status !== 'delivered')
-  const downloads     = MOCK_ORDERS.filter(o => o.status === 'delivered')
-  const recent        = [...MOCK_ORDERS].reverse()
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace('/login')
+      return
+    }
+    jobApi.myJobs()
+      .then(res => setJobs(res.data || []))
+      .catch(() => null)
+      .finally(() => setLoading(false))
+  }, [router])
+
+  const pendingOrders = jobs.filter(o => o.status !== 'delivered')
+  const downloads = jobs.filter(o => o.status === 'delivered')
+  const recent = [...jobs]
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-page">
@@ -42,9 +58,8 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Nav cards: All Videos + Pending + Downloads */}
+          {/* Nav cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-
             <Link href="/videos">
               <div className="group p-5 rounded-2xl bg-white border border-brand-purple/15 hover:border-brand-purple/35 hover:shadow-card-hover transition-all cursor-pointer flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-brand-purple/8 border border-brand-purple/15 flex items-center justify-center shrink-0">
@@ -53,7 +68,7 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-content-primary">{tr.dashboard.allVideos}</p>
                   <p className="text-xs text-content-muted mt-0.5">
-                    {MOCK_ORDERS.length} {lang === 'ar' ? 'فيديو إجمالاً' : 'total videos'}
+                    {loading ? '—' : jobs.length} {lang === 'ar' ? 'فيديو إجمالاً' : 'total videos'}
                   </p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-content-muted group-hover:text-brand-purple transition-colors shrink-0" />
@@ -68,7 +83,7 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-content-primary">{tr.dashboard.pendingOrders}</p>
                   <p className="text-xs text-content-muted mt-0.5">
-                    {pendingOrders.length} {lang === 'ar' ? 'طلب نشط' : 'active orders'}
+                    {loading ? '—' : pendingOrders.length} {lang === 'ar' ? 'طلب نشط' : 'active orders'}
                   </p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-content-muted group-hover:text-brand-purple transition-colors shrink-0" />
@@ -83,22 +98,25 @@ export default function DashboardPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-content-primary">{tr.dashboard.readyDownload}</p>
                   <p className="text-xs text-content-muted mt-0.5">
-                    {downloads.length} {lang === 'ar' ? 'فيديو جاهز' : 'videos ready'}
+                    {loading ? '—' : downloads.length} {lang === 'ar' ? 'فيديو جاهز' : 'videos ready'}
                   </p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-content-muted group-hover:text-brand-purple transition-colors shrink-0" />
               </div>
             </Link>
-
           </div>
 
-          {/* Recent activity — video grid */}
+          {/* Recent activity */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-content-primary">{tr.dashboard.recentOrders}</h2>
             </div>
 
-            {recent.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-14 text-sm text-content-muted">
+                {lang === 'ar' ? 'جار التحميل...' : 'Loading...'}
+              </div>
+            ) : recent.length === 0 ? (
               <div className="text-center py-14 rounded-2xl bg-white border border-brand-purple/10">
                 <Film className="w-8 h-8 text-content-muted mx-auto mb-3" />
                 <p className="text-sm text-content-muted">{tr.dashboard.noOrders}</p>
@@ -109,7 +127,7 @@ export default function DashboardPage() {
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {recent.map(order => (
-                  <VideoCard key={order.id} order={order} labels={labels} />
+                  <VideoCard key={order._id} order={order} labels={labels} />
                 ))}
               </div>
             )}

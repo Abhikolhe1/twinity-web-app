@@ -6,20 +6,28 @@ import Footer from '@/components/layout/Footer'
 import { useLanguage } from '@/lib/context'
 import { Input, TextArea } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
-import { Mail, User, Building2, MessageSquare, CheckCircle2, Phone, Clock, Instagram, Twitter, Linkedin, Youtube } from 'lucide-react'
+import { Mail, User, Building2, MessageSquare, CheckCircle2, Phone, Clock, Instagram, Twitter, Linkedin, Youtube, AlertCircle } from 'lucide-react'
+import { leadApi } from '@/lib/api'
 
 export default function ContactPage() {
   const { lang } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [error, setError] = useState('')
   const [form, setForm] = useState({ name: '', email: '', company: '', message: '' })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1400))
-    setLoading(false)
-    setSent(true)
+    setError('')
+    try {
+      await leadApi.contactForm({ name: form.name, email: form.email, company: form.company, message: form.message })
+      setSent(true)
+    } catch (err: any) {
+      setError(err.message || 'Failed to send message. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -158,6 +166,12 @@ export default function ContactPage() {
                   <h2 className="text-xl font-bold text-content-primary mb-6">
                     {lang === 'ar' ? 'أرسل رسالة' : 'Send a Message'}
                   </h2>
+                  {error && (
+                    <div className="mb-4 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      {error}
+                    </div>
+                  )}
                   <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input

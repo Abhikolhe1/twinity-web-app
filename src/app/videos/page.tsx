@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { useLanguage } from '@/lib/context'
-import { MOCK_ORDERS } from '@/lib/data'
+import { jobApi, getToken, type ApiVideoJob } from '@/lib/api'
 import { ArrowLeft, Film } from 'lucide-react'
 import VideoCard from '@/components/dashboard/VideoCard'
 
@@ -21,13 +21,27 @@ const FILTERS = [
 function VideosContent() {
   const { lang, tr } = useLanguage()
   const labels = tr.dashboard.statusLabels as Record<string, string>
+  const router = useRouter()
   const searchParams = useSearchParams()
   const initialFilter = searchParams.get('f') ?? 'all'
   const [filter, setFilter] = useState(initialFilter)
+  const [jobs, setJobs] = useState<ApiVideoJob[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filtered = filter === 'all'
-    ? MOCK_ORDERS
-    : MOCK_ORDERS.filter(o => o.status === filter)
+  useEffect(() => {
+    if (!getToken()) {
+      router.replace('/login')
+      return
+    }
+    setLoading(true)
+    const status = filter !== 'all' ? filter : undefined
+    jobApi.myJobs(status)
+      .then(res => setJobs(res.data || []))
+      .catch(() => null)
+      .finally(() => setLoading(false))
+  }, [filter, router])
+
+  const countFor = (id: string) => id === 'all' ? jobs.length : jobs.filter(o => o.status === id).length
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6">
@@ -45,7 +59,7 @@ function VideosContent() {
               {lang === 'ar' ? 'جميع الفيديوهات' : 'All Videos'}
             </h1>
             <p className="text-sm text-content-muted mt-1">
-              {MOCK_ORDERS.length} {lang === 'ar' ? 'فيديو إجمالاً' : 'total videos'}
+              {loading ? '—' : jobs.length} {lang === 'ar' ? 'فيديو إجمالاً' : 'total videos'}
             </p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-brand-purple/8 border border-brand-purple/15 flex items-center justify-center">
@@ -57,9 +71,6 @@ function VideosContent() {
       {/* Filter tabs */}
       <div className="flex flex-wrap gap-2">
         {FILTERS.map(f => {
-          const count = f.id === 'all'
-            ? MOCK_ORDERS.length
-            : MOCK_ORDERS.filter(o => o.status === f.id).length
           const isActive = filter === f.id
           return (
             <button
@@ -75,15 +86,22 @@ function VideosContent() {
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
                 isActive ? 'bg-white/20 text-white' : 'bg-surface-subtle text-content-muted'
               }`}>
-                {count}
+                {loading ? '—' : countFor(f.id)}
               </span>
             </button>
           )
         })}
       </div>
 
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-16 text-sm text-content-muted">
+          {lang === 'ar' ? 'جار التحميل...' : 'Loading...'}
+        </div>
+      )}
+
       {/* Empty state */}
-      {filtered.length === 0 && (
+      {!loading && jobs.length === 0 && (
         <div className="text-center py-16 rounded-2xl bg-white border border-brand-purple/10">
           <Film className="w-8 h-8 text-content-muted mx-auto mb-3" />
           <p className="font-semibold text-content-primary">
@@ -96,10 +114,10 @@ function VideosContent() {
       )}
 
       {/* Video grid */}
-      {filtered.length > 0 && (
+      {!loading && jobs.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map(order => (
-            <VideoCard key={order.id} order={order} labels={labels} />
+          {jobs.map(order => (
+            <VideoCard key={order._id} order={order} labels={labels} />
           ))}
         </div>
       )}

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Badge from '@/components/ui/Badge'
 import { Play } from 'lucide-react'
-import { MOCK_ORDERS } from '@/lib/data'
+import type { ApiVideoJob } from '@/lib/api'
 
 export function thumbnailGradient(status: string) {
   switch (status) {
@@ -28,11 +28,13 @@ export default function VideoCard({
   order,
   labels,
 }: {
-  order: typeof MOCK_ORDERS[0]
+  order: ApiVideoJob
   labels: Record<string, string>
 }) {
+  const celeb = order.celebrityId as { name: string; nameAr: string; initials: string; avatarColor: string }
+
   return (
-    <Link href={`/videos/${order.id}`} className="rounded-2xl bg-white border border-brand-purple/12 overflow-hidden hover:border-brand-purple/30 hover:shadow-card-hover transition-all group cursor-pointer block">
+    <Link href={`/videos/${order.referenceId}`} className="rounded-2xl bg-white border border-brand-purple/12 overflow-hidden hover:border-brand-purple/30 hover:shadow-card-hover transition-all group cursor-pointer block">
 
       {/* Thumbnail */}
       <div className="relative w-full" style={{ aspectRatio: '16/9', background: thumbnailGradient(order.status) }}>
@@ -53,7 +55,7 @@ export default function VideoCard({
         <div className="absolute top-2.5 left-2.5">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs"
             style={{ background: 'rgba(255,255,255,0.20)', backdropFilter: 'blur(4px)' }}>
-            {order.celebrity.charAt(0)}
+            {celeb?.initials ?? '?'}
           </div>
         </div>
 
@@ -72,11 +74,11 @@ export default function VideoCard({
 
       {/* Info */}
       <div className="p-3 flex flex-col gap-1.5">
-        <p className="text-sm font-semibold text-content-primary truncate leading-tight">{order.celebrity}</p>
-        <p className="text-xs text-content-muted truncate">{order.productType}</p>
+        <p className="text-sm font-semibold text-content-primary truncate leading-tight">{celeb?.name ?? '—'}</p>
+        <p className="text-xs text-content-muted truncate capitalize">{order.productType}</p>
         <div className="flex items-center justify-between pt-1 border-t border-brand-purple/8 mt-0.5">
-          <span className="text-[10px] font-mono text-content-muted">{order.id}</span>
-          <span className="text-xs font-bold text-brand-purple">${order.estimatedPrice.toLocaleString()}</span>
+          <span className="text-[10px] font-mono text-content-muted">{order.referenceId}</span>
+          <span className="text-xs font-bold text-brand-purple">${(order.estimatedPrice || 0).toLocaleString()}</span>
         </div>
       </div>
 

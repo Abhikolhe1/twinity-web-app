@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Celebrity, Industry, WizardState } from '@/lib/types'
-import { CELEBRITIES, INDUSTRY_LABELS } from '@/lib/data'
+import { INDUSTRY_LABELS } from '@/lib/data'
+import { celebrityApi, mapApiCeleb } from '@/lib/api'
 import { useLanguage } from '@/lib/context'
 import CelebrityCard from '@/components/ui/CelebrityCard'
 import Button from '@/components/ui/Button'
@@ -19,18 +20,28 @@ export default function StepCelebrity({ state, onSelect }: Props) {
   const { lang, tr } = useLanguage()
   const [search, setSearch] = useState('')
   const [industry, setIndustry] = useState<Industry>('all')
+  const [celebrities, setCelebrities] = useState<Celebrity[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    setLoading(true)
+    const params: { industry?: string } = {}
+    if (industry !== 'all') params.industry = industry
+    celebrityApi.list(params)
+      .then(res => setCelebrities((res.data || []).map(mapApiCeleb).filter(c => c.verified)))
+      .catch(() => null)
+      .finally(() => setLoading(false))
+  }, [industry])
 
   const filtered = useMemo(() => {
-    return CELEBRITIES.filter(c => {
-      const name = lang === 'ar' ? c.nameAr : c.name
-      const matchSearch =
-        !search ||
-        name.toLowerCase().includes(search.toLowerCase()) ||
-        c.name.toLowerCase().includes(search.toLowerCase())
-      const matchIndustry = industry === 'all' || c.industry === industry
-      return matchSearch && matchIndustry
-    })
-  }, [search, industry, lang])
+    if (!search) return celebrities
+    const q = search.toLowerCase()
+    return celebrities.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.nameAr.includes(q) ||
+      c.tags.some(t => t.toLowerCase().includes(q))
+    )
+  }, [celebrities, search])
 
   return (
     <div className="flex flex-col gap-6">
@@ -102,7 +113,11 @@ export default function StepCelebrity({ state, onSelect }: Props) {
       )}
 
       {/* Grid */}
-      {filtered.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-16 text-content-muted text-sm">
+          {lang === 'ar' ? 'جار التحميل...' : 'Loading celebrities...'}
+        </div>
+      ) : filtered.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {filtered.map(c => (
             <CelebrityCard
