@@ -12,10 +12,15 @@ export function getToken(): string | null {
   return localStorage.getItem('twinity_token')
 }
 export function setToken(t: string): void {
-  if (typeof window !== 'undefined') localStorage.setItem('twinity_token', t)
+  if (typeof window === 'undefined') return
+  localStorage.setItem('twinity_token', t)
+  // Cookie lets middleware guard routes server-side (no localStorage on Edge)
+  document.cookie = 'twinity_auth=1; path=/; SameSite=Lax; Max-Age=604800'
 }
 export function clearToken(): void {
-  if (typeof window !== 'undefined') localStorage.removeItem('twinity_token')
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('twinity_token')
+  document.cookie = 'twinity_auth=; path=/; SameSite=Lax; Max-Age=0'
 }
 
 // ── Base fetch ─────────────────────────────────────────────
@@ -36,7 +41,7 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
 // ── Types ──────────────────────────────────────────────────
 export interface ApiUser {
-  id: string; name: string; email: string; status: string; isEmailVerified: boolean
+  id: string; name: string; email: string; status: string; isEmailVerified: boolean; avatarUrl?: string
 }
 export interface ApiCelebrity {
   _id: string; name: string; nameAr: string; slug: string; industry: string
@@ -63,6 +68,9 @@ export const authApi = {
 
   getMe: () =>
     api<{ success: boolean; user: ApiUser }>('/auth/me'),
+
+  updateProfile: (body: { name?: string; avatarUrl?: string }) =>
+    api<{ success: boolean; user: ApiUser }>('/auth/profile', { method: 'PUT', body: JSON.stringify(body) }),
 
   forgotPassword: (email: string) =>
     api<{ success: boolean; message: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),

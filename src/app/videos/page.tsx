@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { useLanguage } from '@/lib/context'
-import { jobApi, getToken, type ApiVideoJob } from '@/lib/api'
+import { jobApi, type ApiVideoJob } from '@/lib/api'
 import { ArrowLeft, Film } from 'lucide-react'
 import VideoCard from '@/components/dashboard/VideoCard'
 
@@ -21,7 +21,6 @@ const FILTERS = [
 function VideosContent() {
   const { lang, tr } = useLanguage()
   const labels = tr.dashboard.statusLabels as Record<string, string>
-  const router = useRouter()
   const searchParams = useSearchParams()
   const initialFilter = searchParams.get('f') ?? 'all'
   const [filter, setFilter] = useState(initialFilter)
@@ -29,17 +28,13 @@ function VideosContent() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!getToken()) {
-      router.replace('/login')
-      return
-    }
     setLoading(true)
     const status = filter !== 'all' ? filter : undefined
     jobApi.myJobs(status)
       .then(res => setJobs(res.data || []))
       .catch(() => null)
       .finally(() => setLoading(false))
-  }, [filter, router])
+  }, [filter])
 
   const countFor = (id: string) => id === 'all' ? jobs.length : jobs.filter(o => o.status === id).length
 

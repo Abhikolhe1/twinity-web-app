@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { useLanguage } from '@/lib/context'
-import { jobApi, getToken, type ApiVideoJob } from '@/lib/api'
+import { jobApi, type ApiVideoJob } from '@/lib/api'
 import { thumbnailGradient, statusBadge } from '@/components/dashboard/VideoCard'
 import {
   ArrowLeft, Play, User, Tag, Calendar, DollarSign,
@@ -35,15 +35,11 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
   const [notFound, setNotFound] = useState(false)
 
   useEffect(() => {
-    if (!getToken()) {
-      router.replace('/login')
-      return
-    }
     jobApi.getJob(id)
       .then(res => setOrder(res.data))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
-  }, [id, router])
+  }, [id])
 
   if (loading) {
     return (

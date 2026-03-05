@@ -7,7 +7,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Button from '@/components/ui/Button'
 import { useLanguage } from '@/lib/context'
-import { jobApi, getToken, type ApiVideoJob } from '@/lib/api'
+import { jobApi, type ApiVideoJob } from '@/lib/api'
 import { PlusCircle, Clock, Download, ArrowRight, Film } from 'lucide-react'
 import VideoCard from '@/components/dashboard/VideoCard'
 
@@ -19,15 +19,11 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!getToken()) {
-      router.replace('/login')
-      return
-    }
     jobApi.myJobs()
       .then(res => setJobs(res.data || []))
       .catch(() => null)
       .finally(() => setLoading(false))
-  }, [router])
+  }, [])
 
   const pendingOrders = jobs.filter(o => o.status !== 'delivered')
   const downloads = jobs.filter(o => o.status === 'delivered')
