@@ -34,7 +34,14 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
       ...(options?.headers || {}),
     },
   })
+  if (res.status === 429) throw new Error('Too many attempts. Please wait a moment and try again.')
   const data = await res.json()
+  if (res.status === 401 && getToken()) {
+    // Token invalid or account blocked — force logout immediately
+    clearToken()
+    if (typeof window !== 'undefined')
+    throw new Error(data.message || 'Session expired')
+  }
   if (!res.ok) throw new Error(data.message || 'Request failed')
   return data as T
 }
