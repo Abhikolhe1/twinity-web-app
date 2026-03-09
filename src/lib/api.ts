@@ -49,6 +49,8 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 // ── Types ──────────────────────────────────────────────────
 export interface ApiUser {
   id: string; name: string; email: string; status: string; isEmailVerified: boolean; avatarUrl?: string
+  authProvider: 'email' | 'google'
+  hasEmailPassword: boolean
 }
 export interface ApiCelebrity {
   _id: string; name: string; nameAr: string; slug: string; industry: string
@@ -73,6 +75,9 @@ export const authApi = {
   login: (body: { email: string; password: string }) =>
     api<{ success: boolean; token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
 
+  googleAuth: (accessToken: string) =>
+    api<{ success: boolean; token: string; user: ApiUser }>('/auth/google', { method: 'POST', body: JSON.stringify({ accessToken }) }),
+
   getMe: () =>
     api<{ success: boolean; user: ApiUser }>('/auth/me'),
 
@@ -80,10 +85,13 @@ export const authApi = {
     api<{ success: boolean; user: ApiUser }>('/auth/profile', { method: 'PUT', body: JSON.stringify(body) }),
 
   forgotPassword: (email: string) =>
-    api<{ success: boolean; message: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+    api<{ success: boolean; message: string; resetUrl?: string }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
 
   resetPassword: (token: string, password: string) =>
     api<{ success: boolean; message: string }>(`/auth/reset-password/${token}`, { method: 'POST', body: JSON.stringify({ password }) }),
+
+  setPassword: (password: string) =>
+    api<{ success: boolean; message: string }>('/auth/set-password', { method: 'POST', body: JSON.stringify({ password }) }),
 }
 
 // ── Celebrities ────────────────────────────────────────────
