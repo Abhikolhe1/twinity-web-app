@@ -345,7 +345,7 @@ export const PRODUCT_TYPES: ProductType[] = [
     id: 'avatar-studio',
     name: 'Avatar Studio',
     nameAr: 'استوديو الأفاتار',
-    description: 'Head & Shoulders',
+    description: 'Short celebrity Ad',
     descriptionAr: 'الرأس والكتفين',
     detail:
       'Hyper-realistic video avatars ideal for ads, product launches, and official announcements.',
@@ -362,7 +362,7 @@ export const PRODUCT_TYPES: ProductType[] = [
     id: 'full-body',
     name: 'Full-Body Digital Twin',
     nameAr: 'التوأم الرقمي للجسم الكامل',
-    description: 'Full body + motion capture',
+    description: 'Full body celebrity Ad',
     descriptionAr: 'الجسم الكامل + التقاط الحركة',
     detail:
       'Complete digital twin with natural body motion for large-scale campaigns and immersive experiences.',

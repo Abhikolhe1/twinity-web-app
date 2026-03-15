@@ -71,7 +71,7 @@ export default function StepTemplate({ state, onSelect }: Props) {
       {/* Header */}
       <div className="text-center max-w-xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-content-primary">
-          {lang === 'ar' ? 'اختر قالب الرسالة' : 'Choose Prompt Template'}
+          {lang === 'ar' ? 'اختر قالب الترحيب' : 'Choose Greetings Template'}
         </h2>
         <p className="mt-2 text-content-muted text-sm sm:text-base">{tr.create.selectTemplateSub}</p>
       </div>

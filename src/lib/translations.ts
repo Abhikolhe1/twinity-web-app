@@ -54,7 +54,7 @@ export const t = {
       back: 'Back',
       selectProductType: 'Select Video Type',
       selectProductTypeSub: 'Choose the format that best fits your needs',
-      selectTemplate: 'Choose Prompt Template',
+      selectTemplate: 'Choose Greetings Template',
       selectTemplateSub: 'Pick a template and personalize it with your details',
       customize: 'Customize Your Video',
       customizeSub: 'Add your script, choose tone and delivery preferences',
