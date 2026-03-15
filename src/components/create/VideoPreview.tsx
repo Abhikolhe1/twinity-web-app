@@ -253,7 +253,7 @@ export default function VideoPreview({
             <video
               ref={videoRef}
               src={videoUrl}
-              className="w-full h-full object-cover"
+              className="w-full h-full"
               playsInline
               onEnded={() => {
                 setPlaying(false)

@@ -35,8 +35,8 @@ export default function StepCustomize({ state, onChange }: Props) {
   if (state.celebrity?.name === 'Mohamed Salah') {
     videoUrl = '/video/MohamedSalah.mp4'
   }
-  if (state.celebrity?.name === 'Mohamed Salah') {
-    videoUrl = '/video/MohamedSalah.mp4'
+  if (state.celebrity?.name === 'Elham Ali') {
+    videoUrl = '/video/ElhamAli.mp4'
   }
 
   return (
