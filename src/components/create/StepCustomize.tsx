@@ -28,6 +28,17 @@ export default function StepCustomize({ state, onChange }: Props) {
   const productName = lang === 'ar' ? productType?.nameAr : productType?.name
   const templateName = lang === 'ar' ? state.template?.nameAr : state.template?.name
 
+  let videoUrl = '/video/MohammedAbdu.mp4'
+  if (state.celebrity?.name === 'Nasser Al Qasabi') {
+    videoUrl = '/video/NasserAlQasabi.mp4'
+  }
+  if (state.celebrity?.name === 'Mohamed Salah') {
+    videoUrl = '/video/MohamedSalah.mp4'
+  }
+  if (state.celebrity?.name === 'Mohamed Salah') {
+    videoUrl = '/video/MohamedSalah.mp4'
+  }
+
   return (
     <div className="flex flex-col gap-7">
       <div className="text-center max-w-xl mx-auto">
@@ -207,6 +218,7 @@ export default function StepCustomize({ state, onChange }: Props) {
                 productType={productName ?? 'Avatar Studio'}
                 duration={state.duration ?? '30s'}
                 lang={lang}
+                videoUrl={videoUrl}
               />
             </div>
           </div>

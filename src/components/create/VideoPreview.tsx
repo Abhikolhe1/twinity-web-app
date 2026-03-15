@@ -22,6 +22,7 @@ interface VideoPreviewProps {
   onDownload?: () => void    // optional — if absent, download button is hidden
   downloadClicked?: boolean  // optional — defaults to false
   lang: string
+  videoUrl?: string
 }
 
 // Convert duration string to seconds for the mock player
@@ -45,6 +46,7 @@ export default function VideoPreview({
   onDownload,
   downloadClicked = false,
   lang,
+  videoUrl,
 }: VideoPreviewProps) {
   const totalSeconds = durationToSeconds(duration || '30s')
 
@@ -60,6 +62,29 @@ export default function VideoPreview({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playerRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+
+  // Sync video element with state
+  useEffect(() => {
+    if (!videoRef.current) return
+    if (playing) {
+      videoRef.current.play().catch(() => setPlaying(false))
+    } else {
+      videoRef.current.pause()
+    }
+  }, [playing])
+
+  useEffect(() => {
+    if (!videoRef.current) return
+    videoRef.current.muted = muted
+  }, [muted])
+
+  useEffect(() => {
+    if (!videoRef.current) return
+    if (ended) {
+      videoRef.current.currentTime = 0
+    }
+  }, [ended])
 
   // ── Phase 1: Processing animation ──────────────────────────────
   useEffect(() => {
@@ -126,6 +151,9 @@ export default function VideoPreview({
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
     const newTime = ratio * totalSeconds
     setCurrentTime(newTime)
+    if (videoRef.current) {
+      videoRef.current.currentTime = newTime
+    }
     setEnded(false)
     resetControlsTimer()
   }
@@ -219,66 +247,87 @@ export default function VideoPreview({
         onClick={togglePlay}
         onMouseMove={resetControlsTimer}
       >
-        {/* Background scene — simulated video content */}
+        {/* Background scene — real video or simulated scene */}
         <div className="absolute inset-0">
-          {/* Radial gradient spotlight */}
-          <div
-            className="absolute inset-0"
-            style={{ background: 'radial-gradient(ellipse 60% 70% at 50% 40%, rgba(255,255,255,0.12) 0%, transparent 70%)' }}
-          />
-          {/* Subtle scan-line overlay for film feel */}
-          <div
-            className="absolute inset-0 opacity-5 pointer-events-none"
-            style={{
-              backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.4) 3px, rgba(0,0,0,0.4) 4px)',
-            }}
-          />
-          {/* Animated particles when playing */}
-          {playing && (
-            <div className="absolute inset-0 pointer-events-none">
-              {[...Array(6)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-1 h-1 bg-white/30 rounded-full"
-                  style={{
-                    left: `${15 + i * 14}%`,
-                    top: `${20 + (i % 3) * 25}%`,
-                    animation: `float ${2 + i * 0.4}s ease-in-out infinite`,
-                    animationDelay: `${i * 0.3}s`,
-                  }}
-                />
-              ))}
-            </div>
+          {videoUrl ? (
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="w-full h-full object-cover"
+              playsInline
+              onEnded={() => {
+                setPlaying(false)
+                setEnded(true)
+              }}
+              onTimeUpdate={(e) => {
+                if (!playing) return // Only update from video if not manually ticking
+                setCurrentTime(e.currentTarget.currentTime)
+              }}
+            />
+          ) : (
+            <>
+              {/* Radial gradient spotlight */}
+              <div
+                className="absolute inset-0"
+                style={{ background: 'radial-gradient(ellipse 60% 70% at 50% 40%, rgba(255,255,255,0.12) 0%, transparent 70%)' }}
+              />
+              {/* Subtle scan-line overlay for film feel */}
+              <div
+                className="absolute inset-0 opacity-5 pointer-events-none"
+                style={{
+                  backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.4) 3px, rgba(0,0,0,0.4) 4px)',
+                }}
+              />
+              {/* Animated particles when playing */}
+              {playing && (
+                <div className="absolute inset-0 pointer-events-none">
+                  {[...Array(6)].map((_, i) => (
+                    <div
+                      key={i}
+                      className="absolute w-1 h-1 bg-white/30 rounded-full"
+                      style={{
+                        left: `${15 + i * 14}%`,
+                        top: `${20 + (i % 3) * 25}%`,
+                        animation: `float ${2 + i * 0.4}s ease-in-out infinite`,
+                        animationDelay: `${i * 0.3}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Celebrity avatar — centre stage */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
-          {celebrity?.image ? (
-            <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
-              <img
-                src={celebrity.image}
-                alt={lang === 'ar' ? celebrity.nameAr : celebrity.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : (
-            <div
-              className="w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-white/25 shadow-2xl"
-              style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)' }}
-            >
-              {celebrity?.initials ?? 'TW'}
-            </div>
-          )}
-          {celebrity && (
-            <div className="text-center">
-              <p className="text-white font-bold text-base sm:text-lg drop-shadow">
-                {lang === 'ar' ? celebrity.nameAr : celebrity.name}
-              </p>
-              <p className="text-white/70 text-xs mt-0.5">{templateName}</p>
-            </div>
-          )}
-        </div>
+        {/* Celebrity avatar — only shown if no real video or as overlay */}
+        {!videoUrl && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
+            {celebrity?.image ? (
+              <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full overflow-hidden border-4 border-white/30 shadow-2xl">
+                <img
+                  src={celebrity.image}
+                  alt={lang === 'ar' ? celebrity.nameAr : celebrity.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div
+                className="w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center text-white font-bold text-3xl sm:text-4xl border-4 border-white/25 shadow-2xl"
+                style={{ background: 'rgba(0,0,0,0.25)', backdropFilter: 'blur(8px)' }}
+              >
+                {celebrity?.initials ?? 'TW'}
+              </div>
+            )}
+            {celebrity && (
+              <div className="text-center">
+                <p className="text-white font-bold text-base sm:text-lg drop-shadow">
+                  {lang === 'ar' ? celebrity.nameAr : celebrity.name}
+                </p>
+                <p className="text-white/70 text-xs mt-0.5">{templateName}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* PREVIEW watermark */}
         <div className="absolute top-3 right-3 z-20">

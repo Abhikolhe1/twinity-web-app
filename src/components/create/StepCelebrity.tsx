@@ -43,6 +43,13 @@ export default function StepCelebrity({ state, onSelect }: Props) {
     )
   }, [celebrities, search])
 
+  const handleSelect = (celebrity: Celebrity) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('selectedCelebrity', JSON.stringify(celebrity))
+    }
+    onSelect(celebrity)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="text-center max-w-xl mx-auto">
@@ -125,7 +132,7 @@ export default function StepCelebrity({ state, onSelect }: Props) {
               celebrity={c}
               selected={state.celebrity?.id === c.id}
               selectedProductType={state.productType}
-              onSelect={onSelect}
+              onSelect={handleSelect}
             />
           ))}
         </div>
