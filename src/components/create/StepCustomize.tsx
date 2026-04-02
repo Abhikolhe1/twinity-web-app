@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { WizardState, Duration, AspectRatio, Resolution } from '@/lib/types'
 import { DURATIONS, ASPECT_RATIOS, RESOLUTIONS, PRODUCT_TYPES } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
@@ -8,6 +8,9 @@ import { TextArea } from '@/components/ui/Input'
 import { ToggleLeft, ToggleRight, Sparkles, ChevronDown } from 'lucide-react'
 import VideoPreview from './VideoPreview'
 import Button from '@/components/ui/Button'
+import { jobApi } from '@/lib/api'
+
+const ORDER_REF_KEY = 'twinity_order_ref'
 
 interface Props {
   state: WizardState
@@ -16,7 +19,17 @@ interface Props {
 
 export default function StepCustomize({ state, onChange }: Props) {
   const { lang, tr } = useLanguage()
+
+  // Bump this to re-mount VideoPreview fresh on each generation attempt
   const [generationKey, setGenerationKey] = useState(0)
+
+  const [jobLoading, setJobLoading] = useState(false)
+  const [previewUrl, setPreviewUrl]   = useState<string | null>(null)
+  const [jobError,   setJobError]     = useState<string | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Clean up polling interval on unmount
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
 
   const templateScript = state.template
     ? lang === 'ar' ? state.template.sampleScriptAr : state.template.sampleScript
@@ -28,15 +41,73 @@ export default function StepCustomize({ state, onChange }: Props) {
   const productName = lang === 'ar' ? productType?.nameAr : productType?.name
   const templateName = lang === 'ar' ? state.template?.nameAr : state.template?.name
 
-  let videoUrl = '/video/MohammedAbdu.mp4'
-  if (state.celebrity?.name === 'Nasser Al Qasabi') {
-    videoUrl = '/video/NasserAlQasabi.mp4'
-  }
-  if (state.celebrity?.name === 'Mohamed Salah') {
-    videoUrl = '/video/MohamedSalah.mp4'
-  }
-  if (state.celebrity?.name === 'Elham Ali') {
-    videoUrl = '/video/ElhamAli.mp4'
+  const handleGeneratePreview = async () => {
+    if (!state.celebrity || !state.productType) return
+
+    // Cancel any existing poll
+    if (pollRef.current) clearInterval(pollRef.current)
+
+    setJobLoading(true)
+    setPreviewUrl(null)
+    setJobError(null)
+    setGenerationKey(k => k + 1) // re-mount VideoPreview so it starts fresh
+
+    try {
+      const script = state.useCustomScript
+        ? state.customScript
+        : (lang === 'ar' ? state.template?.sampleScriptAr : state.template?.sampleScript) ?? ''
+
+      const purpose = state.template
+        ? (lang === 'ar' ? state.template.purposeAr : state.template.purpose)
+        : 'Custom Video'
+
+      const res = await jobApi.create({
+        celebrityId: state.celebrity.id,
+        productType:  state.productType,
+        purpose,
+        script,
+        templateId:  state.template?.id,
+        duration:    state.duration    ?? undefined,
+        aspectRatio: state.aspectRatio ?? undefined,
+        resolution:  state.resolution  ?? undefined,
+        channels:    state.channels,
+      })
+
+      const ref = res.data.referenceId
+      try { sessionStorage.setItem(ORDER_REF_KEY, ref) } catch {}
+
+      // Dev stub may already have a previewUrl in the first response
+      if (res.data.previewUrl) {
+        setPreviewUrl(res.data.previewUrl)
+        setJobLoading(false)
+        return
+      }
+
+      // Poll every 5 s until previewUrl is set or job fails
+      pollRef.current = setInterval(async () => {
+        try {
+          const jobRes = await jobApi.getJob(ref)
+          const job = jobRes.data
+          if (job.previewUrl) {
+            setPreviewUrl(job.previewUrl)
+            setJobLoading(false)
+            if (pollRef.current) clearInterval(pollRef.current)
+          } else if (job.status === 'failed' || job.status === 'cancelled') {
+            setJobError(
+              job.errorMessage
+                ?? (lang === 'ar'
+                  ? 'فشل في توليد الفيديو، يرجى المحاولة مرة أخرى.'
+                  : 'Video generation failed. Please try again.')
+            )
+            setJobLoading(false)
+            if (pollRef.current) clearInterval(pollRef.current)
+          }
+        } catch { /* ignore transient polling errors */ }
+      }, 5000)
+    } catch (err) {
+      setJobError(err instanceof Error ? err.message : 'Failed to submit order')
+      setJobLoading(false)
+    }
   }
 
   return (
@@ -172,14 +243,23 @@ export default function StepCustomize({ state, onChange }: Props) {
 
           </div>
 
+          {/* Error */}
+          {jobError && (
+            <p className="text-sm text-red-500 text-center px-1">{jobError}</p>
+          )}
+
           {/* Generate button */}
           <Button
             fullWidth
             size="lg"
             icon={<Sparkles className="w-4 h-4" />}
-            onClick={() => setGenerationKey(k => k + 1)}
+            loading={jobLoading}
+            disabled={!state.celebrity || !state.productType || jobLoading}
+            onClick={handleGeneratePreview}
           >
-            {lang === 'ar' ? 'توليد المعاينة' : 'Generate Preview'}
+            {jobLoading
+              ? (lang === 'ar' ? 'جارٍ التوليد...' : 'Generating...')
+              : (lang === 'ar' ? 'توليد المعاينة' : 'Generate Preview')}
           </Button>
 
         </div>
@@ -218,7 +298,8 @@ export default function StepCustomize({ state, onChange }: Props) {
                 productType={productName ?? 'Avatar Studio'}
                 duration={state.duration ?? '30s'}
                 lang={lang}
-                videoUrl={videoUrl}
+                videoUrl={previewUrl ?? undefined}
+                loading={jobLoading}
               />
             </div>
           </div>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Celebrity } from '@/lib/types'
-import { useLanguage } from '@/lib/context'
 import {
   Play,
   Pause,
@@ -23,6 +22,7 @@ interface VideoPreviewProps {
   downloadClicked?: boolean  // optional — defaults to false
   lang: string
   videoUrl?: string
+  loading?: boolean          // when true, stay in processing phase (real API in-flight)
 }
 
 // Convert duration string to seconds for the mock player
@@ -47,11 +47,14 @@ export default function VideoPreview({
   downloadClicked = false,
   lang,
   videoUrl,
+  loading = false,
 }: VideoPreviewProps) {
   const totalSeconds = durationToSeconds(duration || '30s')
 
-  // States
-  const [phase, setPhase] = useState<'processing' | 'ready'>('processing')
+  // If a real video URL is already available on mount, start in ready phase
+  const [phase, setPhase] = useState<'processing' | 'ready'>(() =>
+    !loading && videoUrl ? 'ready' : 'processing'
+  )
   const [processingPct, setProcessingPct] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [muted, setMuted] = useState(false)
@@ -63,6 +66,10 @@ export default function VideoPreview({
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const playerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const loadingRef = useRef(loading)
+
+  // Keep loadingRef in sync so the processing interval can read current value
+  useEffect(() => { loadingRef.current = loading }, [loading])
 
   // Sync video element with state
   useEffect(() => {
@@ -87,21 +94,34 @@ export default function VideoPreview({
   }, [ended])
 
   // ── Phase 1: Processing animation ──────────────────────────────
+  // When loading=true: animate slowly to ~85% and wait for real data.
+  // When loading=false (no real video): fake-complete to 100% and transition to ready.
   useEffect(() => {
+    if (phase !== 'processing') return
     let pct = 0
     const id = setInterval(() => {
-      pct += Math.random() * 18 + 4
-      if (pct >= 100) {
-        pct = 100
-        setProcessingPct(100)
+      const isLoading = loadingRef.current
+      pct += Math.random() * (isLoading ? 3 : 18) + (isLoading ? 0.5 : 4)
+      const cap = isLoading ? 85 : 100
+      if (pct >= cap) {
+        pct = cap
+        setProcessingPct(cap)
         clearInterval(id)
-        setTimeout(() => setPhase('ready'), 400)
+        if (!isLoading) setTimeout(() => setPhase('ready'), 400)
       } else {
         setProcessingPct(Math.round(pct))
       }
     }, 180)
     return () => clearInterval(id)
-  }, [])
+  }, [phase]) // run once per processing phase; reads loading via ref
+
+  // When API finishes (loading flips to false + videoUrl arrives), transition to ready
+  useEffect(() => {
+    if (!loading && videoUrl && phase === 'processing') {
+      setProcessingPct(100)
+      setTimeout(() => setPhase('ready'), 400)
+    }
+  }, [loading, videoUrl, phase])
 
   // ── Phase 2: Playback timer ─────────────────────────────────────
   const tick = useCallback(() => {
@@ -162,10 +182,19 @@ export default function VideoPreview({
 
   // ── Processing phase ────────────────────────────────────────────
   if (phase === 'processing') {
+    const stepLabels = [
+      lang === 'ar' ? 'تحليل النص'   : 'Analyzing script',
+      lang === 'ar' ? 'توليد الصوت'  : 'Generating voice',
+      lang === 'ar' ? 'دمج الفيديو'  : 'Rendering video',
+    ]
+    const waitingMsg = loading
+      ? (lang === 'ar' ? 'جارٍ المعالجة، يرجى الانتظار...' : 'Processing your order, please wait...')
+      : (lang === 'ar' ? 'جارٍ توليد المعاينة...' : 'Generating preview...')
+
     return (
       <div
         className="w-full aspect-video rounded-2xl flex flex-col items-center justify-center gap-5 relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, #EDE5FF 0%, #D4C5FF 100%)` }}
+        style={{ background: 'linear-gradient(135deg, #EDE5FF 0%, #D4C5FF 100%)' }}
       >
         {/* Animated gradient shimmer */}
         <div
@@ -201,9 +230,7 @@ export default function VideoPreview({
             </span>
           </div>
           <div className="text-center">
-            <p className="text-sm font-semibold text-content-primary">
-              {lang === 'ar' ? 'جارٍ توليد المعاينة...' : 'Generating preview...'}
-            </p>
+            <p className="text-sm font-semibold text-content-primary">{waitingMsg}</p>
             <p className="text-xs text-content-muted mt-1">
               {lang === 'ar' ? 'يستغرق هذا لحظات قليلة' : 'This takes just a moment'}
             </p>
@@ -212,11 +239,7 @@ export default function VideoPreview({
 
         {/* Processing steps */}
         <div className="relative z-10 flex gap-3">
-          {[
-            lang === 'ar' ? 'تحليل النص' : 'Analyzing script',
-            lang === 'ar' ? 'توليد الصوت' : 'Generating voice',
-            lang === 'ar' ? 'دمج الفيديو' : 'Rendering video',
-          ].map((step, i) => {
+          {stepLabels.map((step, i) => {
             const done = processingPct > (i + 1) * 30
             return (
               <span
@@ -260,7 +283,7 @@ export default function VideoPreview({
                 setEnded(true)
               }}
               onTimeUpdate={(e) => {
-                if (!playing) return // Only update from video if not manually ticking
+                if (!playing) return
                 setCurrentTime(e.currentTarget.currentTime)
               }}
             />
@@ -299,7 +322,7 @@ export default function VideoPreview({
           )}
         </div>
 
-        {/* Celebrity avatar — only shown if no real video or as overlay */}
+        {/* Celebrity avatar — only shown if no real video */}
         {!videoUrl && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
             {celebrity?.image ? (

@@ -63,6 +63,7 @@ export interface ApiVideoJob {
   _id: string; referenceId: string; status: string; productType: string; purpose: string
   script: string; estimatedPrice: number; currency: string; downloadEnabled: boolean
   previewUrl?: string; watermarkedUrl?: string; finalVideoUrl?: string
+  errorMessage?: string
   celebrityId: { name: string; nameAr: string; initials: string; avatarColor: string }
   createdAt: string
 }
