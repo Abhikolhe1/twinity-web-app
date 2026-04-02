@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { WizardState, Duration, AspectRatio, Resolution } from '@/lib/types'
-import { DURATIONS, ASPECT_RATIOS, RESOLUTIONS, PRODUCT_TYPES } from '@/lib/data'
+import { WizardState, AspectRatio, Resolution } from '@/lib/types'
+import { ASPECT_RATIOS, RESOLUTIONS, PRODUCT_TYPES } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
 import { TextArea } from '@/components/ui/Input'
-import { ToggleLeft, ToggleRight, Sparkles, ChevronDown } from 'lucide-react'
+import { ToggleLeft, ToggleRight, Sparkles, ChevronDown, Wand2 } from 'lucide-react'
 import VideoPreview from './VideoPreview'
 import Button from '@/components/ui/Button'
 import { jobApi } from '@/lib/api'
@@ -23,9 +23,11 @@ export default function StepCustomize({ state, onChange }: Props) {
   // Bump this to re-mount VideoPreview fresh on each generation attempt
   const [generationKey, setGenerationKey] = useState(0)
 
-  const [jobLoading, setJobLoading] = useState(false)
-  const [previewUrl, setPreviewUrl]   = useState<string | null>(null)
-  const [jobError,   setJobError]     = useState<string | null>(null)
+  const [jobLoading,      setJobLoading]      = useState(false)
+  const [previewUrl,      setPreviewUrl]      = useState<string | null>(null)
+  const [jobError,        setJobError]        = useState<string | null>(null)
+  const [improving,       setImproving]       = useState(false)
+  const [improveError,    setImproveError]    = useState<string | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Clean up polling interval on unmount
@@ -110,6 +112,29 @@ export default function StepCustomize({ state, onChange }: Props) {
     }
   }
 
+  const handleImproveScript = async () => {
+    if (!state.celebrity || !state.productType) return
+    const script = state.useCustomScript ? state.customScript : templateScript
+    if (!script.trim()) return
+
+    setImproving(true)
+    setImproveError(null)
+    try {
+      const productType = PRODUCT_TYPES.find(p => p.id === state.productType)
+      const res = await jobApi.improveScript({
+        script,
+        celebrityName: lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name,
+        productType: productType?.name ?? state.productType ?? '',
+        purpose: state.template ? (lang === 'ar' ? state.template.purposeAr : state.template.purpose) : undefined,
+      })
+      onChange({ customScript: res.improvedScript, useCustomScript: true })
+    } catch (err) {
+      setImproveError(err instanceof Error ? err.message : 'Failed to improve script')
+    } finally {
+      setImproving(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-7">
       <div className="text-center max-w-xl mx-auto">
@@ -124,6 +149,7 @@ export default function StepCustomize({ state, onChange }: Props) {
 
           {/* Script */}
           <div className="flex flex-col gap-3">
+            {/* Row 1: label + toggle */}
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-content-primary">{tr.create.script}</label>
               <button
@@ -162,28 +188,26 @@ export default function StepCustomize({ state, onChange }: Props) {
                 </button>
               </div>
             )}
+
+            {/* Improve with AI — always visible */}
+            <div className="flex items-center justify-between">
+              {improveError && <p className="text-xs text-red-500">{improveError}</p>}
+              <button
+                type="button"
+                disabled={improving || !(state.useCustomScript ? state.customScript : templateScript).trim()}
+                onClick={handleImproveScript}
+                className="ml-auto flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-xl border border-brand-purple/30 text-brand-purple hover:bg-brand-purple/8 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              >
+                <Wand2 className={`w-4 h-4 ${improving ? 'animate-spin' : ''}`} />
+                {improving
+                  ? (lang === 'ar' ? 'جارٍ التحسين...' : 'Improving...')
+                  : (lang === 'ar' ? 'تحسين بالذكاء الاصطناعي' : 'Improve with AI')}
+              </button>
+            </div>
           </div>
 
-          {/* Duration / Aspect Ratio / Resolution / Language — 2×2 grid of dropdowns */}
-          <div className="grid grid-cols-2 gap-4">
-
-            {/* Duration */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-content-muted">{tr.create.duration}</label>
-              <div className="relative">
-                <select
-                  value={state.duration ?? ''}
-                  onChange={e => onChange({ duration: e.target.value as Duration })}
-                  className={selectCls}
-                >
-                  <option value="" disabled>{lang === 'ar' ? 'اختر' : 'Select'}</option>
-                  {DURATIONS.map(d => (
-                    <option key={d.id} value={d.id}>{d.id} — {lang === 'ar' ? d.ar : d.en}</option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
-              </div>
-            </div>
+          {/* Aspect Ratio / Resolution — 2-column grid */}
+          <div className="grid grid-cols-2 gap-3">
 
             {/* Aspect Ratio */}
             <div className="flex flex-col gap-1.5">
@@ -198,7 +222,7 @@ export default function StepCustomize({ state, onChange }: Props) {
                 >
                   <option value="" disabled>{lang === 'ar' ? 'اختر' : 'Select'}</option>
                   {ASPECT_RATIOS.map(ar => (
-                    <option key={ar.id} value={ar.id}>{ar.label} — {lang === 'ar' ? ar.hintAr : ar.hint}</option>
+                    <option key={ar.id} value={ar.id}>{ar.label}</option>
                   ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
@@ -218,24 +242,8 @@ export default function StepCustomize({ state, onChange }: Props) {
                 >
                   <option value="" disabled>{lang === 'ar' ? 'اختر' : 'Select'}</option>
                   {RESOLUTIONS.map(r => (
-                    <option key={r.id} value={r.id}>{r.label} — {lang === 'ar' ? r.hintAr : r.hint}</option>
+                    <option key={r.id} value={r.id}>{r.label}</option>
                   ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
-              </div>
-            </div>
-
-            {/* Video Language */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-content-muted">{tr.create.language}</label>
-              <div className="relative">
-                <select
-                  value={state.language}
-                  onChange={e => onChange({ language: e.target.value as 'en' | 'ar' })}
-                  className={selectCls}
-                >
-                  <option value="en">🇺🇸 English</option>
-                  <option value="ar">🇸🇦 العربية</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
               </div>

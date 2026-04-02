@@ -70,7 +70,7 @@ export interface ApiVideoJob {
 
 // ── Auth ───────────────────────────────────────────────────
 export const authApi = {
-  register: (body: { name: string; email: string; password: string; phone?: string; company?: string }) =>
+  register: (body: { name: string; email: string; password: string; phone?: string; company?: string; accountType?: string }) =>
     api<{ success: boolean; token: string; user: ApiUser }>('/auth/register', { method: 'POST', body: JSON.stringify(body) }),
 
   login: (body: { email: string; password: string }) =>
@@ -123,6 +123,9 @@ export const jobApi = {
 
   bookCall: (referenceId: string, body: { name: string; email: string; phone?: string; company?: string; notes?: string }) =>
     api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/book-call`, { method: 'POST', body: JSON.stringify(body) }),
+
+  improveScript: (body: { script: string; celebrityName: string; productType: string; purpose?: string }) =>
+    api<{ success: boolean; improvedScript: string }>('/jobs/improve-script', { method: 'POST', body: JSON.stringify(body) }),
 }
 
 // ── Templates ──────────────────────────────────────────────
@@ -149,7 +152,7 @@ export const templateApi = {
 
 // ── Leads (contact form) ───────────────────────────────────
 export const leadApi = {
-  contactForm: (body: { name: string; email: string; company?: string; message: string }) =>
+  contactForm: (body: { name: string; email: string; company?: string; message: string; productType?: string; purpose?: string }) =>
     api<{ success: boolean; message: string }>('/leads/contact', { method: 'POST', body: JSON.stringify(body) }),
 }
 

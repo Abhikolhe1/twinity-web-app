@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/context'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { authApi, setToken, setUserInfo } from '@/lib/api'
-import { Eye, EyeOff, Mail, Lock, User, Globe, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, Globe, AlertCircle, Building2, Star } from 'lucide-react'
 import { useGoogleLogin } from '@react-oauth/google'
 
 interface AuthFormProps {
@@ -20,6 +20,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [accountType, setAccountType] = useState<'individual' | 'celebrity'>('individual')
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', agree: false })
 
   const googleLogin = useGoogleLogin({
@@ -51,7 +52,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
     try {
       let res
       if (mode === 'signup') {
-        res = await authApi.register({ name: form.name, email: form.email, password: form.password })
+        res = await authApi.register({ name: form.name, email: form.email, password: form.password, accountType })
       } else {
         res = await authApi.login({ email: form.email, password: form.password })
       }
@@ -198,14 +199,44 @@ export default function AuthForm({ mode }: AuthFormProps) {
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {mode === 'signup' && (
-              <Input
-                label={tr.auth.fullName}
-                placeholder={lang === 'ar' ? 'الاسم الكامل' : 'Your full name'}
-                value={form.name}
-                onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                required
-                icon={<User className="w-4 h-4" />}
-              />
+              <>
+                {/* Account type */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-content-primary">
+                    {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([
+                      { id: 'individual', icon: <Building2 className="w-4 h-4" />, en: 'Individual', ar: 'فرد' },
+                      { id: 'celebrity',  icon: <Star className="w-4 h-4" />,      en: 'Celebrity',  ar: 'مشهور' },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setAccountType(opt.id)}
+                        className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-medium transition-all ${
+                          accountType === opt.id
+                            ? 'text-white border-transparent'
+                            : 'bg-white border-brand-purple/20 text-content-secondary hover:border-brand-purple/40'
+                        }`}
+                        style={accountType === opt.id ? { background: 'linear-gradient(135deg,#9a78fe,#422266)', borderColor: 'transparent' } : undefined}
+                      >
+                        {opt.icon}
+                        {lang === 'ar' ? opt.ar : opt.en}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <Input
+                  label={tr.auth.fullName}
+                  placeholder={lang === 'ar' ? 'الاسم الكامل' : 'Your full name'}
+                  value={form.name}
+                  onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                  required
+                  icon={<User className="w-4 h-4" />}
+                />
+              </>
             )}
 
             <Input
