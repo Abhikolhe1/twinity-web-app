@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
@@ -33,6 +33,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
   const [order, setOrder] = useState<ApiVideoJob | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     jobApi.getJob(id)
@@ -40,6 +41,28 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [id])
+
+  const handleDownload = useCallback(async () => {
+    const url = order?.finalVideoUrl || order?.watermarkedUrl
+    if (!url) return
+    setDownloading(true)
+    try {
+      const res = await fetch(url)
+      const blob = await res.blob()
+      const objectUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objectUrl
+      a.download = `${order?.referenceId}.mp4`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(objectUrl)
+    } catch {
+      window.open(url, '_blank')
+    } finally {
+      setDownloading(false)
+    }
+  }, [order?.finalVideoUrl, order?.watermarkedUrl, order?.referenceId])
 
   if (loading) {
     return (
@@ -74,6 +97,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
 
   const celeb = order.celebrityId as { name: string; nameAr: string; initials: string; avatarColor: string }
   const currentStep = stepIndex(order.status)
+  const videoUrl = order.previewUrl || order.watermarkedUrl || order.finalVideoUrl
 
   return (
     <div className="min-h-screen flex flex-col bg-surface-page">
@@ -99,36 +123,48 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
             {/* ── Left column ── */}
             <div className="flex flex-col gap-6">
 
-              {/* Video thumbnail / preview */}
-              <div className="rounded-3xl overflow-hidden border border-brand-purple/12 shadow-card relative"
-                style={{ aspectRatio: '16/9', background: thumbnailGradient(order.status) }}>
-
-                <div className="absolute inset-0 opacity-10 pointer-events-none"
-                  style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.4) 3px,rgba(0,0,0,0.4) 4px)' }} />
-
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <button className="w-16 h-16 rounded-full flex items-center justify-center transition-transform hover:scale-110 active:scale-95"
-                    style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
-                    <Play className="w-7 h-7 text-white ml-1" />
-                  </button>
+              {/* Video player / thumbnail */}
+              {videoUrl ? (
+                <div className="rounded-3xl overflow-hidden border border-brand-purple/12 shadow-card bg-black">
+                  <video
+                    src={videoUrl}
+                    controls
+                    className="w-full"
+                    style={{ aspectRatio: '16/9' }}
+                    preload="metadata"
+                    controlsList="nodownload"
+                  />
                 </div>
+              ) : (
+                <div className="rounded-3xl overflow-hidden border border-brand-purple/12 shadow-card relative"
+                  style={{ aspectRatio: '16/9', background: thumbnailGradient(order.status) }}>
 
-                <div className="absolute top-4 right-4">
-                  {statusBadge(order.status, labels)}
-                </div>
+                  <div className="absolute inset-0 opacity-10 pointer-events-none"
+                    style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.4) 3px,rgba(0,0,0,0.4) 4px)' }} />
 
-                <div className="absolute bottom-4 right-4">
-                  <span className="text-xs font-bold tracking-widest uppercase text-white/80 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                    30s
-                  </span>
-                </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-16 h-16 rounded-full flex items-center justify-center"
+                        style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(6px)' }}>
+                        <Play className="w-7 h-7 text-white ml-1" />
+                      </div>
+                      <p className="text-white/60 text-xs font-medium">
+                        {lang === 'ar' ? 'الفيديو قيد الإنتاج' : 'Video is being produced'}
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="absolute bottom-4 left-4">
-                  <span className="text-xs font-mono text-white/70 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                    {order.referenceId}
-                  </span>
+                  <div className="absolute top-4 right-4">
+                    {statusBadge(order.status, labels)}
+                  </div>
+
+                  <div className="absolute bottom-4 left-4">
+                    <span className="text-xs font-mono text-white/70 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                      {order.referenceId}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Order timeline */}
               <div className="bg-white rounded-2xl border border-brand-purple/12 p-6">
@@ -178,15 +214,16 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {order.status === 'delivered' && order.downloadEnabled && (
-                    <a
-                      href={order.finalVideoUrl || order.watermarkedUrl || '#'}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-brand-purple text-white hover:opacity-90 transition-all"
+                    <button
+                      onClick={handleDownload}
+                      disabled={downloading}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-brand-purple text-white hover:opacity-90 transition-all disabled:opacity-60"
                     >
-                      <Download className="w-4 h-4" />
+                      {downloading
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Download className="w-4 h-4" />}
                       {lang === 'ar' ? 'تحميل الفيديو' : 'Download Video'}
-                    </a>
+                    </button>
                   )}
                   <button
                     onClick={() => router.push('/contact')}

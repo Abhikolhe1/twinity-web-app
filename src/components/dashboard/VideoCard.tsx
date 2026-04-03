@@ -32,6 +32,7 @@ export default function VideoCard({
   labels: Record<string, string>
 }) {
   const celeb = order.celebrityId as { name: string; nameAr: string; initials: string; avatarColor: string }
+  const videoUrl = order.previewUrl || order.watermarkedUrl || order.finalVideoUrl
 
   return (
     <Link href={`/videos/${order.referenceId}`} className="rounded-2xl bg-white border border-brand-purple/12 overflow-hidden hover:border-brand-purple/30 hover:shadow-card-hover transition-all group cursor-pointer block">
@@ -39,9 +40,23 @@ export default function VideoCard({
       {/* Thumbnail */}
       <div className="relative w-full" style={{ aspectRatio: '16/9', background: thumbnailGradient(order.status) }}>
 
+        {/* Actual video thumbnail if available */}
+        {videoUrl && (
+          <video
+            src={videoUrl}
+            className="absolute inset-0 w-full h-full object-cover"
+            preload="metadata"
+            muted
+            playsInline
+            controlsList="nodownload"
+          />
+        )}
+
         {/* Scan-line texture */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none"
-          style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.4) 3px,rgba(0,0,0,0.4) 4px)' }} />
+        {!videoUrl && (
+          <div className="absolute inset-0 opacity-10 pointer-events-none"
+            style={{ backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.4) 3px,rgba(0,0,0,0.4) 4px)' }} />
+        )}
 
         {/* Play button */}
         <div className="absolute inset-0 flex items-center justify-center">

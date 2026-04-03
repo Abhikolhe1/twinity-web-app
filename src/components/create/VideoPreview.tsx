@@ -278,6 +278,7 @@ export default function VideoPreview({
               src={videoUrl}
               className="w-full h-full"
               playsInline
+              controlsList="nodownload"
               onEnded={() => {
                 setPlaying(false)
                 setEnded(true)
