@@ -98,6 +98,10 @@ export interface WizardState {
   channels: Channel[]
   language: 'en' | 'ar'
   useCustomScript: boolean
+  // Scene settings
+  backgroundImageUrl: string | null
+  propImages: string[]
+  sceneNotes: string
 }
 
 export interface PriceBreakdown {

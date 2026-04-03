@@ -15,6 +15,9 @@ const INITIAL_STATE: WizardState = {
   channels: [],
   language: 'en',
   useCustomScript: false,
+  backgroundImageUrl: null,
+  propImages: [],
+  sceneNotes: '',
 }
 
 const STORAGE_KEY = 'twinity_wizard'

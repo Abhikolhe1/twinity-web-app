@@ -111,6 +111,7 @@ export const jobApi = {
   create: (body: {
     celebrityId: string; productType: string; purpose: string; script: string
     templateId?: string; tone?: string; duration?: string; aspectRatio?: string; resolution?: string; channels?: string[]
+    propImages?: string[]; sceneNotes?: string; backgroundImageUrl?: string
   }) => api<{ success: boolean; data: ApiVideoJob }>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
 
   myJobs: (status?: string) => {
@@ -126,6 +127,9 @@ export const jobApi = {
 
   improveScript: (body: { script: string; celebrityName: string; productType: string; purpose?: string }) =>
     api<{ success: boolean; improvedScript: string }>('/jobs/improve-script', { method: 'POST', body: JSON.stringify(body) }),
+
+  scenePrompts: (body: { celebrityName: string; productType: string; purpose?: string; script?: string }) =>
+    api<{ success: boolean; suggestions: string[] }>('/jobs/scene-prompts', { method: 'POST', body: JSON.stringify(body) }),
 }
 
 // ── Templates ──────────────────────────────────────────────
