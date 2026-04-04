@@ -40,6 +40,10 @@ export default function StepCustomize({ state, onChange }: Props) {
     ? lang === 'ar' ? state.template.sampleScriptAr : state.template.sampleScript
     : ''
 
+  const activeScript    = state.useCustomScript ? state.customScript : templateScript
+  const scriptWordCount = activeScript.trim() ? activeScript.trim().split(/\s+/).length : 0
+  const scriptOverLimit = scriptWordCount > 25
+
   const handleBgImage = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -266,6 +270,12 @@ export default function StepCustomize({ state, onChange }: Props) {
               </div>
             )}
 
+            {/* Word count */}
+            <p className={`text-xs text-right ${scriptOverLimit ? 'text-red-500 font-medium' : 'text-content-muted'}`}>
+              {scriptWordCount} / 25 {lang === 'ar' ? 'كلمة' : 'words'}
+              {scriptOverLimit && (lang === 'ar' ? ' — الحد الأقصى 25 كلمة' : ' — max 25 words')}
+            </p>
+
             {/* Improve with AI — always visible */}
             <div className="flex items-center justify-between">
               {improveError && <p className="text-xs text-red-500">{improveError}</p>}
@@ -438,13 +448,21 @@ export default function StepCustomize({ state, onChange }: Props) {
             <p className="text-sm text-red-500 text-center px-1">{jobError}</p>
           )}
 
+          {scriptOverLimit && (
+            <p className="text-xs text-red-500 text-center">
+              {lang === 'ar'
+                ? 'يرجى تقليل النص إلى 25 كلمة أو أقل قبل التوليد'
+                : 'Please shorten your script to 25 words or fewer before generating'}
+            </p>
+          )}
+
           {/* Generate button */}
           <Button
             fullWidth
             size="lg"
             icon={<Sparkles className="w-4 h-4" />}
             loading={jobLoading}
-            disabled={!state.celebrity || !state.productType || jobLoading}
+            disabled={!state.celebrity || !state.productType || jobLoading || scriptOverLimit}
             onClick={handleGeneratePreview}
           >
             {jobLoading
