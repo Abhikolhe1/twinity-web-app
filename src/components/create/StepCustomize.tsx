@@ -166,7 +166,7 @@ export default function StepCustomize({ state, onChange }: Props) {
         return
       }
 
-      // Poll every 5 s until previewUrl is set or job fails
+      // Poll every 30 s until previewUrl is set or job fails
       pollRef.current = setInterval(async () => {
         try {
           const jobRes = await jobApi.getJob(ref)
@@ -186,7 +186,7 @@ export default function StepCustomize({ state, onChange }: Props) {
             if (pollRef.current) clearInterval(pollRef.current)
           }
         } catch { /* ignore transient polling errors */ }
-      }, 5000)
+      }, 30000)
     } catch (err) {
       setJobError(err instanceof Error ? err.message : 'Failed to submit order')
       setJobLoading(false)
