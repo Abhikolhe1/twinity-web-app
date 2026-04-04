@@ -49,7 +49,7 @@ export default function VideoPreview({
   videoUrl,
   loading = false,
 }: VideoPreviewProps) {
-  const totalSeconds = durationToSeconds(duration || '30s')
+  const fallbackSeconds = durationToSeconds(duration || '30s')
 
   // If a real video URL is already available on mount, start in ready phase
   const [phase, setPhase] = useState<'processing' | 'ready'>(() =>
@@ -61,6 +61,10 @@ export default function VideoPreview({
   const [currentTime, setCurrentTime] = useState(0)
   const [showControls, setShowControls] = useState(true)
   const [ended, setEnded] = useState(false)
+  // Actual duration read from the video element; overrides the prop once known
+  const [measuredDuration, setMeasuredDuration] = useState<number | null>(null)
+
+  const totalSeconds = measuredDuration ?? fallbackSeconds
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const controlsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -279,6 +283,10 @@ export default function VideoPreview({
               className="w-full h-full"
               playsInline
               controlsList="nodownload"
+              onLoadedMetadata={(e) => {
+                const d = e.currentTarget.duration
+                if (isFinite(d) && d > 0) setMeasuredDuration(Math.ceil(d))
+              }}
               onEnded={() => {
                 setPlaying(false)
                 setEnded(true)
@@ -452,7 +460,7 @@ export default function VideoPreview({
             {celebrity ? (lang === 'ar' ? celebrity.nameAr : celebrity.name) : 'Twinity'} · {templateName}
           </span>
           <span className="bg-surface-subtle border border-brand-purple/15 px-2 py-0.5 rounded-full text-brand-purple font-medium">
-            {duration || '30s'}
+            {measuredDuration != null ? `${measuredDuration}s` : (duration || '30s')}
           </span>
         </div>
 
