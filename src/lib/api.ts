@@ -141,7 +141,7 @@ export const jobApi = {
   scenePrompts: (body: { celebrityName: string; productType: string; purpose?: string; script?: string }) =>
     api<{ success: boolean; suggestions: string[] }>('/jobs/scene-prompts', { method: 'POST', body: JSON.stringify(body) }),
 
-  generateImage: (body: { prompt: string; chatHistory?: Array<{ role: 'user' | 'model'; text: string; imageUrl?: string }> }) =>
+  generateImage: (body: { prompt: string; productTypeSlug?: string; chatHistory?: Array<{ role: 'user' | 'model'; text: string; imageUrl?: string }> }) =>
     api<{ success: boolean; imageUrl: string; revisedPrompt?: string }>('/jobs/generate-image', { method: 'POST', body: JSON.stringify(body) }),
 }
 
@@ -165,6 +165,30 @@ export const templateApi = {
     const qs = productType ? `?productType=${encodeURIComponent(productType)}` : ''
     return api<{ success: boolean; data: ApiTemplate[]; total: number }>(`/templates${qs}`)
   },
+}
+
+// ── Product Types (public) ─────────────────────────────────
+export interface ApiProductType {
+  _id: string
+  slug: string
+  name: string
+  nameAr: string
+  description: string
+  descriptionAr: string
+  detail: string
+  detailAr: string
+  icon: string
+  priceFrom: number
+  duration: string
+  durationAr: string
+  useCases: string[]
+  useCasesAr: string[]
+  isActive: boolean
+  order: number
+}
+
+export const productTypeApi = {
+  list: () => api<{ success: boolean; data: ApiProductType[]; total: number }>('/product-types'),
 }
 
 // ── Settings (public) ──────────────────────────────────────

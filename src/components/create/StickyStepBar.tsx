@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { useWizard } from '@/lib/wizard-context'
 import { useLanguage } from '@/lib/context'
-import { PRODUCT_TYPES } from '@/lib/data'
+import { useProductTypes } from '@/lib/use-product-types'
 
 const SLUGS = ['product-type', 'customize', 'review', 'book-call']
 const BASE = '/create'
@@ -23,6 +23,7 @@ export default function StickyStepBar() {
   const { state } = useWizard()
   const { lang } = useLanguage()
 
+  const { productTypes } = useProductTypes()
   const step = stepFromPathname(pathname)
   if (step === 0) return null
 
@@ -44,7 +45,7 @@ export default function StickyStepBar() {
   if (step === 4) return null
 
   // Summary avatar / label for steps 1–3
-  const pt = PRODUCT_TYPES.find(p => p.id === state.productType)
+  const pt = productTypes.find(p => p.id === state.productType)
   let avatar: React.ReactNode = null
   let label = ''
   let sublabel = ''

@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { ProductTypeId, WizardState } from '@/lib/types'
-import { PRODUCT_TYPES } from '@/lib/data'
 import { useLanguage } from '@/lib/context'
 import { Check, X, PhoneCall } from 'lucide-react'
 import { leadApi } from '@/lib/api'
+import { useProductTypes } from '@/lib/use-product-types'
 
 interface Props {
   state: WizardState
@@ -25,6 +25,8 @@ export default function StepProductType({ state, onSelect }: Props) {
   const [contactLoading, setContactLoading] = useState(false)
   const [contactSuccess, setContactSuccess] = useState(false)
   const [contactError,   setContactError]   = useState<string | null>(null)
+
+  const { productTypes, loading: ptLoading } = useProductTypes()
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,8 +57,31 @@ export default function StepProductType({ state, onSelect }: Props) {
         <p className="mt-2 text-content-muted text-sm sm:text-base">{tr.create.selectProductTypeSub}</p>
       </div>
 
+      {ptLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="rounded-2xl border border-brand-purple/12 bg-white p-6 flex flex-col gap-4 animate-pulse">
+              <div className="w-14 h-14 rounded-2xl bg-surface-subtle" />
+              <div className="flex flex-col gap-2">
+                <div className="h-4 w-3/4 rounded-lg bg-surface-subtle" />
+                <div className="h-3 w-1/2 rounded-lg bg-surface-subtle" />
+                <div className="h-3 w-full rounded-lg bg-surface-subtle mt-1" />
+                <div className="h-3 w-5/6 rounded-lg bg-surface-subtle" />
+              </div>
+              <div className="flex gap-1.5 flex-wrap">
+                {[0, 1, 2].map(j => <div key={j} className="h-6 w-16 rounded-lg bg-surface-subtle" />)}
+              </div>
+              <div className="pt-2 border-t border-brand-purple/8">
+                <div className="h-8 w-1/2 rounded-lg bg-surface-subtle" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!ptLoading && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {PRODUCT_TYPES.map(pt => {
+        {productTypes.map(pt => {
           const isContactSales = pt.id === 'full-body'
           const isSelected     = state.productType === pt.id
           const name           = lang === 'ar' ? pt.nameAr        : pt.name
@@ -143,6 +168,7 @@ export default function StepProductType({ state, onSelect }: Props) {
           )
         })}
       </div>
+      )}
 
       {/* Contact Sales Modal */}
       {contactOpen && (

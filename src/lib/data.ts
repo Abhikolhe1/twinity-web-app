@@ -1,4 +1,4 @@
-import { Celebrity, ProductType, Template } from './types'
+import { Celebrity, Template } from './types'
 
 export const CELEBRITIES: Celebrity[] = [
   {
@@ -320,60 +320,6 @@ export const CELEBRITIES: Celebrity[] = [
       'full-body': { min: 18000, max: 40000 },
       greeting: { min: 2000, max: 6000 },
     },
-  },
-]
-
-export const PRODUCT_TYPES: ProductType[] = [
-  {
-    id: 'greeting',
-    name: 'Celebrity Greetings',
-    nameAr: 'تحيات المشاهير',
-    description: 'Personal occasions',
-    descriptionAr: 'المناسبات الشخصية',
-    detail:
-      'Personalized celebrity messages for birthdays, weddings, graduations, and heartfelt appreciations.',
-    detailAr:
-      'رسائل مشاهير شخصية لأعياد الميلاد والأعراس والتخرج وعبارات الامتنان.',
-    icon: '🎉',
-    priceFrom: 149,
-    duration: 'Delivery in 1–2 business days',
-    durationAr: 'التسليم في غضون 1–2 يوم عمل',
-    useCases: ['Birthdays', 'Weddings', 'Graduations', 'Corporate Appreciation'],
-    useCasesAr: ['أعياد الميلاد', 'الأعراس', 'حفلات التخرج', 'التقدير المؤسسي'],
-  },
-  {
-    id: 'avatar-studio',
-    name: 'Short Product Ads',
-    nameAr: 'إعلانات المنتجات القصيرة',
-    description: 'Short celebrity Ad',
-    descriptionAr: 'الرأس والكتفين',
-    detail:
-      'Hyper-realistic video avatars ideal for ads, product launches, and official announcements.',
-    detailAr:
-      'أفاتارات فيديو فائقة الواقعية مثالية للإعلانات وإطلاق المنتجات والإعلانات الرسمية.',
-    icon: '🎬',
-    priceFrom: 299,
-    duration: 'Delivery in 3–5 business days',
-    durationAr: 'التسليم في غضون 3–5 أيام عمل',
-    useCases: ['Brand Ads', 'Product Launches', 'Corporate Announcements', 'Social Media Posts'],
-    useCasesAr: ['إعلانات العلامة التجارية', 'إطلاق المنتجات', 'الإعلانات الشركاتية', 'منشورات وسائل التواصل الاجتماعي'],
-  },
-  {
-    id: 'full-body',
-    name: 'Full-Body Digital Twin',
-    nameAr: 'التوأم الرقمي للجسم الكامل',
-    description: 'Full body celebrity Ad',
-    descriptionAr: 'الجسم الكامل + التقاط الحركة',
-    detail:
-      'Complete digital twin with natural body motion for large-scale campaigns and immersive experiences.',
-    detailAr:
-      'توأم رقمي كامل مع حركة جسمية طبيعية للحملات الكبيرة والتجارب الغامرة.',
-    icon: '🧬',
-    priceFrom: 899,
-    duration: 'Delivery in 7–14 business days',
-    durationAr: 'التسليم في غضون 7–14 يوم عمل',
-    useCases: ['TV Commercials', 'Event Displays', 'Campaign Videos', 'Immersive Brand Experiences'],
-    useCasesAr: ['إعلانات تلفزيونية', 'عروض الفعاليات', 'مقاطع فيديو الحملات', 'تجارب العلامة التجارية الغامرة'],
   },
 ]
 

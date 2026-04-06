@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { WizardState, AspectRatio, Celebrity, Template, Duration, Industry } from '@/lib/types'
-import { ASPECT_RATIOS, PRODUCT_TYPES, INDUSTRY_LABELS } from '@/lib/data'
+import { ASPECT_RATIOS, INDUSTRY_LABELS } from '@/lib/data'
+import { useProductTypes } from '@/lib/use-product-types'
 import { useLanguage } from '@/lib/context'
 import { TextArea } from '@/components/ui/Input'
 import {
@@ -75,6 +76,7 @@ interface Props {
 
 export default function StepCustomize({ state, onChange }: Props) {
   const { lang, tr } = useLanguage()
+  const { productTypes } = useProductTypes()
 
   // ── Job generation ──────────────────────────────────────
   const [jobLoading,    setJobLoading]    = useState(false)
@@ -304,7 +306,7 @@ export default function StepCustomize({ state, onChange }: Props) {
     setImproving(true)
     setImproveError(null)
     try {
-      const productType = PRODUCT_TYPES.find(p => p.id === state.productType)
+      const productType = productTypes.find(p => p.id === state.productType)
       const res = await jobApi.improveScript({
         script,
         celebrityName: lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name,
@@ -334,6 +336,7 @@ export default function StepCustomize({ state, onChange }: Props) {
     try {
       const res = await jobApi.generateImage({
         prompt,
+        productTypeSlug: state.productType ?? undefined,
         chatHistory: chatHistory.map(m => ({ role: m.role, text: m.text, imageUrl: m.imageUrl })),
       })
       const modelMsg: ChatMessage = { role: 'model', text: res.revisedPrompt ?? '', imageUrl: res.imageUrl }
@@ -353,7 +356,7 @@ export default function StepCustomize({ state, onChange }: Props) {
 
   const isGreeting = state.productType === 'greeting'
   const hasJobRef  = (() => { try { return !!sessionStorage.getItem(ORDER_REF_KEY) } catch { return false } })()
-  const productType  = PRODUCT_TYPES.find(p => p.id === state.productType)
+  const productType  = productTypes.find(p => p.id === state.productType)
   const productName  = lang === 'ar' ? productType?.nameAr : productType?.name
   const templateName = lang === 'ar' ? state.template?.nameAr : state.template?.name
 

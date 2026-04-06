@@ -1,7 +1,8 @@
 'use client'
 
 import { WizardState } from '@/lib/types'
-import { PRODUCT_TYPES, CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/lib/data'
+import { CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/lib/data'
+import { useProductTypes } from '@/lib/use-product-types'
 import { useLanguage } from '@/lib/context'
 import Badge from '@/components/ui/Badge'
 import { Info } from 'lucide-react'
@@ -21,8 +22,9 @@ function calcPrice(state: WizardState) {
 
 export default function StepReview({ state }: Props) {
   const { lang, tr } = useLanguage()
+  const { productTypes } = useProductTypes()
   const price = calcPrice(state)
-  const productType = PRODUCT_TYPES.find(p => p.id === state.productType)
+  const productType = productTypes.find(p => p.id === state.productType)
   const durationLabel = DURATIONS.find(d => d.id === state.duration)?.[lang === 'ar' ? 'ar' : 'en']
 
   const channelLabels = state.channels.map(cId => {
