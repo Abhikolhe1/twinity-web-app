@@ -30,7 +30,7 @@ export type Channel =
 
 export type Duration = '10s' | '15s' | '30s' | '60s'
 
-export type AspectRatio = '16:9' | '9:16' | '1:1' | '4:5'
+export type AspectRatio = '16:9' | '9:16'
 
 export type Resolution = '720p' | '1080p' | '4K'
 
@@ -92,6 +92,7 @@ export interface WizardState {
   template: Template | null
   purpose: string
   customScript: string
+  templateVariables: Record<string, string>
   duration: Duration | null
   aspectRatio: AspectRatio | null
   resolution: Resolution | null

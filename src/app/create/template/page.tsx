@@ -1,15 +1,10 @@
 'use client'
 
-import { useWizard } from '@/lib/wizard-context'
-import StepTemplate from '@/components/create/StepTemplate'
-import { Template } from '@/lib/types'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function TemplatePage() {
-  const { state, update } = useWizard()
-  return (
-    <StepTemplate
-      state={state}
-      onSelect={(template: Template) => update({ template })}
-    />
-  )
+  const router = useRouter()
+  useEffect(() => { router.replace('/create/customize') }, [router])
+  return null
 }

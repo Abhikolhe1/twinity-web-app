@@ -8,7 +8,7 @@ import { useWizard } from '@/lib/wizard-context'
 import { useLanguage } from '@/lib/context'
 import { PRODUCT_TYPES } from '@/lib/data'
 
-const SLUGS = ['product-type', 'celebrity', 'template', 'customize', 'review', 'book-call']
+const SLUGS = ['product-type', 'customize', 'review', 'book-call']
 const BASE = '/create'
 
 function stepFromPathname(pathname: string): number {
@@ -28,23 +28,22 @@ export default function StickyStepBar() {
 
   const canProceed =
     step === 1 ? !!state.productType :
-    step === 2 ? !!state.celebrity :
-    step === 3 ? !!state.template :
+    step === 2 ? !!state.celebrity && !!state.template :
     true
 
-  const alwaysShow = step >= 4
+  const alwaysShow = step >= 3
   if (!alwaysShow && !canProceed) return null
 
   const prevSlug = step > 1 ? SLUGS[step - 2] : null
-  const nextSlug = step < 6 ? SLUGS[step] : null
+  const nextSlug = step < 4 ? SLUGS[step] : null
 
   const handleBack = () => { if (prevSlug) router.push(`${BASE}/${prevSlug}`) }
   const handleNext = () => { if (nextSlug) router.push(`${BASE}/${nextSlug}`) }
 
-  // Step 6: no sticky bar — form has its own Submit button
-  if (step === 6) return null
+  // Step 4: no sticky bar — form has its own Submit button
+  if (step === 4) return null
 
-  // Summary avatar / label for steps 1–5
+  // Summary avatar / label for steps 1–3
   const pt = PRODUCT_TYPES.find(p => p.id === state.productType)
   let avatar: React.ReactNode = null
   let label = ''
@@ -54,33 +53,19 @@ export default function StickyStepBar() {
     avatar   = <span className="text-2xl">{pt.icon}</span>
     label    = lang === 'ar' ? pt.nameAr        : pt.name
     sublabel = lang === 'ar' ? pt.descriptionAr : pt.description
-  } else if (step === 2 && state.celebrity) {
-    const c = state.celebrity
-    avatar = (
-      <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0" style={{ background: c.avatarColor }}>
-        <img src={c.image} alt={c.name} className="w-full h-full object-cover object-top" />
-      </div>
-    )
-    label    = lang === 'ar' ? c.nameAr        : c.name
-    sublabel = lang === 'ar' ? c.nationalityAr : c.nationality
-  } else if (step === 3 && state.template) {
-    avatar   = <span className="text-2xl">📋</span>
-    label    = lang === 'ar' ? state.template.nameAr    : state.template.name
-    sublabel = lang === 'ar' ? state.template.purposeAr : state.template.purpose
-  } else if (step === 4) {
+  } else if (step === 2) {
     avatar   = <span className="text-2xl">✏️</span>
     label    = lang === 'ar' ? 'تخصيص الفيديو' : 'Customize your video'
     sublabel = state.celebrity ? (lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name) : ''
-  } else if (step === 5) {
+  } else if (step === 3) {
     avatar   = <span className="text-2xl">📝</span>
     label    = lang === 'ar' ? 'مراجعة الطلب' : 'Review your order'
     sublabel = lang === 'ar' ? 'تحقق من التفاصيل قبل المتابعة' : 'Check details before continuing'
   }
 
   const nextLabel =
-    step === 5 ? (lang === 'ar' ? 'تواصل معنا'     : 'Get in Touch') :
-    step === 4 ? (lang === 'ar' ? 'تابع للتنزيل'   : 'Proceed to Download') :
-                 (lang === 'ar' ? 'التالي'           : 'Continue')
+    step === 3 ? (lang === 'ar' ? 'تواصل معنا'   : 'Get in Touch') :
+                 (lang === 'ar' ? 'التالي'         : 'Continue')
 
   return (
     <div className="fixed bottom-6 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-50 animate-slide-up">

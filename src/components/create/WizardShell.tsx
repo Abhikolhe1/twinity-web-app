@@ -9,7 +9,7 @@ import Footer from '@/components/layout/Footer'
 import StepIndicator from '@/components/create/StepIndicator'
 import StickyStepBar from '@/components/create/StickyStepBar'
 
-const STEP_SLUGS = ['product-type', 'celebrity', 'template', 'customize', 'review', 'book-call']
+const STEP_SLUGS = ['product-type', 'customize', 'review', 'book-call']
 
 function stepFromPathname(pathname: string): number {
   const segment = pathname.split('/').pop() ?? ''
@@ -25,11 +25,9 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   const steps = [
     { id: 1, label: tr.create.step1 },
-    { id: 2, label: tr.create.step2 },
-    { id: 3, label: tr.create.step3 },
-    { id: 4, label: tr.create.step4 },
-    { id: 5, label: tr.create.step5 },
-    { id: 6, label: tr.create.step6 },
+    { id: 2, label: tr.create.step4 },
+    { id: 3, label: tr.create.step5 },
+    { id: 4, label: tr.create.step6 },
   ]
 
   return (

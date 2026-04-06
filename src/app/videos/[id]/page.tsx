@@ -11,7 +11,7 @@ import { thumbnailGradient, statusBadge } from '@/components/dashboard/VideoCard
 import {
   ArrowLeft, Play, User, Tag, Calendar, DollarSign,
   Clock, CheckCircle2, Loader2, Eye, Package, Download,
-  RotateCcw, MessageSquare,
+  RotateCcw, MessageSquare, XCircle,
 } from 'lucide-react'
 
 const STATUS_STEPS = [
@@ -33,7 +33,9 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
   const [order, setOrder] = useState<ApiVideoJob | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
-  const [downloading, setDownloading] = useState(false)
+  const [downloading,  setDownloading]  = useState(false)
+  const [cancelling,   setCancelling]   = useState(false)
+  const [cancelError,  setCancelError]  = useState<string | null>(null)
 
   useEffect(() => {
     jobApi.getJob(id)
@@ -41,6 +43,20 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false))
   }, [id])
+
+  const handleCancel = async () => {
+    if (!confirm(lang === 'ar' ? 'هل تريد إلغاء هذا الطلب؟' : 'Cancel this job?')) return
+    setCancelling(true)
+    setCancelError(null)
+    try {
+      await jobApi.cancelJob(id)
+      setOrder(prev => prev ? { ...prev, status: 'cancelled' } : prev)
+    } catch (err) {
+      setCancelError(err instanceof Error ? err.message : 'Could not cancel job')
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   const handleDownload = useCallback(async () => {
     const url = order?.finalVideoUrl || order?.watermarkedUrl
@@ -237,7 +253,22 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                     <RotateCcw className="w-4 h-4" />
                     {lang === 'ar' ? 'طلب جديد' : 'New Order'}
                   </button>
+                  {order.status === 'pending' && (
+                    <button
+                      onClick={handleCancel}
+                      disabled={cancelling}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300 transition-all disabled:opacity-60"
+                    >
+                      {cancelling
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <XCircle className="w-4 h-4" />}
+                      {lang === 'ar' ? 'إلغاء الطلب' : 'Cancel Order'}
+                    </button>
+                  )}
                 </div>
+                {cancelError && (
+                  <p className="mt-2 text-xs text-red-500">{cancelError}</p>
+                )}
               </div>
 
             </div>

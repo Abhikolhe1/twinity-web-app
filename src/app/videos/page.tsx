@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
@@ -16,27 +16,81 @@ const FILTERS = [
   { id: 'in-progress', en: 'In Progress', ar: 'قيد التنفيذ' },
   { id: 'review',      en: 'In Review',   ar: 'قيد المراجعة' },
   { id: 'delivered',   en: 'Ready',       ar: 'جاهز' },
+  { id: 'cancelled',   en: 'Cancelled',   ar: 'ملغي' },
+  { id: 'failed',      en: 'Failed',      ar: 'فشل' },
 ]
+
+const PAGE_SIZE = 12
 
 function VideosContent() {
   const { lang, tr } = useLanguage()
   const labels = tr.dashboard.statusLabels as Record<string, string>
   const searchParams = useSearchParams()
   const initialFilter = searchParams.get('f') ?? 'all'
-  const [filter, setFilter] = useState(initialFilter)
-  const [jobs, setJobs] = useState<ApiVideoJob[]>([])
-  const [loading, setLoading] = useState(true)
 
+  const [filter, setFilter]       = useState(initialFilter)
+  const [jobs, setJobs]           = useState<ApiVideoJob[]>([])
+  const [stats, setStats]         = useState<Record<string, number>>({ all: 0, pending: 0, 'in-progress': 0, review: 0, delivered: 0, cancelled: 0, failed: 0 })
+  const [page, setPage]           = useState(1)
+  const [hasMore, setHasMore]     = useState(false)
+  const [loading, setLoading]     = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null)
+
+  // ── Fetch stats ─────────────────────────────────────────
+  const fetchStats = useCallback(() => {
+    jobApi.myStats()
+      .then(res => setStats(res.data || {}))
+      .catch(() => null)
+  }, [])
+
+  useEffect(() => { fetchStats() }, [fetchStats])
+
+  // ── Fetch first page whenever filter changes ────────────
   useEffect(() => {
     setLoading(true)
+    setJobs([])
+    setPage(1)
+    setHasMore(false)
     const status = filter !== 'all' ? filter : undefined
-    jobApi.myJobs(status)
-      .then(res => setJobs(res.data || []))
+    jobApi.myJobs(status, 1, PAGE_SIZE)
+      .then(res => {
+        setJobs(res.data || [])
+        setHasMore(res.hasMore ?? false)
+        setPage(2)
+      })
       .catch(() => null)
       .finally(() => setLoading(false))
   }, [filter])
 
-  const countFor = (id: string) => id === 'all' ? jobs.length : jobs.filter(o => o.status === id).length
+  // ── Load next page ──────────────────────────────────────
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    const status = filter !== 'all' ? filter : undefined
+    jobApi.myJobs(status, page, PAGE_SIZE)
+      .then(res => {
+        setJobs(prev => [...prev, ...(res.data || [])])
+        setHasMore(res.hasMore ?? false)
+        setPage(p => p + 1)
+      })
+      .catch(() => null)
+      .finally(() => setLoadingMore(false))
+  }, [loadingMore, hasMore, filter, page])
+
+  // ── IntersectionObserver on sentinel ───────────────────
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      entries => { if (entries[0].isIntersecting) loadMore() },
+      { rootMargin: '200px' },
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [loadMore])
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6">
@@ -54,7 +108,7 @@ function VideosContent() {
               {lang === 'ar' ? 'جميع الفيديوهات' : 'All Videos'}
             </h1>
             <p className="text-sm text-content-muted mt-1">
-              {loading ? '—' : jobs.length} {lang === 'ar' ? 'فيديو إجمالاً' : 'total videos'}
+              {stats.all ?? 0} {lang === 'ar' ? 'فيديو إجمالاً' : 'total videos'}
             </p>
           </div>
           <div className="w-12 h-12 rounded-xl bg-brand-purple/8 border border-brand-purple/15 flex items-center justify-center">
@@ -67,6 +121,7 @@ function VideosContent() {
       <div className="flex flex-wrap gap-2">
         {FILTERS.map(f => {
           const isActive = filter === f.id
+          const count = stats[f.id] ?? 0
           return (
             <button
               key={f.id}
@@ -81,17 +136,25 @@ function VideosContent() {
               <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${
                 isActive ? 'bg-white/20 text-white' : 'bg-surface-subtle text-content-muted'
               }`}>
-                {loading ? '—' : countFor(f.id)}
+                {count}
               </span>
             </button>
           )
         })}
       </div>
 
-      {/* Loading */}
+      {/* Initial loading */}
       {loading && (
-        <div className="text-center py-16 text-sm text-content-muted">
-          {lang === 'ar' ? 'جار التحميل...' : 'Loading...'}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-2xl bg-white border border-brand-purple/10 overflow-hidden animate-pulse">
+              <div className="w-full bg-surface-subtle" style={{ aspectRatio: '16/9' }} />
+              <div className="p-3 flex flex-col gap-2">
+                <div className="h-3 bg-surface-subtle rounded w-3/4" />
+                <div className="h-2.5 bg-surface-subtle rounded w-1/2" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -114,8 +177,22 @@ function VideosContent() {
           {jobs.map(order => (
             <VideoCard key={order._id} order={order} labels={labels} />
           ))}
+
+          {/* Skeleton cards while loading more */}
+          {loadingMore && Array.from({ length: 4 }).map((_, i) => (
+            <div key={`sk-${i}`} className="rounded-2xl bg-white border border-brand-purple/10 overflow-hidden animate-pulse">
+              <div className="w-full bg-surface-subtle" style={{ aspectRatio: '16/9' }} />
+              <div className="p-3 flex flex-col gap-2">
+                <div className="h-3 bg-surface-subtle rounded w-3/4" />
+                <div className="h-2.5 bg-surface-subtle rounded w-1/2" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
+
+      {/* Sentinel for IntersectionObserver */}
+      <div ref={sentinelRef} className="h-4" />
 
     </div>
   )

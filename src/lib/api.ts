@@ -51,6 +51,7 @@ export interface ApiUser {
   id: string; name: string; email: string; status: string; isEmailVerified: boolean; avatarUrl?: string
   authProvider: 'email' | 'google'
   hasEmailPassword: boolean
+  accountType: 'individual' | 'influencer' | 'agency'
 }
 export interface ApiCelebrity {
   _id: string; name: string; nameAr: string; slug: string; industry: string
@@ -114,10 +115,19 @@ export const jobApi = {
     propImages?: string[]; sceneNotes?: string; backgroundImageUrl?: string
   }) => api<{ success: boolean; data: ApiVideoJob }>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
 
-  myJobs: (status?: string) => {
-    const qs = status && status !== 'all' ? `?status=${status}` : ''
-    return api<{ success: boolean; data: ApiVideoJob[]; total: number }>(`/jobs/my${qs}`)
+  myJobs: (status?: string, page = 1, limit = 12) => {
+    const params = new URLSearchParams()
+    if (status && status !== 'all') params.set('status', status)
+    params.set('page', String(page))
+    params.set('limit', String(limit))
+    return api<{ success: boolean; data: ApiVideoJob[]; total: number; page: number; pages: number; hasMore: boolean }>(`/jobs/my?${params}`)
   },
+
+  myStats: () =>
+    api<{ success: boolean; data: Record<string, number> }>('/jobs/my/stats'),
+
+  cancelJob: (referenceId: string) =>
+    api<{ success: boolean; data: ApiVideoJob }>(`/jobs/my/${referenceId}/cancel`, { method: 'POST' }),
 
   getJob: (referenceId: string) =>
     api<{ success: boolean; data: ApiVideoJob }>(`/jobs/my/${referenceId}`),
@@ -130,6 +140,9 @@ export const jobApi = {
 
   scenePrompts: (body: { celebrityName: string; productType: string; purpose?: string; script?: string }) =>
     api<{ success: boolean; suggestions: string[] }>('/jobs/scene-prompts', { method: 'POST', body: JSON.stringify(body) }),
+
+  generateImage: (body: { prompt: string; chatHistory?: Array<{ role: 'user' | 'model'; text: string; imageUrl?: string }> }) =>
+    api<{ success: boolean; imageUrl: string; revisedPrompt?: string }>('/jobs/generate-image', { method: 'POST', body: JSON.stringify(body) }),
 }
 
 // ── Templates ──────────────────────────────────────────────
@@ -161,7 +174,7 @@ export const leadApi = {
 }
 
 // ── Helpers ────────────────────────────────────────────────
-import type { Celebrity } from './types'
+import type { Celebrity, Template, ProductTypeId, Duration } from './types'
 
 export function mapApiCeleb(c: ApiCelebrity): Celebrity {
   return {
@@ -179,6 +192,23 @@ export function mapApiCeleb(c: ApiCelebrity): Celebrity {
     initials:      c.initials,
     image:         c.thumbnailUrl || '',
     priceRange:    c.priceRange,
+  }
+}
+
+export function mapApiTemplate(t: ApiTemplate): Template {
+  return {
+    id:             t._id,
+    name:           t.name,
+    nameAr:         t.nameAr,
+    description:    t.description,
+    descriptionAr:  t.descriptionAr,
+    purpose:        t.purpose,
+    purposeAr:      t.purposeAr,
+    sampleScript:   t.sampleScript,
+    sampleScriptAr: t.sampleScriptAr,
+    productTypes:   t.productTypes as ProductTypeId[],
+    duration:       (t.duration || '30s') as Duration,
+    tags:           [],
   }
 }
 

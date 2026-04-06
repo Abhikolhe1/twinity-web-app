@@ -343,8 +343,8 @@ export const PRODUCT_TYPES: ProductType[] = [
   },
   {
     id: 'avatar-studio',
-    name: 'Avatar Studio',
-    nameAr: 'استوديو الأفاتار',
+    name: 'Short Product Ads',
+    nameAr: 'إعلانات المنتجات القصيرة',
     description: 'Short celebrity Ad',
     descriptionAr: 'الرأس والكتفين',
     detail:
@@ -563,10 +563,8 @@ export const DURATIONS = [
 ]
 
 export const ASPECT_RATIOS = [
-  { id: '16:9', label: '16:9', hint: 'Landscape', hintAr: 'أفقي'      },
-  { id: '9:16', label: '9:16', hint: 'Portrait',  hintAr: 'عمودي'     },
-  { id: '1:1',  label: '1:1',  hint: 'Square',    hintAr: 'مربع'      },
-  { id: '4:5',  label: '4:5',  hint: 'Social',    hintAr: 'اجتماعي'   },
+  { id: '16:9', label: '16:9', hint: 'YouTube / Widescreen', hintAr: 'يوتيوب / عريض' },
+  { id: '9:16', label: '9:16', hint: 'Social Media / Reels', hintAr: 'سوشيال ميديا'  },
 ]
 
 export const RESOLUTIONS = [

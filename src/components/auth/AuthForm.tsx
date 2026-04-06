@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/context'
 import { Input } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { authApi, setToken, setUserInfo } from '@/lib/api'
-import { Eye, EyeOff, Mail, Lock, User, Globe, AlertCircle, Building2, Star } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, Globe, AlertCircle, Building2, Star, Briefcase } from 'lucide-react'
 import { useGoogleLogin } from '@react-oauth/google'
 
 interface AuthFormProps {
@@ -20,7 +20,7 @@ export default function AuthForm({ mode }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [accountType, setAccountType] = useState<'individual' | 'celebrity'>('individual')
+  const [accountType, setAccountType] = useState<'individual' | 'influencer' | 'agency'>('individual')
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', agree: false })
 
   const googleLogin = useGoogleLogin({
@@ -205,10 +205,11 @@ export default function AuthForm({ mode }: AuthFormProps) {
                   <label className="text-sm font-medium text-content-primary">
                     {lang === 'ar' ? 'نوع الحساب' : 'Account Type'}
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {([
                       { id: 'individual', icon: <Building2 className="w-4 h-4" />, en: 'Individual', ar: 'فرد' },
-                      { id: 'celebrity',  icon: <Star className="w-4 h-4" />,      en: 'Celebrity',  ar: 'مشهور' },
+                      { id: 'influencer', icon: <Star className="w-4 h-4" />,      en: 'Influencer', ar: 'مؤثر' },
+                      { id: 'agency',     icon: <Briefcase className="w-4 h-4" />, en: 'Agency',     ar: 'وكالة' },
                     ] as const).map(opt => (
                       <button
                         key={opt.id}

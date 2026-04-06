@@ -58,7 +58,6 @@ export default function StepProductType({ state, onSelect }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {PRODUCT_TYPES.map(pt => {
           const isContactSales = pt.id === 'full-body'
-          const isComingSoon   = pt.id === 'avatar-studio'
           const isSelected     = state.productType === pt.id
           const name           = lang === 'ar' ? pt.nameAr        : pt.name
           const desc           = lang === 'ar' ? pt.descriptionAr : pt.description
@@ -68,28 +67,17 @@ export default function StepProductType({ state, onSelect }: Props) {
           return (
             <div
               key={pt.id}
-              onClick={() => !isComingSoon && !isContactSales && onSelect(pt.id)}
+              onClick={() => !isContactSales && onSelect(pt.id)}
               className={`relative rounded-2xl border p-6 transition-all duration-300 flex flex-col gap-4 group ${
-                isComingSoon
-                  ? 'border-brand-purple/10 bg-white/60 cursor-not-allowed'
-                  : isContactSales
-                    ? 'border-brand-purple/20 bg-white hover:border-brand-purple/35 hover:shadow-card-hover cursor-default'
-                    : isSelected
-                      ? 'border-brand-purple bg-surface-subtle shadow-purple cursor-pointer'
-                      : 'border-brand-purple/12 bg-white hover:border-brand-purple/40 hover:shadow-card-hover cursor-pointer'
+                isContactSales
+                  ? 'border-brand-purple/20 bg-white hover:border-brand-purple/35 hover:shadow-card-hover cursor-default'
+                  : isSelected
+                    ? 'border-brand-purple bg-surface-subtle shadow-purple cursor-pointer'
+                    : 'border-brand-purple/12 bg-white hover:border-brand-purple/40 hover:shadow-card-hover cursor-pointer'
               }`}
-              style={isSelected && !isComingSoon ? { boxShadow: '0 0 0 2px rgba(154,120,254,0.3), 0 4px 24px rgba(154,120,254,0.12)' } : undefined}
+              style={isSelected ? { boxShadow: '0 0 0 2px rgba(154,120,254,0.3), 0 4px 24px rgba(154,120,254,0.12)' } : undefined}
             >
-              {/* Coming Soon badge */}
-              {isComingSoon && (
-                <div className="absolute top-4 right-4">
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 border border-amber-200">
-                    {lang === 'ar' ? 'قريباً' : 'Coming Soon'}
-                  </span>
-                </div>
-              )}
-
-              {isSelected && !isComingSoon && !isContactSales && (
+              {isSelected && !isContactSales && (
                 <div className="absolute top-4 right-4">
                   <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-sm">
                     <Check className="w-3 h-3 text-white" strokeWidth={3} />

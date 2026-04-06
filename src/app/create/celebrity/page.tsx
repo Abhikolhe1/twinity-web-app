@@ -1,15 +1,10 @@
 'use client'
 
-import { useWizard } from '@/lib/wizard-context'
-import StepCelebrity from '@/components/create/StepCelebrity'
-import { Celebrity } from '@/lib/types'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function CelebrityPage() {
-  const { state, update } = useWizard()
-  return (
-    <StepCelebrity
-      state={state}
-      onSelect={(celebrity: Celebrity) => update({ celebrity })}
-    />
-  )
+  const router = useRouter()
+  useEffect(() => { router.replace('/create/customize') }, [router])
+  return null
 }
