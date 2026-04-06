@@ -7,7 +7,6 @@ import { useLanguage } from '@/lib/context'
 import { Input, TextArea } from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { Phone, Calendar, ChevronLeft, AlertCircle } from 'lucide-react'
-import { PRODUCT_TYPES } from '@/lib/data'
 import { jobApi, authApi, getUserInfo } from '@/lib/api'
 
 const ORDER_REF_KEY = 'twinity_order_ref'
@@ -39,43 +38,29 @@ export default function StepBookCall({ state }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!state.celebrity || !state.productType) {
-      setError('Please complete the previous steps first.')
-      return
-    }
     setLoading(true)
     setError('')
     try {
-      const script = state.useCustomScript
-        ? state.customScript
-        : `${state.productType} video for ${state.purpose}`
+      let referenceId: string | null = null
+      try { referenceId = sessionStorage.getItem(ORDER_REF_KEY) } catch {}
 
-      const jobRes = await jobApi.create({
-        celebrityId:  state.celebrity.id,
-        productType:  state.productType,
-        purpose:      state.purpose || 'General purpose video',
-        script:       script || 'To be provided',
-        templateId:   state.template?.id,
-        tone:         'professional',
-        duration:     state.duration || '30s',
-        aspectRatio:  state.aspectRatio || '16:9',
-        resolution:   state.resolution || '1080p',
-        channels:     state.channels,
-      }) as any
-
-      const referenceId = jobRes.data?.referenceId
-      if (!referenceId) throw new Error('Failed to create order')
+      if (!referenceId) {
+        setError(lang === 'ar'
+          ? 'لم يتم العثور على طلبك. يرجى العودة وتوليد المعاينة أولاً.'
+          : 'No video order found. Please go back and generate a preview first.')
+        setLoading(false)
+        return
+      }
 
       if (userInfo) {
         await jobApi.bookCall(referenceId, {
-          name:    userInfo.name,
-          email:   userInfo.email,
-          phone:   phone || undefined,
-          notes:   `Preferred time: ${preferredTime}. ${message}`.trim(),
+          name:  userInfo.name,
+          email: userInfo.email,
+          phone: phone || undefined,
+          notes: `Preferred time: ${preferredTime}. ${message}`.trim(),
         })
       }
 
-      try { sessionStorage.setItem(ORDER_REF_KEY, referenceId) } catch {}
       router.push('/create/success')
     } catch (err: any) {
       setError(err.message || 'Failed to submit request. Please try again.')
