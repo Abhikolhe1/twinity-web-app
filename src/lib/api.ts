@@ -167,6 +167,11 @@ export const templateApi = {
   },
 }
 
+// ── Settings (public) ──────────────────────────────────────
+export const settingsApi = {
+  getBlockedWords: () => api<{ success: boolean; data: string[] }>('/admin/settings/blocked-words'),
+}
+
 // ── Leads (contact form) ───────────────────────────────────
 export const leadApi = {
   contactForm: (body: { name: string; email: string; company?: string; message: string; productType?: string; purpose?: string }) =>

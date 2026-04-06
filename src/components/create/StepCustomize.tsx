@@ -14,7 +14,7 @@ import {
 import Button from '@/components/ui/Button'
 import VideoPreview from './VideoPreview'
 import CelebrityCard from '@/components/ui/CelebrityCard'
-import { jobApi, celebrityApi, templateApi, mapApiCeleb, mapApiTemplate } from '@/lib/api'
+import { jobApi, celebrityApi, templateApi, settingsApi, mapApiCeleb, mapApiTemplate } from '@/lib/api'
 
 const INDUSTRIES: Industry[] = ['all', 'entertainment', 'sports', 'music', 'business', 'social-media', 'tv-film']
 
@@ -105,12 +105,24 @@ export default function StepCustomize({ state, onChange }: Props) {
   const [celebModalOpen,    setCelebModalOpen]    = useState(false)
   const [templateModalOpen, setTemplateModalOpen] = useState(false)
 
+  // ── Blocked words ──────────────────────────────────────
+  const [blockedWords,       setBlockedWords]       = useState<string[]>([])
+  const [offensiveModalOpen, setOffensiveModalOpen] = useState(false)
+  const [offensiveFound,     setOffensiveFound]     = useState<string[]>([])
+
   // ── Gemini image generation ────────────────────────────
   const [imageGenOpen,    setImageGenOpen]    = useState(false)
   const [chatHistory,     setChatHistory]     = useState<ChatMessage[]>([])
   const [chatInput,       setChatInput]       = useState('')
   const [imageGenLoading, setImageGenLoading] = useState(false)
   const [imageGenError,   setImageGenError]   = useState<string | null>(null)
+
+  // ── Load blocked words on mount ───────────────────────
+  useEffect(() => {
+    settingsApi.getBlockedWords()
+      .then(res => setBlockedWords(res.data ?? []))
+      .catch(() => null)
+  }, [])
 
   // ── Load celebrities on mount ──────────────────────────
   useEffect(() => {
@@ -214,6 +226,18 @@ export default function StepCustomize({ state, onChange }: Props) {
   // ── Generate video ─────────────────────────────────────
   const handleGenerateVideo = async () => {
     if (!state.celebrity || !state.productType) return
+
+    // Check for offensive words before submitting
+    if (blockedWords.length > 0 && resolvedScript.trim()) {
+      const lower = resolvedScript.toLowerCase()
+      const found = blockedWords.filter(w => new RegExp(`\\b${w.toLowerCase()}\\b`).test(lower))
+      if (found.length > 0) {
+        setOffensiveFound(found)
+        setOffensiveModalOpen(true)
+        return
+      }
+    }
+
     if (pollRef.current) clearInterval(pollRef.current)
 
     setJobLoading(true)
@@ -595,6 +619,47 @@ export default function StepCustomize({ state, onChange }: Props) {
                   })}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {/* ── Offensive Content Modal ───────────────────────── */}
+      {offensiveModalOpen && createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOffensiveModalOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+            <div className="px-6 py-5 border-b border-brand-purple/10 flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-red-50 border border-red-100">
+                <X className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <h3 className="font-bold text-content-primary">
+                  {lang === 'ar' ? 'محتوى غير مناسب' : 'Inappropriate Content'}
+                </h3>
+                <p className="text-sm text-content-muted mt-0.5">
+                  {lang === 'ar'
+                    ? 'يحتوي النص على كلمات محظورة. يرجى مراجعة النص وإزالة الكلمات التالية:'
+                    : 'Your script contains prohibited words. Please review and remove the following:'}
+                </p>
+              </div>
+            </div>
+            <div className="px-6 py-4 flex flex-wrap gap-2">
+              {offensiveFound.map(w => (
+                <span key={w} className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
+                  {w}
+                </span>
+              ))}
+            </div>
+            <div className="px-6 pb-5">
+              <button
+                type="button"
+                onClick={() => setOffensiveModalOpen(false)}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+              >
+                {lang === 'ar' ? 'حسناً، سأراجع النص' : 'OK, I\'ll revise my script'}
+              </button>
             </div>
           </div>
         </div>
