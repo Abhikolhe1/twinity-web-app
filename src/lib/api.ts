@@ -141,8 +141,16 @@ export const jobApi = {
   scenePrompts: (body: { celebrityName: string; productType: string; purpose?: string; script?: string }) =>
     api<{ success: boolean; suggestions: string[] }>('/jobs/scene-prompts', { method: 'POST', body: JSON.stringify(body) }),
 
-  generateImage: (body: { prompt: string; productTypeSlug?: string; chatHistory?: Array<{ role: 'user' | 'model'; text: string; imageUrl?: string }> }) =>
-    api<{ success: boolean; imageUrl: string; revisedPrompt?: string }>('/jobs/generate-image', { method: 'POST', body: JSON.stringify(body) }),
+  generateImage: (body: {
+    prompt: string
+    productTypeSlug?: string
+    celebrityImageUrl?: string
+    propImages?: string[]
+    chatHistory?: Array<{ role: 'user' | 'model'; text: string; imageUrl?: string }>
+  }) => api<{ success: boolean; imageUrl: string; revisedPrompt?: string }>('/jobs/generate-image', { method: 'POST', body: JSON.stringify(body) }),
+
+  uploadAsset: (dataUrl: string) =>
+    api<{ success: boolean; url: string }>('/jobs/upload-asset', { method: 'POST', body: JSON.stringify({ dataUrl }) }),
 }
 
 // ── Templates ──────────────────────────────────────────────
