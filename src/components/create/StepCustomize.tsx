@@ -338,8 +338,8 @@ export default function StepCustomize({ state, onChange }: Props) {
 
           </div>
 
-          {/* Scene Settings */}
-          <div className="rounded-xl border border-brand-purple/15 overflow-hidden">
+          {/* Scene Settings — Avatar Studio only */}
+          {state.productType === 'avatar-studio' && <div className="rounded-xl border border-brand-purple/15 overflow-hidden">
             <button
               type="button"
               onClick={() => setSceneOpen(o => !o)}
@@ -441,7 +441,7 @@ export default function StepCustomize({ state, onChange }: Props) {
 
               </div>
             )}
-          </div>
+          </div>}
 
           {/* Error */}
           {jobError && (
