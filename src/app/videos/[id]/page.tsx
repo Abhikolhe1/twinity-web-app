@@ -11,7 +11,7 @@ import { thumbnailGradient, statusBadge } from '@/components/dashboard/VideoCard
 import {
   ArrowLeft, Play, User, Tag, Calendar, DollarSign,
   Clock, CheckCircle2, Loader2, Eye, Package, Download,
-  RotateCcw, MessageSquare, XCircle,
+  RotateCcw, MessageSquare, XCircle, FileText, Sparkles, PencilLine,
 } from 'lucide-react'
 
 const STATUS_STEPS = [
@@ -36,6 +36,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
   const [downloading,  setDownloading]  = useState(false)
   const [cancelling,   setCancelling]   = useState(false)
   const [cancelError,  setCancelError]  = useState<string | null>(null)
+  const [scriptView,   setScriptView]   = useState<'processed' | 'original'>('processed')
 
   useEffect(() => {
     jobApi.getJob(id)
@@ -59,26 +60,22 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
   }
 
   const handleDownload = useCallback(async () => {
-    const url = order?.finalVideoUrl || order?.watermarkedUrl
-    if (!url) return
+    if (!order) return
     setDownloading(true)
     try {
-      const res = await fetch(url)
-      const blob = await res.blob()
+      const blob = await jobApi.getDownloadBlob(order.referenceId)
       const objectUrl = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = objectUrl
-      a.download = `${order?.referenceId}.mp4`
+      a.download = `${order.referenceId}.mp4`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(objectUrl)
-    } catch {
-      window.open(url, '_blank')
     } finally {
       setDownloading(false)
     }
-  }, [order?.finalVideoUrl, order?.watermarkedUrl, order?.referenceId])
+  }, [order])
 
   if (loading) {
     return (
@@ -229,7 +226,7 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                   {lang === 'ar' ? 'الإجراءات' : 'Actions'}
                 </h3>
                 <div className="flex flex-wrap gap-3">
-                  {order.status === 'delivered' && order.downloadEnabled && (
+                  {order.downloadEnabled && (
                     <button
                       onClick={handleDownload}
                       disabled={downloading}
@@ -335,6 +332,69 @@ export default function VideoDetailPage({ params }: { params: Promise<{ id: stri
                   ))}
                 </div>
               </div>
+
+              {(order.processedScript || order.script) && (() => {
+                const hasBoth = !!(order.processedScript && order.processedScript !== order.script)
+                const displayedScript = hasBoth
+                  ? (scriptView === 'processed' ? order.processedScript! : order.script)
+                  : (order.processedScript || order.script)
+                return (
+                  <div className="bg-white rounded-2xl border border-brand-purple/12 p-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-brand-purple" />
+                        <h3 className="text-sm font-bold text-content-primary">
+                          {lang === 'ar' ? 'النص' : 'Script'}
+                        </h3>
+                      </div>
+
+                      {hasBoth ? (
+                        /* Segmented pill toggle */
+                        <div className="flex items-center gap-0.5 p-0.5 rounded-full bg-surface-subtle border border-brand-purple/12">
+                          {(['processed', 'original'] as const).map(view => {
+                            const active = scriptView === view
+                            return (
+                              <button
+                                key={view}
+                                onClick={() => setScriptView(view)}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide transition-all duration-200 ${
+                                  active ? 'text-white shadow-sm' : 'text-content-muted hover:text-content-secondary'
+                                }`}
+                                style={active ? { background: 'linear-gradient(135deg,#9a78fe,#422266)' } : {}}
+                              >
+                                {view === 'processed'
+                                  ? <Sparkles className="w-2.5 h-2.5" />
+                                  : <PencilLine className="w-2.5 h-2.5" />
+                                }
+                                {view === 'processed'
+                                  ? (lang === 'ar' ? 'معالج' : 'Processed')
+                                  : (lang === 'ar' ? 'أصلي' : 'Original')
+                                }
+                              </button>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        /* Static badge — no toggle needed */
+                        <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-surface-elevated text-content-muted">
+                          <PencilLine className="w-2.5 h-2.5" />
+                          {lang === 'ar' ? 'أصلي' : 'Original'}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Script text — left accent bar on processed view */}
+                    <p className={`text-sm text-content-secondary leading-relaxed whitespace-pre-wrap transition-all duration-200 ${
+                      hasBoth && scriptView === 'processed'
+                        ? 'border-l-2 border-brand-purple/40 pl-3'
+                        : ''
+                    }`}>
+                      {displayedScript}
+                    </p>
+                  </div>
+                )
+              })()}
 
               <div className="bg-white rounded-2xl border border-brand-purple/12 p-6">
                 <h3 className="text-sm font-bold text-content-primary mb-3">

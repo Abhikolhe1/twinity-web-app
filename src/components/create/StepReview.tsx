@@ -5,7 +5,7 @@ import { CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/lib/data'
 import { useProductTypes } from '@/lib/use-product-types'
 import { useLanguage } from '@/lib/context'
 import Badge from '@/components/ui/Badge'
-import { Info } from 'lucide-react'
+import { Info, Sparkles, PencilLine, FileText } from 'lucide-react'
 
 interface Props {
   state: WizardState
@@ -31,6 +31,10 @@ export default function StepReview({ state }: Props) {
     const ch = CHANNELS.find(c => c.id === cId)
     return ch ? `${ch.icon} ${lang === 'ar' ? ch.ar : ch.en}` : cId
   })
+
+  const displayScript = state.useCustomScript
+    ? state.customScript
+    : (lang === 'ar' ? state.template?.sampleScriptAr : state.template?.sampleScript)
 
   return (
     <div className="flex flex-col gap-6">
@@ -87,11 +91,28 @@ export default function StepReview({ state }: Props) {
             </div>
           )}
 
-          {(state.useCustomScript ? state.customScript : state.template?.sampleScript) && (
-            <div className="p-3 rounded-xl bg-surface-subtle border border-brand-purple/10">
-              <p className="text-xs text-content-muted mb-1.5">{lang === 'ar' ? 'النص' : 'Script'}</p>
-              <p className="text-xs text-content-secondary italic leading-relaxed line-clamp-4">
-                {state.useCustomScript ? state.customScript : lang === 'ar' ? state.template?.sampleScriptAr : state.template?.sampleScript}
+          {displayScript && (
+            <div className="p-4 rounded-xl bg-surface-subtle border border-brand-purple/10">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-brand-purple" />
+                  <p className="text-xs font-bold text-content-muted uppercase tracking-wide">
+                    {lang === 'ar' ? 'النص' : 'Script'}
+                  </p>
+                </div>
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white border border-brand-purple/14 text-content-muted">
+                  {state.useCustomScript
+                    ? <><PencilLine className="w-2.5 h-2.5" />{lang === 'ar' ? 'مخصص' : 'Custom'}</>
+                    : <><Sparkles className="w-2.5 h-2.5" />{lang === 'ar' ? 'قالب' : 'Template'}</>
+                  }
+                </span>
+              </div>
+              <p className={`text-xs leading-relaxed line-clamp-4 ${
+                state.useCustomScript
+                  ? 'text-content-secondary border-l-2 border-brand-purple/40 pl-2.5'
+                  : 'text-content-secondary italic'
+              }`}>
+                {displayScript}
               </p>
             </div>
           )}

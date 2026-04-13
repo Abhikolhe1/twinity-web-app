@@ -62,7 +62,7 @@ export interface ApiCelebrity {
 }
 export interface ApiVideoJob {
   _id: string; referenceId: string; status: string; productType: string; purpose: string
-  script: string; estimatedPrice: number; currency: string; downloadEnabled: boolean
+  script: string; processedScript?: string; estimatedPrice: number; currency: string; downloadEnabled: boolean
   previewUrl?: string; watermarkedUrl?: string; finalVideoUrl?: string
   errorMessage?: string
   celebrityId: { name: string; nameAr: string; initials: string; avatarColor: string }
@@ -131,6 +131,18 @@ export const jobApi = {
 
   getJob: (referenceId: string) =>
     api<{ success: boolean; data: ApiVideoJob }>(`/jobs/my/${referenceId}`),
+
+  getDownloadBlob: async (referenceId: string): Promise<Blob> => {
+    const token = getToken()
+    const res = await fetch(`${BASE}/jobs/my/${referenceId}/download-url`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({})) as { message?: string }
+      throw new Error(data.message || 'Download failed')
+    }
+    return res.blob()
+  },
 
   bookCall: (referenceId: string, body: { name: string; email: string; phone?: string; company?: string; notes?: string }) =>
     api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/book-call`, { method: 'POST', body: JSON.stringify(body) }),
