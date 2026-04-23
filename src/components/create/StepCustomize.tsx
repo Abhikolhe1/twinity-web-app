@@ -270,6 +270,7 @@ export default function StepCustomize({ state, onChange }: Props) {
         voiceSpeed:         state.voiceSpeed !== 1.0 ? state.voiceSpeed : undefined,
         voiceChangeEnabled: state.voiceChangeEnabled || undefined,
         voiceChangeSourceUrl: state.voiceChangeEnabled && state.voiceChangeSourceUrl ? state.voiceChangeSourceUrl : undefined,
+        voiceAudioUrl:      selectedVoiceUrl ?? undefined,
       })
 
       const ref = res.data.referenceId

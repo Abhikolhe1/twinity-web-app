@@ -115,6 +115,7 @@ export const jobApi = {
     propImages?: string[]; sceneNotes?: string; backgroundImageUrl?: string
     voiceModel?: string; voiceSpeed?: number
     voiceChangeEnabled?: boolean; voiceChangeSourceUrl?: string
+    voiceAudioUrl?: string
   }) => api<{ success: boolean; data: ApiVideoJob }>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
 
   myJobs: (status?: string, page = 1, limit = 12) => {
