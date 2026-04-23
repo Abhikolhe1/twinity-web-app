@@ -30,6 +30,7 @@ interface ChatMessage {
 
 interface VoiceHistoryEntry {
   url: string
+  durationSecs?: number
   take: number
   model: string
   speed: number
@@ -271,6 +272,7 @@ export default function StepCustomize({ state, onChange }: Props) {
         voiceChangeEnabled: state.voiceChangeEnabled || undefined,
         voiceChangeSourceUrl: state.voiceChangeEnabled && state.voiceChangeSourceUrl ? state.voiceChangeSourceUrl : undefined,
         voiceAudioUrl:      selectedVoiceUrl ?? undefined,
+        audioDuration:      selectedVoiceIdx >= 0 ? voiceHistory[selectedVoiceIdx]?.durationSecs : undefined,
       })
 
       const ref = res.data.referenceId
@@ -348,6 +350,7 @@ export default function StepCustomize({ state, onChange }: Props) {
       setVoiceHistory(prev => {
         const newEntry: VoiceHistoryEntry = {
           url: res.audioUrl,
+          durationSecs: res.durationSecs,
           take: prev.length + 1,
           model: capturedModel,
           speed: capturedSpeed,
