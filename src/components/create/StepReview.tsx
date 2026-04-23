@@ -5,7 +5,14 @@ import { CHANNELS, DURATIONS, INDUSTRY_LABELS } from '@/lib/data'
 import { useProductTypes } from '@/lib/use-product-types'
 import { useLanguage } from '@/lib/context'
 import Badge from '@/components/ui/Badge'
-import { Info, Sparkles, PencilLine, FileText } from 'lucide-react'
+import { Info, Sparkles, PencilLine, FileText, Mic, Gauge } from 'lucide-react'
+
+const TTS_MODEL_LABELS: Record<string, { en: string; ar: string }> = {
+  'eleven_v3':                  { en: 'Twinity Pro',      ar: 'Twinity Pro' },
+  'eleven_multilingual_v2':     { en: 'Twinity Global',   ar: 'Twinity Global' },
+  'eleven_multilingual_sts_v2': { en: 'Twinity Swap Pro', ar: 'Twinity Swap Pro' },
+  'eleven_english_sts_v2':      { en: 'Twinity Swap',     ar: 'Twinity Swap' },
+}
 
 interface Props {
   state: WizardState
@@ -32,9 +39,7 @@ export default function StepReview({ state }: Props) {
     return ch ? `${ch.icon} ${lang === 'ar' ? ch.ar : ch.en}` : cId
   })
 
-  const displayScript = state.useCustomScript
-    ? state.customScript
-    : (lang === 'ar' ? state.template?.sampleScriptAr : state.template?.sampleScript)
+  const displayScript = state.customScript || (lang === 'ar' ? state.template?.sampleScriptAr : state.template?.sampleScript)
 
   return (
     <div className="flex flex-col gap-6">
@@ -80,6 +85,44 @@ export default function StepReview({ state }: Props) {
             <SummaryItem label={lang === 'ar' ? 'لغة الفيديو' : 'Language'} value={state.language === 'ar' ? 'العربية' : 'English'} />
           </div>
 
+          {/* Voice settings summary */}
+          <div className="flex flex-col gap-2 p-3 rounded-xl bg-surface-subtle border border-brand-purple/12">
+            <div className="flex items-center gap-1.5">
+              <Mic className="w-3.5 h-3.5 text-brand-purple" />
+              <p className="text-xs font-bold text-content-muted uppercase tracking-wide">
+                {lang === 'ar' ? 'إعدادات الصوت' : 'Voice Settings'}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-0.5">
+                <p className="text-xs text-content-muted">
+                  {state.voiceChangeEnabled
+                    ? (lang === 'ar' ? 'وضع' : 'Mode')
+                    : (lang === 'ar' ? 'النموذج' : 'Model')}
+                </p>
+                <p className="text-sm font-medium text-content-primary">
+                  {state.voiceChangeEnabled
+                    ? (lang === 'ar' ? 'تغيير الصوت' : 'Voice Change')
+                    : (TTS_MODEL_LABELS[state.voiceModel]?.[lang] ?? state.voiceModel)}
+                </p>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <p className="text-xs text-content-muted flex items-center gap-1">
+                  <Gauge className="w-3 h-3" />
+                  {lang === 'ar' ? 'السرعة' : 'Speed'}
+                </p>
+                <p className="text-sm font-medium text-content-primary">{state.voiceSpeed.toFixed(2)}×</p>
+              </div>
+            </div>
+            {state.voiceChangeEnabled && (
+              <p className="text-xs text-content-muted">
+                {state.voiceChangeSourceUrl
+                  ? (lang === 'ar' ? 'تم رفع الصوت المصدر' : 'Source audio uploaded')
+                  : (lang === 'ar' ? 'لم يتم رفع الصوت المصدر بعد' : 'No source audio uploaded yet')}
+              </p>
+            )}
+          </div>
+
           {channelLabels.length > 0 && (
             <div>
               <p className="text-xs text-content-muted font-medium mb-2">{lang === 'ar' ? 'قنوات التوزيع' : 'Distribution Channels'}</p>
@@ -101,9 +144,9 @@ export default function StepReview({ state }: Props) {
                   </p>
                 </div>
                 <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white border border-brand-purple/14 text-content-muted">
-                  {state.useCustomScript
-                    ? <><PencilLine className="w-2.5 h-2.5" />{lang === 'ar' ? 'مخصص' : 'Custom'}</>
-                    : <><Sparkles className="w-2.5 h-2.5" />{lang === 'ar' ? 'قالب' : 'Template'}</>
+                  {state.template
+                    ? <><Sparkles className="w-2.5 h-2.5" />{lang === 'ar' ? 'قالب' : 'Template'}</>
+                    : <><PencilLine className="w-2.5 h-2.5" />{lang === 'ar' ? 'مخصص' : 'Custom'}</>
                   }
                 </span>
               </div>

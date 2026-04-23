@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
-import { WizardState, AspectRatio, Celebrity, Template, Duration, Industry } from '@/lib/types'
+import { WizardState, AspectRatio, Celebrity, Template, Duration, Industry, ElevenLabsTTSModel, ElevenLabsSTSModel } from '@/lib/types'
 import { ASPECT_RATIOS, INDUSTRY_LABELS } from '@/lib/data'
 import { useProductTypes } from '@/lib/use-product-types'
 import { useLanguage } from '@/lib/context'
@@ -10,7 +10,7 @@ import { TextArea } from '@/components/ui/Input'
 import {
   ToggleLeft, ToggleRight, Sparkles, ChevronDown, Wand2, Camera, Upload, X,
   RefreshCw, CheckCheck, Search, ImageIcon, SendHorizontal, Clock,
-  FileText, CheckCircle2, Loader2,
+  FileText, CheckCircle2, Loader2, Mic, Gauge, Volume2, ArrowLeft,
 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import VideoPreview from './VideoPreview'
@@ -21,52 +21,24 @@ const INDUSTRIES: Industry[] = ['all', 'entertainment', 'sports', 'music', 'busi
 
 const ORDER_REF_KEY = 'twinity_order_ref'
 
-// ── Extract {{variable}} names from a string ───────────────
-function extractVariables(text: string): string[] {
-  const matches = text.match(/\{\{(\w+)\}\}/g) ?? []
-  const names = matches.map(m => m.slice(2, -2))
-  return [...new Set(names)]
-}
-
-// ── Replace variables in a script ──────────────────────────
-function applyVariables(script: string, vars: Record<string, string>): string {
-  return script.replace(/\{\{(\w+)\}\}/g, (_, name) => vars[name] ?? `{{${name}}}`)
-}
-
-// ── Highlight variables in a script (JSX) ──────────────────
-function ScriptWithHighlights({ script, vars }: { script: string; vars: Record<string, string> }) {
-  const parts = script.split(/(\{\{\w+\}\})/g)
-  return (
-    <>
-      {parts.map((part, i) => {
-        const match = part.match(/^\{\{(\w+)\}\}$/)
-        if (match) {
-          const name = match[1]
-          const value = vars[name]
-          return (
-            <span
-              key={i}
-              className="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-semibold mx-0.5"
-              style={{
-                background: value ? 'rgba(154,120,254,0.15)' : 'rgba(251,191,36,0.15)',
-                color: value ? '#6b21a8' : '#92400e',
-                border: `1px solid ${value ? 'rgba(154,120,254,0.3)' : 'rgba(251,191,36,0.4)'}`,
-              }}
-            >
-              {value || part}
-            </span>
-          )
-        }
-        return <span key={i}>{part}</span>
-      })}
-    </>
-  )
-}
 
 interface ChatMessage {
   role: 'user' | 'model'
   text: string
   imageUrl?: string
+}
+
+interface VoiceHistoryEntry {
+  url: string
+  take: number
+  model: string
+  speed: number
+  voiceChange: boolean
+}
+
+const VOICE_MODEL_DISPLAY: Record<string, string> = {
+  eleven_v3:                  'Twinity Pro',
+  eleven_multilingual_v2:     'Twinity Global'
 }
 
 interface Props {
@@ -118,6 +90,18 @@ export default function StepCustomize({ state, onChange }: Props) {
   const [chatInput,         setChatInput]         = useState('')
   const [imageGenLoading,   setImageGenLoading]   = useState(false)
   const [imageGenError,     setImageGenError]     = useState<string | null>(null)
+
+  // ── Voice settings ─────────────────────────────────────
+  const [voiceAudioUploading, setVoiceAudioUploading] = useState(false)
+
+  // ── Voice preview history (step 1 before video generation) ──
+  const [voiceHistory,        setVoiceHistory]        = useState<VoiceHistoryEntry[]>([])
+  const [selectedVoiceIdx,    setSelectedVoiceIdx]    = useState<number>(-1)
+  const [voicePreviewLoading, setVoicePreviewLoading] = useState(false)
+  const [voicePreviewError,   setVoicePreviewError]   = useState<string | null>(null)
+
+  // ── Two-screen flow ────────────────────────────────────
+  const [showFinalizeScreen, setShowFinalizeScreen] = useState(false)
 
   // ── Prop image upload state ────────────────────────────
   // Tracks base64 previews of images currently uploading to S3
@@ -177,17 +161,8 @@ export default function StepCustomize({ state, onChange }: Props) {
     )
   }, [templates, templateSearch])
 
-  // ── Active script & variables ──────────────────────────
-  const templateScript = state.template
-    ? lang === 'ar' ? state.template.sampleScriptAr : state.template.sampleScript
-    : ''
-
-  const templateVariables   = useMemo(() => extractVariables(templateScript), [templateScript])
-  const varsState            = state.templateVariables ?? {}
-  const resolvedScript       = state.useCustomScript
-    ? state.customScript
-    : applyVariables(templateScript, varsState)
-
+  // ── Active script ──────────────────────────────────────
+  const resolvedScript  = state.customScript
   const scriptWordCount = resolvedScript.trim() ? resolvedScript.trim().split(/\s+/).length : 0
   const scriptOverLimit = scriptWordCount > 40
 
@@ -222,6 +197,24 @@ export default function StepCustomize({ state, onChange }: Props) {
     onChange({ propImages: (state.propImages ?? []).filter((_, i) => i !== index) })
   }, [onChange, state.propImages])
 
+  const handleVoiceAudioUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const dataUrl = reader.result as string
+      setVoiceAudioUploading(true)
+      try {
+        const res = await jobApi.uploadAsset(dataUrl)
+        onChange({ voiceChangeSourceUrl: res.url })
+      } catch { /* silently fail */ } finally {
+        setVoiceAudioUploading(false)
+      }
+    }
+    reader.readAsDataURL(file)
+  }, [onChange])
+
   // ── Celebrity & template selection ────────────────────
   const selectCeleb = (celeb: Celebrity) => {
     onChange({ celebrity: celeb, template: null, templateVariables: {}, customScript: '', useCustomScript: false })
@@ -229,7 +222,8 @@ export default function StepCustomize({ state, onChange }: Props) {
   }
 
   const selectTemplate = (tmpl: Template) => {
-    onChange({ template: tmpl, templateVariables: {}, customScript: '', useCustomScript: false })
+    const scriptText = lang === 'ar' ? tmpl.sampleScriptAr : tmpl.sampleScript
+    onChange({ template: tmpl, templateVariables: {}, customScript: scriptText, useCustomScript: true })
     setTemplateModalOpen(false)
   }
 
@@ -272,6 +266,10 @@ export default function StepCustomize({ state, onChange }: Props) {
         propImages:         state.propImages?.length ? state.propImages : undefined,
         sceneNotes:         state.sceneNotes || undefined,
         backgroundImageUrl: state.backgroundImageUrl ?? undefined,
+        voiceModel:         state.voiceChangeEnabled ? undefined : (state.voiceModel !== 'eleven_v3' ? state.voiceModel : undefined),
+        voiceSpeed:         state.voiceSpeed !== 1.0 ? state.voiceSpeed : undefined,
+        voiceChangeEnabled: state.voiceChangeEnabled || undefined,
+        voiceChangeSourceUrl: state.voiceChangeEnabled && state.voiceChangeSourceUrl ? state.voiceChangeSourceUrl : undefined,
       })
 
       const ref = res.data.referenceId
@@ -308,7 +306,7 @@ export default function StepCustomize({ state, onChange }: Props) {
   // ── Improve script with AI ─────────────────────────────
   const handleImproveScript = async () => {
     if (!state.celebrity || !state.productType) return
-    const script = state.useCustomScript ? state.customScript : templateScript
+    const script = state.customScript
     if (!script.trim()) return
 
     setImproving(true)
@@ -326,6 +324,41 @@ export default function StepCustomize({ state, onChange }: Props) {
       setImproveError(err instanceof Error ? err.message : 'Failed to improve script')
     } finally {
       setImproving(false)
+    }
+  }
+
+  // ── Voice preview (step 1) — accumulates takes in history ──
+  const handlePreviewVoice = async () => {
+    if (!state.celebrity || !state.productType || !state.customScript.trim()) return
+    setVoicePreviewLoading(true)
+    setVoicePreviewError(null)
+    const capturedModel      = state.voiceModel
+    const capturedSpeed      = state.voiceSpeed
+    const capturedVoiceChange = state.voiceChangeEnabled
+    try {
+      const res = await jobApi.previewVoice({
+        celebrityId: state.celebrity.id,
+        script: state.customScript,
+        voiceModel: capturedModel,
+        voiceSpeed: capturedSpeed !== 1.0 ? capturedSpeed : undefined,
+        voiceChangeEnabled: capturedVoiceChange || undefined,
+        voiceChangeSourceUrl: capturedVoiceChange && state.voiceChangeSourceUrl ? state.voiceChangeSourceUrl : undefined,
+      })
+      setVoiceHistory(prev => {
+        const newEntry: VoiceHistoryEntry = {
+          url: res.audioUrl,
+          take: prev.length + 1,
+          model: capturedModel,
+          speed: capturedSpeed,
+          voiceChange: capturedVoiceChange,
+        }
+        setSelectedVoiceIdx(prev.length)
+        return [...prev, newEntry]
+      })
+    } catch (err) {
+      setVoicePreviewError(err instanceof Error ? err.message : 'Failed to generate voice preview')
+    } finally {
+      setVoicePreviewLoading(false)
     }
   }
 
@@ -364,6 +397,9 @@ export default function StepCustomize({ state, onChange }: Props) {
 
   const selectCls = 'w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl text-sm font-medium bg-white border border-brand-purple/15 text-content-primary focus:outline-none focus:border-brand-purple/50 focus:ring-2 focus:ring-brand-purple/10 transition-all cursor-pointer'
 
+  const hasVoiceHistory  = voiceHistory.length > 0
+  const selectedVoiceUrl = selectedVoiceIdx >= 0 ? (voiceHistory[selectedVoiceIdx]?.url ?? null) : null
+
   const isGreeting = state.productType === 'greeting'
   const hasJobRef  = (() => { try { return !!sessionStorage.getItem(ORDER_REF_KEY) } catch { return false } })()
   const productType  = productTypes.find(p => p.id === state.productType)
@@ -380,11 +416,8 @@ export default function StepCustomize({ state, onChange }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       <div className="flex flex-col gap-7">
 
-      {/* ── 1 + 2. Celebrity & Template trigger cards 50/50 ── */}
-      <div className="grid grid-cols-2 gap-4 items-stretch">
-
-      {/* ── Celebrity trigger ─────────────────────── */}
-      <section className="flex flex-col gap-2">
+      {/* ── 1. Celebrity trigger (screen 1 only) ─────────── */}
+      {!showFinalizeScreen && (<section className="flex flex-col gap-2">
         <h3 className="text-sm font-semibold text-content-primary">
           {lang === 'ar' ? 'اختر المشهور' : 'Select Celebrity'}
           <span className="ml-1 text-red-400">*</span>
@@ -392,7 +425,7 @@ export default function StepCustomize({ state, onChange }: Props) {
         {state.celebrity ? (
           <div
             onClick={() => setCelebModalOpen(true)}
-            className="group flex items-center gap-3 p-3 rounded-xl border border-brand-purple/30 bg-surface-subtle cursor-pointer hover:border-brand-purple/60 hover:bg-surface-elevated transition-all h-full"
+            className="group flex items-center gap-3 p-3 rounded-xl border border-brand-purple/30 bg-surface-subtle cursor-pointer hover:border-brand-purple/60 hover:bg-surface-elevated transition-all"
           >
             <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-brand-purple/20"
               style={{ background: state.celebrity.avatarColor }}>
@@ -418,51 +451,7 @@ export default function StepCustomize({ state, onChange }: Props) {
             {lang === 'ar' ? 'اختر مشهوراً...' : 'Choose a celebrity...'}
           </button>
         )}
-      </section>
-
-      {/* ── Template trigger ──────────────────────── */}
-      <section className="flex flex-col gap-2">
-        <h3 className="text-sm font-semibold text-content-primary">
-          {lang === 'ar' ? 'اختر القالب' : 'Select Template'}
-          <span className="ml-1 text-red-400">*</span>
-        </h3>
-        {!state.celebrity ? (
-          <div className="flex items-center gap-2 p-4 rounded-xl border-2 border-dashed border-brand-purple/15 bg-surface-subtle/30 text-xs text-content-muted">
-            <FileText className="w-4 h-4 opacity-40" />
-            {lang === 'ar' ? 'اختر مشهوراً أولاً' : 'Select a celebrity first'}
-          </div>
-        ) : state.template ? (
-          <div
-            onClick={() => setTemplateModalOpen(true)}
-            className="group p-3 rounded-xl border border-brand-purple/30 bg-surface-subtle flex items-center gap-3 cursor-pointer hover:border-brand-purple/60 hover:bg-surface-elevated transition-all h-full"
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: 'rgba(154,120,254,0.12)' }}>
-              <FileText className="w-3.5 h-3.5 text-brand-mid" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-content-primary truncate">
-                {lang === 'ar' ? state.template.nameAr : state.template.name}
-              </p>
-              <p className="text-xs text-content-muted truncate group-hover:text-brand-purple transition-colors">
-                {lang === 'ar' ? 'انقر للتغيير' : 'Click to change'}
-              </p>
-            </div>
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setTemplateModalOpen(true)}
-            className="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-brand-purple/25 bg-surface-subtle/50 hover:border-brand-purple/50 hover:bg-surface-subtle transition-all text-sm text-content-muted hover:text-brand-purple"
-          >
-            <FileText className="w-4 h-4" />
-            {lang === 'ar' ? 'اختر قالباً...' : 'Choose a template...'}
-          </button>
-        )}
-      </section>
-
-      </div>{/* end 50/50 grid */}
+      </section>)}
 
       {/* ── Celebrity Modal ───────────────────────────────── */}
       {celebModalOpen && createPortal(
@@ -678,27 +667,53 @@ export default function StepCustomize({ state, onChange }: Props) {
         </div>
       , document.body)}
 
-      {/* ── 3. Script ─────────────────────────────────── */}
-      {state.template && (
+      {/* ── 3. Script (screen 1 only) ─────────────────── */}
+      {state.celebrity && !showFinalizeScreen && (
         <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => onChange({
-                useCustomScript: !state.useCustomScript,
-                customScript: state.useCustomScript ? '' : resolvedScript,
-              })}
-              className="flex items-center gap-1.5 text-xs text-content-muted hover:text-brand-purple transition-colors"
-            >
-              {state.useCustomScript
-                ? <ToggleRight className="w-4 h-4 text-brand-purple" />
-                : <ToggleLeft className="w-4 h-4" />}
-              {tr.create.useCustomScript}
-            </button>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <label className="text-sm font-semibold text-content-primary shrink-0">
+                {lang === 'ar' ? 'نص الفيديو' : 'Video Script'}
+                <span className="ml-1 text-red-400">*</span>
+              </label>
+              {/* Template picker pill */}
+              {state.template ? (
+                <div className="flex items-center gap-1 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => setTemplateModalOpen(true)}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-brand-purple/8 border border-brand-purple/20 text-brand-purple hover:bg-brand-purple/15 transition-all max-w-[140px]"
+                  >
+                    <FileText className="w-3 h-3 shrink-0" />
+                    <span className="text-[11px] font-medium truncate">
+                      {lang === 'ar' ? state.template.nameAr : state.template.name}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChange({ template: null, customScript: '', useCustomScript: false })}
+                    className="p-0.5 rounded text-content-muted hover:text-red-500 transition-colors shrink-0"
+                    title={lang === 'ar' ? 'إزالة القالب' : 'Remove template'}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setTemplateModalOpen(true)}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-brand-purple/25 text-content-muted hover:border-brand-purple/50 hover:text-brand-purple hover:bg-brand-purple/5 transition-all"
+                >
+                  <FileText className="w-3 h-3" />
+                  <span className="text-[11px] font-medium">{lang === 'ar' ? 'من قالب' : 'From template'}</span>
+                </button>
+              )}
+            </div>
             <button
               type="button"
-              disabled={improving || !(state.useCustomScript ? state.customScript : templateScript).trim()}
+              disabled={improving || !state.customScript.trim()}
               onClick={handleImproveScript}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-brand-purple/30 text-brand-purple hover:bg-brand-purple/8 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-brand-purple/30 text-brand-purple hover:bg-brand-purple/8 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
             >
               <Wand2 className={`w-3.5 h-3.5 ${improving ? 'animate-spin' : ''}`} />
               {improving
@@ -707,48 +722,15 @@ export default function StepCustomize({ state, onChange }: Props) {
             </button>
           </div>
 
-          {state.useCustomScript ? (
-            <TextArea
-              value={state.customScript}
-              onChange={e => onChange({ customScript: e.target.value })}
-              placeholder={tr.create.scriptPlaceholder}
-              rows={5}
-            />
-          ) : (
-            <div className="p-4 rounded-xl bg-surface-subtle border border-brand-purple/15">
-              <p className="text-xs text-content-muted mb-2">
-                {lang === 'ar' ? 'نص القالب (للقراءة فقط)' : 'Template script (read-only)'}
-              </p>
-              <p className="text-sm text-content-secondary leading-relaxed">
-                &ldquo;<ScriptWithHighlights script={templateScript} vars={varsState} />&rdquo;
-              </p>
-            </div>
-          )}
+          <TextArea
+            value={state.customScript}
+            onChange={e => onChange({ customScript: e.target.value, useCustomScript: true })}
+            placeholder={state.template
+              ? (lang === 'ar' ? 'تم تعبئة نص القالب — عدّل كما تشاء...' : 'Template script loaded — edit as needed...')
+              : tr.create.scriptPlaceholder}
+            rows={5}
+          />
 
-          {/* Variable inputs */}
-          {!state.useCustomScript && templateVariables.length > 0 && (
-            <div className="flex flex-col gap-2 p-3 rounded-xl border border-brand-purple/12 bg-white">
-              <p className="text-xs font-medium text-content-muted">
-                {lang === 'ar' ? 'معاملات القالب' : 'Template variables'}
-              </p>
-              {templateVariables.map(varName => (
-                <div key={varName} className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-semibold text-brand-purple min-w-[80px] shrink-0">
-                    {`{{${varName}}}`}
-                  </span>
-                  <input
-                    type="text"
-                    value={varsState[varName] ?? ''}
-                    onChange={e => onChange({ templateVariables: { ...varsState, [varName]: e.target.value } })}
-                    placeholder={varName.replace(/_/g, ' ')}
-                    className="flex-1 px-2.5 py-1.5 rounded-lg text-sm border border-brand-purple/15 bg-white text-content-primary placeholder-content-muted focus:outline-none focus:border-brand-purple/50 transition-all"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Word count */}
           <p className={`text-xs text-right ${scriptOverLimit ? 'text-red-500 font-medium' : 'text-content-muted'}`}>
             {scriptWordCount} / 40 {lang === 'ar' ? 'كلمة' : 'words'}
             {scriptOverLimit && (lang === 'ar' ? ' — الحد الأقصى 40 كلمة' : ' — max 40 words')}
@@ -758,323 +740,162 @@ export default function StepCustomize({ state, onChange }: Props) {
         </section>
       )}
 
-      {/* ── 4. Aspect Ratio ───────────────────────────── */}
-      {state.celebrity && state.template && (
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-medium text-content-muted">
-            {lang === 'ar' ? 'نسبة العرض' : 'Aspect Ratio'}
-          </label>
-          <div className="relative">
-            <select
-              value={state.aspectRatio ?? ''}
-              onChange={e => onChange({ aspectRatio: e.target.value as AspectRatio })}
-              className={selectCls}
-            >
-              <option value="" disabled>{lang === 'ar' ? 'اختر' : 'Select'}</option>
-              {ASPECT_RATIOS.map(ar => (
-                <option key={ar.id} value={ar.id}>{ar.label} ({lang === 'ar' ? ar.hintAr : ar.hint})</option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+
+      {/* ── 5. Voice Settings (screen 1 only) ─────────── */}
+      {state.celebrity && !showFinalizeScreen && (
+        <section className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Mic className="w-4 h-4 text-brand-purple" />
+            <h3 className="text-sm font-semibold text-content-primary">
+              {lang === 'ar' ? 'إعدادات الصوت' : 'Voice Settings'}
+            </h3>
           </div>
-        </div>
-      )}
 
-      {/* ── 5. Scene Settings ─────────────────────────── */}
-      {state.celebrity && state.template && (
-        <div className="rounded-xl border border-brand-purple/15 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setSceneOpen(o => !o)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-surface-subtle hover:bg-surface-elevated cursor-pointer transition-colors"
-          >
-            <div className="flex items-center gap-2 text-sm font-medium text-content-primary">
-              <Camera className="w-4 h-4 text-brand-purple" />
-              {lang === 'ar' ? 'إعدادات المشهد' : 'Scene Settings'}
-              <span className="text-xs font-normal text-content-muted">
-                {lang === 'ar' ? '(اختياري)' : '(optional)'}
-              </span>
+          {/* Voice Change toggle */}
+          <div className="flex items-start justify-between gap-3 p-3 rounded-xl bg-surface-subtle border border-brand-purple/12">
+            <div className="flex flex-col gap-0.5">
+              <p className="text-sm font-semibold text-content-primary">
+                {lang === 'ar' ? 'تغيير الصوت (Speech-to-Speech)' : 'Voice Change (Speech-to-Speech)'}
+              </p>
+              <p className="text-xs text-content-muted leading-relaxed">
+                {lang === 'ar'
+                  ? 'حوّل تسجيلك الصوتي إلى صوت المشهور مع الحفاظ على إيقاعك وأدائك'
+                  : 'Convert your own audio recording to the celebrity voice while preserving your timing and delivery'}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              {isGreeting && (
-                <span
-                  className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white"
-                  style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
-                >
-                  {lang === 'ar' ? 'قريباً' : 'Coming Soon'}
-                </span>
-              )}
-              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${sceneOpen ? 'rotate-180' : ''}`} />
-            </div>
-          </button>
+            <button
+              type="button"
+              onClick={() => onChange({
+                voiceChangeEnabled: !state.voiceChangeEnabled,
+                voiceChangeSourceUrl: null,
+                voiceModel: !state.voiceChangeEnabled ? 'eleven_multilingual_sts_v2' : 'eleven_v3',
+              })}
+              className="shrink-0 mt-0.5"
+            >
+              {state.voiceChangeEnabled
+                ? <ToggleRight className="w-6 h-6 text-brand-purple" />
+                : <ToggleLeft className="w-6 h-6 text-content-muted" />}
+            </button>
+          </div>
 
-          {sceneOpen && (
-            <div className="flex flex-col gap-4 p-4 bg-white">
-
-              {/* Scene description */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-content-muted">
-                  {lang === 'ar' ? 'وصف المشهد' : 'Scene Description'}
-                </label>
-                <textarea
-                  value={state.sceneNotes}
-                  onChange={e => onChange({ sceneNotes: e.target.value })}
-                  rows={3}
-                  placeholder={lang === 'ar'
-                    ? 'صف البيئة، الإضاءة، الديكور، المزاج العام...'
-                    : 'Describe the environment, lighting, setting, mood, wardrobe details...'}
-                  className="w-full px-3 py-2.5 rounded-xl text-sm bg-white border border-brand-purple/15 text-content-primary placeholder:text-content-muted focus:outline-none focus:border-brand-purple/50 focus:ring-2 focus:ring-brand-purple/10 transition-all resize-none"
-                />
-              </div>
-
-              {/* AI Image Generator */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-content-muted">
-                    {lang === 'ar' ? 'توليد الصورة بالذكاء الاصطناعي' : 'AI Image Generator'}
-                  </label>
+          {/* Voice Change: audio upload */}
+          {state.voiceChangeEnabled && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-medium text-content-muted">
+                {lang === 'ar' ? 'رفع التسجيل الصوتي المصدر' : 'Upload Source Audio Recording'}
+                <span className="ml-1 text-red-400">*</span>
+              </label>
+              {state.voiceChangeSourceUrl ? (
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 bg-emerald-50">
+                  <Mic className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <p className="flex-1 text-xs text-emerald-700 font-medium truncate">
+                    {lang === 'ar' ? 'تم رفع الصوت بنجاح' : 'Audio uploaded successfully'}
+                  </p>
                   <button
                     type="button"
-                    onClick={() => setImageGenOpen(o => !o)}
-                    className="text-xs font-semibold text-brand-purple hover:text-brand-dark flex items-center gap-1 transition-colors"
+                    onClick={() => onChange({ voiceChangeSourceUrl: null })}
+                    className="text-emerald-500 hover:text-red-500 transition-colors"
                   >
-                    <ImageIcon className="w-3.5 h-3.5" />
-                    {imageGenOpen
-                      ? (lang === 'ar' ? 'إخفاء' : 'Hide')
-                      : (lang === 'ar' ? 'توليد صورة' : 'Generate Image')}
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
+              ) : (
+                <label className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
+                  voiceAudioUploading
+                    ? 'border-brand-purple/40 bg-surface-subtle'
+                    : 'border-brand-purple/25 hover:border-brand-purple/50 hover:bg-surface-subtle'
+                }`}>
+                  {voiceAudioUploading ? (
+                    <Loader2 className="w-4 h-4 text-brand-purple animate-spin shrink-0" />
+                  ) : (
+                    <Upload className="w-4 h-4 text-content-muted shrink-0" />
+                  )}
+                  <span className="text-xs text-content-muted">
+                    {voiceAudioUploading
+                      ? (lang === 'ar' ? 'جارٍ الرفع...' : 'Uploading...')
+                      : (lang === 'ar' ? 'رفع ملف صوتي (MP3, WAV, M4A, OGG)' : 'Upload audio file (MP3, WAV, M4A, OGG)')}
+                  </span>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    className="hidden"
+                    disabled={voiceAudioUploading}
+                    onChange={handleVoiceAudioUpload}
+                  />
+                </label>
+              )}
 
-                {imageGenOpen && (
-                  <div className="rounded-xl border border-brand-purple/15 overflow-hidden flex flex-col">
-
-                    {/* Reference images strip */}
-                    <div className="px-3 pt-3 pb-2 border-b border-brand-purple/8 bg-surface-subtle/40">
-                      <p className="text-[10px] font-semibold text-content-muted uppercase tracking-widest mb-2">
-                        {lang === 'ar' ? 'صور مرجعية' : 'Reference Images'}
-                      </p>
-                      <div className="flex items-center gap-2 flex-wrap">
-
-                        {/* Celebrity thumbnail — auto */}
-                        {state.celebrity && (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-brand-purple/30 shrink-0"
-                              style={{ background: state.celebrity.avatarColor }}>
-                              <img src={state.celebrity.image} alt={state.celebrity.name}
-                                className="w-full h-full object-cover object-top" />
-                              <div className="absolute inset-0 flex items-end justify-center pb-0.5">
-                                <span className="text-[8px] font-bold text-white bg-brand-purple/70 px-1 rounded leading-tight">
-                                  {lang === 'ar' ? 'المشهور' : 'Celeb'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Prop images */}
-                        {(state.propImages ?? []).map((url, i) => (
-                          <div key={i} className="relative w-12 h-12 rounded-xl overflow-hidden border border-brand-purple/15 group shrink-0">
-                            <img src={url} alt={`prop-${i}`} className="w-full h-full object-cover" />
-                            <button
-                              type="button"
-                              onClick={() => removePropImage(i)}
-                              className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </div>
-                        ))}
-
-                        {/* Uploading prop images (optimistic previews) */}
-                        {uploadingProps.map((dataUrl, i) => (
-                          <div key={`uploading-${i}`} className="relative w-12 h-12 rounded-xl overflow-hidden border border-brand-purple/15 shrink-0">
-                            <img src={dataUrl} alt="uploading" className="w-full h-full object-cover opacity-50" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-4 h-4 border-2 border-brand-purple border-t-transparent rounded-full animate-spin" />
-                            </div>
-                          </div>
-                        ))}
-
-                        {/* Selected background from AI generator */}
-                        {state.backgroundImageUrl && (
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-brand-purple/60 group shrink-0">
-                              <img src={state.backgroundImageUrl} alt="bg" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={() => onChange({ backgroundImageUrl: null })}
-                                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-2.5 h-2.5" />
-                              </button>
-                              <div className="absolute inset-0 flex items-end justify-center pb-0.5 pointer-events-none">
-                                <span className="text-[8px] font-bold text-white bg-brand-purple/70 px-1 rounded leading-tight">
-                                  {lang === 'ar' ? 'فيديو' : 'Video'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Add prop images */}
-                        <label className="w-12 h-12 rounded-xl border-2 border-dashed border-brand-purple/25 flex flex-col items-center justify-center cursor-pointer hover:border-brand-purple/50 hover:bg-surface-subtle transition-colors shrink-0 gap-0.5">
-                          <Upload className="w-3.5 h-3.5 text-content-muted" />
-                          <span className="text-[8px] text-content-muted leading-tight text-center">
-                            {lang === 'ar' ? 'أضف' : 'Add'}
-                          </span>
-                          <input type="file" accept="image/*" multiple className="hidden" onChange={handlePropImages} />
-                        </label>
-                      </div>
-                      <p className="text-[10px] text-content-muted mt-1.5">
-                        {lang === 'ar'
-                          ? 'أضف صور المنتج أو الدعامة كمراجع للتوليد'
-                          : 'Add product / item images as references for generation'}
-                      </p>
-                    </div>
-
-                    {/* Chat messages */}
-                    <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3 max-h-72 bg-surface-subtle/30"
-                      style={{ minHeight: '160px' }}>
-                      {chatHistory.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full text-center gap-2 py-6">
-                          <ImageIcon className="w-7 h-7 text-content-muted/60" />
-                          <p className="text-xs text-content-muted">
-                            {lang === 'ar'
-                              ? 'صف المشهد أو الصورة التي تريد توليدها'
-                              : 'Describe the scene you want — celebrity and product will be included'}
-                          </p>
-                        </div>
-                      )}
-
-                      {chatHistory.map((msg, i) => (
-                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                          {msg.role === 'user' ? (
-                            <div
-                              className="max-w-[80%] px-3 py-2 rounded-xl text-xs text-white"
-                              style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
-                            >
-                              {msg.text}
-                            </div>
-                          ) : (
-                            <div className="max-w-[90%] flex flex-col gap-1.5">
-                              {msg.imageUrl && (
-                                <div className="relative group">
-                                  <img
-                                    src={msg.imageUrl}
-                                    alt="Generated"
-                                    className="rounded-xl border border-brand-purple/15 max-w-full"
-                                    style={{ maxHeight: '200px', objectFit: 'contain' }}
-                                  />
-                                  {state.backgroundImageUrl === msg.imageUrl && (
-                                    <div className="absolute top-2 left-2">
-                                      <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-white"
-                                        style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}>
-                                        <CheckCheck className="w-3 h-3" />
-                                        {lang === 'ar' ? 'محدد للفيديو' : 'Selected'}
-                                      </span>
-                                    </div>
-                                  )}
-                                  <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      type="button"
-                                      onClick={() => onChange({ backgroundImageUrl: msg.imageUrl! })}
-                                      className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-white transition-opacity hover:opacity-90"
-                                      style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
-                                    >
-                                      <CheckCheck className="w-3 h-3" />
-                                      {lang === 'ar' ? 'استخدم للفيديو' : 'Use for video'}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => onChange({ propImages: [...(state.propImages ?? []), msg.imageUrl!] })}
-                                      className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-white transition-opacity hover:opacity-90 bg-black/50"
-                                    >
-                                      <Upload className="w-3 h-3" />
-                                      {lang === 'ar' ? 'كمرجع' : 'As reference'}
-                                    </button>
-                                  </div>
-                                </div>
-                              )}
-                              {msg.text && (
-                                <p className="text-xs text-content-muted px-1">{msg.text}</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      {imageGenLoading && (
-                        <div className="flex justify-start">
-                          <div className="flex gap-1 px-3 py-2 rounded-xl bg-white border border-brand-purple/12">
-                            {[0, 1, 2].map(i => (
-                              <div key={i} className="w-1.5 h-1.5 rounded-full bg-brand-purple/50"
-                                style={{ animation: `bounce 1s ease-in-out ${i * 0.2}s infinite` }} />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {imageGenError && (
-                      <div className="px-3 py-2 text-xs text-red-500 bg-red-50 border-t border-red-100">
-                        {imageGenError}
-                      </div>
-                    )}
-
-                    <div className="border-t border-brand-purple/10 p-2 flex gap-2 bg-white">
-                      <input
-                        type="text"
-                        value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendImagePrompt() } }}
-                        disabled={imageGenLoading}
-                        placeholder={lang === 'ar'
-                          ? 'صف المشهد... (مثال: استوديو احترافي بإضاءة دافئة)'
-                          : 'Describe the scene... (e.g. professional studio, warm lighting)'}
-                        className="flex-1 px-3 py-2 rounded-xl text-xs border border-brand-purple/15 bg-white text-content-primary placeholder-content-muted focus:outline-none focus:border-brand-purple/50 transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleSendImagePrompt}
-                        disabled={!chatInput.trim() || imageGenLoading}
-                        className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-40 transition-opacity hover:opacity-85"
-                        style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
-                      >
-                        <SendHorizontal className="w-3.5 h-3.5 text-white" />
-                      </button>
-                      {chatHistory.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => { setChatHistory([]); setImageGenError(null) }}
-                          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-content-muted hover:bg-surface-subtle transition-colors border border-brand-purple/12"
-                          title={lang === 'ar' ? 'مسح المحادثة' : 'Clear chat'}
-                        >
-                          <RefreshCw className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-
-                    <style jsx>{`
-                      @keyframes bounce {
-                        0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
-                        40% { transform: translateY(-4px); opacity: 1; }
-                      }
-                    `}</style>
-                  </div>
-                )}
+              {/* STS Model */}
+              <div className="flex flex-col gap-1.5 mt-1">
+                <label className="text-xs font-medium text-content-muted">
+                  {lang === 'ar' ? 'نموذج التحويل' : 'Conversion Model'}
+                </label>
+                <div className="relative">
+                  <select
+                    value={state.voiceModel}
+                    onChange={e => onChange({ voiceModel: e.target.value as ElevenLabsTTSModel })}
+                    className={selectCls}
+                  >
+                    <option value="eleven_multilingual_sts_v2">{lang === 'ar' ? 'Twinity Swap Pro (موصى به)' : 'Twinity Swap Pro (Recommended)'}</option>
+                    <option value="eleven_english_sts_v2">{lang === 'ar' ? 'Twinity Swap  ' : 'Twinity Swap'}</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+                </div>
               </div>
-
             </div>
           )}
-        </div>
+
+          {/* TTS Model (only in TTS mode) */}
+          {!state.voiceChangeEnabled && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-content-muted">
+                {lang === 'ar' ? 'نموذج توليد الصوت' : 'Voice Model'}
+              </label>
+              <div className="relative">
+                <select
+                  value={state.voiceModel}
+                  onChange={e => onChange({ voiceModel: e.target.value as ElevenLabsTTSModel })}
+                  className={selectCls}
+                >
+                  <option value="eleven_v3">{lang === 'ar' ? 'Twinity Pro (موصى به)' : 'Twinity Pro (Recommended)'}</option>
+                  <option value="eleven_multilingual_v2">{lang === 'ar' ? 'Twinity Global' : 'Twinity Global'}</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+              </div>
+            </div>
+          )}
+
+          {/* Speed slider */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-content-muted flex items-center gap-1.5">
+                <Gauge className="w-3.5 h-3.5" />
+                {lang === 'ar' ? 'سرعة الصوت' : 'Voice Speed'}
+              </label>
+              <span className="text-xs font-bold text-brand-purple tabular-nums">
+                {state.voiceSpeed.toFixed(2)}×
+              </span>
+            </div>
+            <input
+              type="range"
+              min={0.70}
+              max={1.20}
+              step={0.05}
+              value={state.voiceSpeed}
+              onChange={e => onChange({ voiceSpeed: parseFloat(e.target.value) })}
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-brand-purple bg-surface-elevated"
+            />
+            <div className="flex justify-between text-[10px] text-content-muted">
+              <span>{lang === 'ar' ? 'أبطأ' : 'Slower'}</span>
+              <span>{lang === 'ar' ? 'أسرع' : 'Faster'}</span>
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* ── Generate button ────────────────────────────── */}
-      {state.celebrity && state.template && (
-        <div className="flex flex-col gap-2">
-          {jobError && (
-            <p className="text-sm text-red-500 text-center px-1">{jobError}</p>
-          )}
+      {/* ── Screen 1 buttons: Preview Voice + Proceed ───── */}
+      {state.celebrity && !showFinalizeScreen && (
+        <div className="flex flex-col gap-3">
           {scriptOverLimit && (
             <p className="text-xs text-red-500 text-center">
               {lang === 'ar'
@@ -1082,6 +903,388 @@ export default function StepCustomize({ state, onChange }: Props) {
                 : 'Please shorten your script to 40 words or fewer before generating'}
             </p>
           )}
+          {voicePreviewError && (
+            <p className="text-sm text-red-500 text-center px-1">{voicePreviewError}</p>
+          )}
+          <Button
+            fullWidth size="lg" variant="secondary"
+            icon={<Mic className="w-4 h-4" />}
+            loading={voicePreviewLoading}
+            disabled={!state.celebrity || !state.productType || voicePreviewLoading || scriptOverLimit || !state.customScript.trim()}
+            onClick={handlePreviewVoice}
+          >
+            {voicePreviewLoading
+              ? (lang === 'ar' ? 'جارٍ توليد الصوت...' : 'Generating Voice...')
+              : hasVoiceHistory
+                ? (lang === 'ar' ? 'توليد نسخة جديدة' : 'Generate New Take')
+                : (lang === 'ar' ? 'معاينة الصوت' : 'Preview Voice')}
+          </Button>
+          {!hasVoiceHistory && (
+            <p className="text-xs text-content-muted text-center">
+              {lang === 'ar'
+                ? 'استمع إلى الصوت في القائمة الجانبية أولاً'
+                : 'Listen to the voice on the right first'}
+            </p>
+          )}
+          {hasVoiceHistory && (
+            <Button
+              fullWidth size="lg"
+              icon={<Sparkles className="w-4 h-4" />}
+              disabled={selectedVoiceIdx < 0}
+              onClick={() => setShowFinalizeScreen(true)}
+            >
+              {lang === 'ar' ? 'المتابعة للتوليد ←' : 'Proceed to Generate →'}
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* ── Screen 2: Back + selected audio + celebrity + AR + Generate ─ */}
+      {showFinalizeScreen && state.celebrity && (
+        <div className="flex flex-col gap-5">
+
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={() => setShowFinalizeScreen(false)}
+            className="flex items-center gap-1.5 text-sm font-medium text-content-muted hover:text-brand-purple transition-colors self-start"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {lang === 'ar' ? 'العودة إلى إعدادات الصوت' : 'Back to Voice Settings'}
+          </button>
+
+          {/* Selected audio */}
+          {selectedVoiceUrl && (() => {
+            const entry = voiceHistory[selectedVoiceIdx]
+            return (
+              <section className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-content-primary flex items-center gap-1.5">
+                    <Volume2 className="w-4 h-4 text-brand-purple" />
+                    {lang === 'ar' ? 'الصوت المختار' : 'Selected Voice'}
+                  </h3>
+                  <span className="text-xs text-content-muted">
+                    {lang === 'ar' ? `نسخة ${entry?.take}` : `Take ${entry?.take}`}
+                    {entry && <span className="ml-1.5 text-content-muted">· {VOICE_MODEL_DISPLAY[entry.model] ?? entry.model} · ×{entry.speed.toFixed(2)}</span>}
+                  </span>
+                </div>
+                <audio
+                  controls
+                  controlsList="nodownload noplaybackrate"
+                  src={selectedVoiceUrl}
+                  className="w-full"
+                  style={{ height: '40px' }}
+                />
+              </section>
+            )
+          })()}
+
+          {/* Celebrity summary (read-only) */}
+          <section className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold text-content-primary">
+              {lang === 'ar' ? 'المشهور' : 'Celebrity'}
+            </h3>
+            <div className="flex items-center gap-3 p-3 rounded-xl border border-brand-purple/20 bg-surface-subtle">
+              <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-brand-purple/15"
+                style={{ background: state.celebrity.avatarColor }}>
+                <img src={state.celebrity.image} alt={state.celebrity.name} className="w-full h-full object-cover object-top" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-content-primary truncate">
+                  {lang === 'ar' ? state.celebrity.nameAr : state.celebrity.name}
+                </p>
+                <p className="text-xs text-content-muted">
+                  {lang === 'ar' ? state.customScript.slice(0, 50) : state.customScript.slice(0, 50)}
+                  {state.customScript.length > 50 ? '…' : ''}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Aspect Ratio */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-content-primary">
+              {lang === 'ar' ? 'نسبة العرض' : 'Aspect Ratio'}
+            </label>
+            <div className="relative">
+              <select
+                value={state.aspectRatio ?? ''}
+                onChange={e => onChange({ aspectRatio: e.target.value as AspectRatio })}
+                className={selectCls}
+              >
+                <option value="" disabled>{lang === 'ar' ? 'اختر' : 'Select'}</option>
+                {ASPECT_RATIOS.map(ar => (
+                  <option key={ar.id} value={ar.id}>{ar.label} ({lang === 'ar' ? ar.hintAr : ar.hint})</option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+            </div>
+          </div>
+
+          {/* Scene Settings */}
+          <div className="rounded-xl border border-brand-purple/15 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setSceneOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 bg-surface-subtle hover:bg-surface-elevated cursor-pointer transition-colors"
+            >
+              <div className="flex items-center gap-2 text-sm font-medium text-content-primary">
+                <Camera className="w-4 h-4 text-brand-purple" />
+                {lang === 'ar' ? 'إعدادات المشهد' : 'Scene Settings'}
+                <span className="text-xs font-normal text-content-muted">
+                  {lang === 'ar' ? '(اختياري)' : '(optional)'}
+                </span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${sceneOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {sceneOpen && (
+              <div className="flex flex-col gap-4 p-4 bg-white">
+                {/* Scene description */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-content-muted">
+                    {lang === 'ar' ? 'وصف المشهد' : 'Scene Description'}
+                  </label>
+                  <textarea
+                    value={state.sceneNotes}
+                    onChange={e => onChange({ sceneNotes: e.target.value })}
+                    rows={3}
+                    placeholder={lang === 'ar'
+                      ? 'صف البيئة، الإضاءة، الديكور، المزاج العام...'
+                      : 'Describe the environment, lighting, setting, mood, wardrobe details...'}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm bg-white border border-brand-purple/15 text-content-primary placeholder:text-content-muted focus:outline-none focus:border-brand-purple/50 focus:ring-2 focus:ring-brand-purple/10 transition-all resize-none"
+                  />
+                </div>
+
+                {/* AI Image Generator */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-content-muted">
+                      {lang === 'ar' ? 'توليد الصورة بالذكاء الاصطناعي' : 'AI Image Generator'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setImageGenOpen(o => !o)}
+                      className="text-xs font-semibold text-brand-purple hover:text-brand-dark flex items-center gap-1 transition-colors"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      {imageGenOpen
+                        ? (lang === 'ar' ? 'إخفاء' : 'Hide')
+                        : (lang === 'ar' ? 'توليد صورة' : 'Generate Image')}
+                    </button>
+                  </div>
+
+                  {imageGenOpen && (
+                    <div className="rounded-xl border border-brand-purple/15 overflow-hidden flex flex-col">
+                      {/* Reference images strip */}
+                      <div className="px-3 pt-3 pb-2 border-b border-brand-purple/8 bg-surface-subtle/40">
+                        <p className="text-[10px] font-semibold text-content-muted uppercase tracking-widest mb-2">
+                          {lang === 'ar' ? 'صور مرجعية' : 'Reference Images'}
+                        </p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {state.celebrity && (
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-brand-purple/30 shrink-0"
+                                style={{ background: state.celebrity.avatarColor }}>
+                                <img src={state.celebrity.image} alt={state.celebrity.name}
+                                  className="w-full h-full object-cover object-top" />
+                                <div className="absolute inset-0 flex items-end justify-center pb-0.5">
+                                  <span className="text-[8px] font-bold text-white bg-brand-purple/70 px-1 rounded leading-tight">
+                                    {lang === 'ar' ? 'المشهور' : 'Celeb'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          {(state.propImages ?? []).map((url, i) => (
+                            <div key={i} className="relative w-12 h-12 rounded-xl overflow-hidden border border-brand-purple/15 group shrink-0">
+                              <img src={url} alt={`prop-${i}`} className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => removePropImage(i)}
+                                className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          ))}
+                          {uploadingProps.map((dataUrl, i) => (
+                            <div key={`uploading-${i}`} className="relative w-12 h-12 rounded-xl overflow-hidden border border-brand-purple/15 shrink-0">
+                              <img src={dataUrl} alt="uploading" className="w-full h-full object-cover opacity-50" />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-4 h-4 border-2 border-brand-purple border-t-transparent rounded-full animate-spin" />
+                              </div>
+                            </div>
+                          ))}
+                          {state.backgroundImageUrl && (
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="relative w-12 h-12 rounded-xl overflow-hidden border-2 border-brand-purple/60 group shrink-0">
+                                <img src={state.backgroundImageUrl} alt="bg" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => onChange({ backgroundImageUrl: null })}
+                                  className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="w-2.5 h-2.5" />
+                                </button>
+                                <div className="absolute inset-0 flex items-end justify-center pb-0.5 pointer-events-none">
+                                  <span className="text-[8px] font-bold text-white bg-brand-purple/70 px-1 rounded leading-tight">
+                                    {lang === 'ar' ? 'فيديو' : 'Video'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <label className="w-12 h-12 rounded-xl border-2 border-dashed border-brand-purple/25 flex flex-col items-center justify-center cursor-pointer hover:border-brand-purple/50 hover:bg-surface-subtle transition-colors shrink-0 gap-0.5">
+                            <Upload className="w-3.5 h-3.5 text-content-muted" />
+                            <span className="text-[8px] text-content-muted leading-tight text-center">
+                              {lang === 'ar' ? 'أضف' : 'Add'}
+                            </span>
+                            <input type="file" accept="image/*" multiple className="hidden" onChange={handlePropImages} />
+                          </label>
+                        </div>
+                        <p className="text-[10px] text-content-muted mt-1.5">
+                          {lang === 'ar'
+                            ? 'أضف صور المنتج أو الدعامة كمراجع للتوليد'
+                            : 'Add product / item images as references for generation'}
+                        </p>
+                      </div>
+
+                      {/* Chat messages */}
+                      <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-3 max-h-72 bg-surface-subtle/30"
+                        style={{ minHeight: '160px' }}>
+                        {chatHistory.length === 0 && (
+                          <div className="flex flex-col items-center justify-center h-full text-center gap-2 py-6">
+                            <ImageIcon className="w-7 h-7 text-content-muted/60" />
+                            <p className="text-xs text-content-muted">
+                              {lang === 'ar'
+                                ? 'صف المشهد أو الصورة التي تريد توليدها'
+                                : 'Describe the scene you want — celebrity and product will be included'}
+                            </p>
+                          </div>
+                        )}
+                        {chatHistory.map((msg, i) => (
+                          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            {msg.role === 'user' ? (
+                              <div
+                                className="max-w-[80%] px-3 py-2 rounded-xl text-xs text-white"
+                                style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+                              >
+                                {msg.text}
+                              </div>
+                            ) : (
+                              <div className="max-w-[90%] flex flex-col gap-1.5">
+                                {msg.imageUrl && (
+                                  <div className="relative group">
+                                    <img
+                                      src={msg.imageUrl}
+                                      alt="Generated"
+                                      className="rounded-xl border border-brand-purple/15 max-w-full"
+                                      style={{ maxHeight: '200px', objectFit: 'contain' }}
+                                    />
+                                    {state.backgroundImageUrl === msg.imageUrl && (
+                                      <div className="absolute top-2 left-2">
+                                        <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-white"
+                                          style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}>
+                                          <CheckCheck className="w-3 h-3" />
+                                          {lang === 'ar' ? 'محدد للفيديو' : 'Selected'}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        type="button"
+                                        onClick={() => onChange({ backgroundImageUrl: msg.imageUrl! })}
+                                        className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-white transition-opacity hover:opacity-90"
+                                        style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+                                      >
+                                        <CheckCheck className="w-3 h-3" />
+                                        {lang === 'ar' ? 'استخدم للفيديو' : 'Use for video'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => onChange({ propImages: [...(state.propImages ?? []), msg.imageUrl!] })}
+                                        className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-lg text-white transition-opacity hover:opacity-90 bg-black/50"
+                                      >
+                                        <Upload className="w-3 h-3" />
+                                        {lang === 'ar' ? 'كمرجع' : 'As reference'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                                {msg.text && (
+                                  <p className="text-xs text-content-muted px-1">{msg.text}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {imageGenLoading && (
+                          <div className="flex justify-start">
+                            <div className="flex gap-1 px-3 py-2 rounded-xl bg-white border border-brand-purple/12">
+                              {[0, 1, 2].map(i => (
+                                <div key={i} className="w-1.5 h-1.5 rounded-full bg-brand-purple/50"
+                                  style={{ animation: `bounce 1s ease-in-out ${i * 0.2}s infinite` }} />
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {imageGenError && (
+                        <div className="px-3 py-2 text-xs text-red-500 bg-red-50 border-t border-red-100">
+                          {imageGenError}
+                        </div>
+                      )}
+
+                      <div className="border-t border-brand-purple/10 p-2 flex gap-2 bg-white">
+                        <input
+                          type="text"
+                          value={chatInput}
+                          onChange={e => setChatInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendImagePrompt() } }}
+                          disabled={imageGenLoading}
+                          placeholder={lang === 'ar'
+                            ? 'صف المشهد... (مثال: استوديو احترافي بإضاءة دافئة)'
+                            : 'Describe the scene... (e.g. professional studio, warm lighting)'}
+                          className="flex-1 px-3 py-2 rounded-xl text-xs border border-brand-purple/15 bg-white text-content-primary placeholder-content-muted focus:outline-none focus:border-brand-purple/50 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSendImagePrompt}
+                          disabled={!chatInput.trim() || imageGenLoading}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-40 transition-opacity hover:opacity-85"
+                          style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+                        >
+                          <SendHorizontal className="w-3.5 h-3.5 text-white" />
+                        </button>
+                        {chatHistory.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => { setChatHistory([]); setImageGenError(null) }}
+                            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-content-muted hover:bg-surface-subtle transition-colors border border-brand-purple/12"
+                            title={lang === 'ar' ? 'مسح المحادثة' : 'Clear chat'}
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      <style jsx>{`
+                        @keyframes bounce {
+                          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+                          40% { transform: translateY(-4px); opacity: 1; }
+                        }
+                      `}</style>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Generate Video */}
+          {jobError && <p className="text-sm text-red-500 text-center px-1">{jobError}</p>}
           {hasJobRef && !jobLoading && (
             <p className="text-xs text-emerald-600 text-center flex items-center justify-center gap-1">
               <Clock className="w-3.5 h-3.5" />
@@ -1089,11 +1292,10 @@ export default function StepCustomize({ state, onChange }: Props) {
             </p>
           )}
           <Button
-            fullWidth
-            size="lg"
+            fullWidth size="lg"
             icon={<Sparkles className="w-4 h-4" />}
             loading={jobLoading}
-            disabled={!state.celebrity || !state.productType || jobLoading || scriptOverLimit}
+            disabled={!state.celebrity || !state.productType || jobLoading || scriptOverLimit || !state.customScript.trim()}
             onClick={handleGenerateVideo}
           >
             {jobLoading
@@ -1105,16 +1307,25 @@ export default function StepCustomize({ state, onChange }: Props) {
 
       </div>{/* end left column */}
 
-      {/* ── Right column: Video Preview (sticky) ── */}
+      {/* ── Right column: Voice / Video Preview (sticky) ── */}
       <div className="sticky top-28">
         <div className="rounded-2xl border border-brand-purple/20 overflow-hidden"
           style={{ background: 'linear-gradient(145deg, #FAF7FF, #F3EEFF)' }}>
           <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-brand-purple/10">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse" />
+              {!showFinalizeScreen
+                ? <Volume2 className="w-3.5 h-3.5 text-brand-purple" />
+                : <span className="w-2 h-2 rounded-full bg-brand-purple animate-pulse" />}
               <span className="text-sm font-semibold text-content-primary">
-                {lang === 'ar' ? 'معاينة' : 'Preview'}
+                {!showFinalizeScreen
+                  ? (lang === 'ar' ? 'سجل الأصوات' : 'Voice History')
+                  : (lang === 'ar' ? 'معاينة' : 'Preview')}
               </span>
+              {!showFinalizeScreen && hasVoiceHistory && (
+                <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-brand-purple/10 text-brand-purple">
+                  {voiceHistory.length}
+                </span>
+              )}
             </div>
             {state.celebrity && (
               <div className="flex items-center gap-2">
@@ -1132,16 +1343,107 @@ export default function StepCustomize({ state, onChange }: Props) {
             )}
           </div>
           <div className="p-4">
-            <VideoPreview
-              key={generationKey}
-              celebrity={state.celebrity}
-              templateName={templateName ?? 'Custom Video'}
-              productType={productName ?? 'Video'}
-              duration={(state.template?.duration as Duration) ?? '30s'}
-              lang={lang}
-              videoUrl={previewUrl ?? undefined}
-              loading={jobLoading}
-            />
+            {!showFinalizeScreen ? (
+              /* Voice takes history — screen 1 */
+              <div className="flex flex-col gap-2">
+                {!hasVoiceHistory ? (
+                  <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+                    <div className="w-10 h-10 rounded-xl bg-brand-purple/8 flex items-center justify-center">
+                      <Mic className="w-5 h-5 text-brand-purple/50" />
+                    </div>
+                    <p className="text-sm text-content-muted">
+                      {lang === 'ar'
+                        ? 'اضغط على "معاينة الصوت" لتوليد أول نسخة'
+                        : 'Click "Preview Voice" to generate your first take'}
+                    </p>
+                  </div>
+                ) : (
+                <><div className="flex items-center justify-between mb-1">
+                  <p className="text-xs font-bold text-content-muted uppercase tracking-wide">
+                    {lang === 'ar' ? `${voiceHistory.length} نسخ` : `${voiceHistory.length} Take${voiceHistory.length > 1 ? 's' : ''}`}
+                  </p>
+                  <p className="text-[10px] text-content-muted">
+                    {lang === 'ar' ? 'اختر الأفضل' : 'Select the best one'}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-0.5">
+                  {[...voiceHistory].reverse().map((entry, reversedIdx) => {
+                    const actualIdx = voiceHistory.length - 1 - reversedIdx
+                    const isSelected = selectedVoiceIdx === actualIdx
+                    const isLatest   = actualIdx === voiceHistory.length - 1
+                    const modelLabel = VOICE_MODEL_DISPLAY[entry.model] ?? entry.model
+                    return (
+                      <div
+                        key={actualIdx}
+                        className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${
+                          isSelected
+                            ? 'border-brand-purple/50 bg-brand-purple/5 shadow-sm'
+                            : 'border-brand-purple/12 bg-white hover:border-brand-purple/30'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-brand-purple shrink-0" />}
+                            <span className="text-xs font-bold text-content-primary">
+                              {lang === 'ar' ? `نسخة ${entry.take}` : `Take ${entry.take}`}
+                            </span>
+                            {isLatest && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-brand-purple/10 text-brand-purple shrink-0">
+                                {lang === 'ar' ? 'أحدث' : 'Latest'}
+                              </span>
+                            )}
+                          </div>
+                          {isSelected ? (
+                            <span className="text-[10px] font-bold text-brand-purple px-2 py-0.5 rounded-full bg-brand-purple/10 shrink-0">
+                              {lang === 'ar' ? 'محدد' : 'Selected'}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedVoiceIdx(actualIdx)}
+                              className="text-[11px] font-semibold text-brand-purple hover:text-brand-dark transition-colors shrink-0 px-2 py-0.5 rounded-lg hover:bg-brand-purple/8"
+                            >
+                              {lang === 'ar' ? 'اختيار' : 'Select'}
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-content-muted">
+                          <span>{modelLabel}</span>
+                          <span>·</span>
+                          <span>×{entry.speed.toFixed(2)}</span>
+                          {entry.voiceChange && (
+                            <>
+                              <span>·</span>
+                              <span>{lang === 'ar' ? 'تبديل الصوت' : 'Voice Swap'}</span>
+                            </>
+                          )}
+                        </div>
+                        <audio controls controlsList="nodownload noplaybackrate" src={entry.url} className="w-full" style={{ height: '36px' }} />
+                      </div>
+                    )
+                  })}
+                </div>
+                {voicePreviewLoading && (
+                  <div className="flex items-center justify-center gap-2 py-2 text-xs text-brand-purple">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    {lang === 'ar' ? 'جارٍ توليد نسخة جديدة...' : 'Generating new take...'}
+                  </div>
+                )}
+                </>)}
+              </div>
+            ) : (
+              /* Video preview — screen 2 (after clicking Proceed to Generate) */
+              <VideoPreview
+                key={generationKey}
+                celebrity={state.celebrity}
+                templateName={templateName ?? 'Custom Video'}
+                productType={productName ?? 'Video'}
+                duration={(state.template?.duration as Duration) ?? '30s'}
+                lang={lang}
+                videoUrl={previewUrl ?? undefined}
+                loading={jobLoading}
+              />
+            )}
           </div>
         </div>
       </div>

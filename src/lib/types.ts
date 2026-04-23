@@ -86,6 +86,14 @@ export interface Template {
   tags: string[]
 }
 
+export type ElevenLabsTTSModel =
+  | 'eleven_v3'
+  | 'eleven_multilingual_v2'
+
+export type ElevenLabsSTSModel =
+  | 'eleven_multilingual_sts_v2'
+  | 'eleven_english_sts_v2'
+
 export interface WizardState {
   productType: ProductTypeId | null
   celebrity: Celebrity | null
@@ -99,6 +107,11 @@ export interface WizardState {
   channels: Channel[]
   language: 'en' | 'ar'
   useCustomScript: boolean
+  // Voice settings
+  voiceModel: ElevenLabsTTSModel | ElevenLabsSTSModel
+  voiceSpeed: number
+  voiceChangeEnabled: boolean
+  voiceChangeSourceUrl: string | null
   // Scene settings
   backgroundImageUrl: string | null
   propImages: string[]

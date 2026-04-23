@@ -113,6 +113,8 @@ export const jobApi = {
     celebrityId: string; productType: string; purpose: string; script: string
     templateId?: string; tone?: string; duration?: string; aspectRatio?: string; resolution?: string; channels?: string[]
     propImages?: string[]; sceneNotes?: string; backgroundImageUrl?: string
+    voiceModel?: string; voiceSpeed?: number
+    voiceChangeEnabled?: boolean; voiceChangeSourceUrl?: string
   }) => api<{ success: boolean; data: ApiVideoJob }>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
 
   myJobs: (status?: string, page = 1, limit = 12) => {
@@ -146,6 +148,12 @@ export const jobApi = {
 
   bookCall: (referenceId: string, body: { name: string; email: string; phone?: string; company?: string; notes?: string }) =>
     api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/book-call`, { method: 'POST', body: JSON.stringify(body) }),
+
+  previewVoice: (body: {
+    celebrityId: string; script: string
+    voiceModel?: string; voiceSpeed?: number
+    voiceChangeEnabled?: boolean; voiceChangeSourceUrl?: string
+  }) => api<{ success: boolean; audioUrl: string }>('/jobs/preview-voice', { method: 'POST', body: JSON.stringify(body) }),
 
   improveScript: (body: { script: string; celebrityName: string; productType: string; purpose?: string }) =>
     api<{ success: boolean; improvedScript: string }>('/jobs/improve-script', { method: 'POST', body: JSON.stringify(body) }),
