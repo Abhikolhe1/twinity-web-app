@@ -8,9 +8,10 @@ import { useProductTypes } from '@/lib/use-product-types'
 import { useLanguage } from '@/lib/context'
 import { TextArea } from '@/components/ui/Input'
 import {
-  ToggleLeft, ToggleRight, Sparkles, ChevronDown, Wand2, Camera, Upload, X,
+  Sparkles, ChevronDown, Wand2, Camera, Upload, X,
   RefreshCw, CheckCheck, Search, ImageIcon, SendHorizontal, Clock,
   FileText, CheckCircle2, Loader2, Mic, Gauge, Volume2, ArrowLeft,
+  Play, Pause, RotateCcw,
 } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import VideoPreview from './VideoPreview'
@@ -100,6 +101,42 @@ export default function StepCustomize({ state, onChange }: Props) {
   const [selectedVoiceIdx,    setSelectedVoiceIdx]    = useState<number>(-1)
   const [voicePreviewLoading, setVoicePreviewLoading] = useState(false)
   const [voicePreviewError,   setVoicePreviewError]   = useState<string | null>(null)
+
+  // ── Mic recorder ───────────────────────────────────────
+  const [isRecording,         setIsRecording]         = useState(false)
+  const [recordingDuration,   setRecordingDuration]   = useState(0)
+  const [recordingError,      setRecordingError]       = useState<string | null>(null)
+  const mediaRecorderRef      = useRef<MediaRecorder | null>(null)
+  const audioChunksRef        = useRef<Blob[]>([])
+  const recordingTimerRef     = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // ── Source audio: local data URL before upload, S3 URL after preview ──
+  const [sourceAudioDataUrl,  setSourceAudioDataUrl]  = useState<string | null>(null)
+
+  // ── Source audio playback ───────────────────────────────
+  const [sourceAudioPlaying, setSourceAudioPlaying] = useState(false)
+  const sourceAudioRef       = useRef<HTMLAudioElement | null>(null)
+
+  const stopSourceAudio = useCallback(() => {
+    sourceAudioRef.current?.pause()
+    if (sourceAudioRef.current) sourceAudioRef.current.currentTime = 0
+    sourceAudioRef.current = null
+    setSourceAudioPlaying(false)
+  }, [])
+
+  const handleToggleSourceAudio = useCallback(() => {
+    const url = sourceAudioDataUrl ?? state.voiceChangeSourceUrl
+    if (!url) return
+    if (sourceAudioPlaying) {
+      stopSourceAudio()
+    } else {
+      const audio = new Audio(url)
+      audio.onended = () => setSourceAudioPlaying(false)
+      sourceAudioRef.current = audio
+      audio.play().catch(() => setSourceAudioPlaying(false))
+      setSourceAudioPlaying(true)
+    }
+  }, [sourceAudioDataUrl, state.voiceChangeSourceUrl, sourceAudioPlaying, stopSourceAudio])
 
   // ── Two-screen flow ────────────────────────────────────
   const [showFinalizeScreen, setShowFinalizeScreen] = useState(false)
@@ -198,20 +235,46 @@ export default function StepCustomize({ state, onChange }: Props) {
     onChange({ propImages: (state.propImages ?? []).filter((_, i) => i !== index) })
   }, [onChange, state.propImages])
 
+  // ── Mic recorder handlers ─────────────────────────────
+  const handleStartRecording = useCallback(async () => {
+    setRecordingError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      audioChunksRef.current = []
+      const recorder = new MediaRecorder(stream)
+      recorder.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data) }
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop())
+        const blob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
+        const reader = new FileReader()
+        reader.onload = () => setSourceAudioDataUrl(reader.result as string)
+        reader.readAsDataURL(blob)
+      }
+      recorder.start()
+      mediaRecorderRef.current = recorder
+      setIsRecording(true)
+      setRecordingDuration(0)
+      recordingTimerRef.current = setInterval(() => setRecordingDuration(d => d + 1), 1000)
+    } catch {
+      setRecordingError(lang === 'ar' ? 'تعذّر الوصول إلى الميكروفون' : 'Microphone access denied')
+    }
+  }, [lang, onChange])
+
+  const handleStopRecording = useCallback(() => {
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
+    mediaRecorderRef.current?.stop()
+    setIsRecording(false)
+  }, [])
+
   const handleVoiceAudioUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     e.target.value = ''
     const reader = new FileReader()
-    reader.onload = async () => {
-      const dataUrl = reader.result as string
-      setVoiceAudioUploading(true)
-      try {
-        const res = await jobApi.uploadAsset(dataUrl)
-        onChange({ voiceChangeSourceUrl: res.url })
-      } catch { /* silently fail */ } finally {
-        setVoiceAudioUploading(false)
-      }
+    reader.onload = () => {
+      stopSourceAudio()
+      setSourceAudioDataUrl(reader.result as string)
+      onChange({ voiceChangeSourceUrl: null })
     }
     reader.readAsDataURL(file)
   }, [onChange])
@@ -251,7 +314,7 @@ export default function StepCustomize({ state, onChange }: Props) {
     setGenerationKey(k => k + 1)
 
     try {
-      const script  = resolvedScript
+      const script  = resolvedScript.trim() || (state.voiceChangeEnabled ? 'Voice Change' : '')
       const purpose = state.template
         ? (lang === 'ar' ? state.template.purposeAr : state.template.purpose)
         : 'Custom Video'
@@ -332,11 +395,29 @@ export default function StepCustomize({ state, onChange }: Props) {
 
   // ── Voice preview (step 1) — accumulates takes in history ──
   const handlePreviewVoice = async () => {
-    if (!state.celebrity || !state.productType || !state.customScript.trim()) return
+    if (!state.celebrity || !state.productType) return
+    if (state.voiceChangeEnabled && !sourceAudioDataUrl && !state.voiceChangeSourceUrl) return
+    if (!state.voiceChangeEnabled && !state.customScript.trim()) return
     setVoicePreviewLoading(true)
     setVoicePreviewError(null)
-    const capturedModel      = state.voiceModel
-    const capturedSpeed      = state.voiceSpeed
+
+    // Lazy upload: send audio to S3 on first preview, not on record/select
+    let resolvedVoiceChangeUrl = state.voiceChangeSourceUrl
+    if (state.voiceChangeEnabled && sourceAudioDataUrl && !resolvedVoiceChangeUrl) {
+      try {
+        const uploadRes = await jobApi.uploadAsset(sourceAudioDataUrl)
+        resolvedVoiceChangeUrl = uploadRes.url
+        onChange({ voiceChangeSourceUrl: uploadRes.url })
+        setSourceAudioDataUrl(null)
+      } catch (err) {
+        setVoicePreviewError(lang === 'ar' ? 'فشل رفع الصوت' : 'Failed to upload audio')
+        setVoicePreviewLoading(false)
+        return
+      }
+    }
+
+    const capturedModel       = state.voiceModel
+    const capturedSpeed       = state.voiceSpeed
     const capturedVoiceChange = state.voiceChangeEnabled
     try {
       const res = await jobApi.previewVoice({
@@ -345,7 +426,7 @@ export default function StepCustomize({ state, onChange }: Props) {
         voiceModel: capturedModel,
         voiceSpeed: capturedSpeed !== 1.0 ? capturedSpeed : undefined,
         voiceChangeEnabled: capturedVoiceChange || undefined,
-        voiceChangeSourceUrl: capturedVoiceChange && state.voiceChangeSourceUrl ? state.voiceChangeSourceUrl : undefined,
+        voiceChangeSourceUrl: capturedVoiceChange && resolvedVoiceChangeUrl ? resolvedVoiceChangeUrl : undefined,
       })
       setVoiceHistory(prev => {
         const newEntry: VoiceHistoryEntry = {
@@ -396,8 +477,13 @@ export default function StepCustomize({ state, onChange }: Props) {
     }
   }
 
-  // ── Clean up polling on unmount ────────────────────────
-  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
+  // ── Clean up polling + recording + source audio on unmount ──
+  useEffect(() => () => {
+    if (pollRef.current) clearInterval(pollRef.current)
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
+    mediaRecorderRef.current?.stop()
+    sourceAudioRef.current?.pause()
+  }, [])
 
   const selectCls = 'w-full appearance-none pl-3 pr-8 py-2.5 rounded-xl text-sm font-medium bg-white border border-brand-purple/15 text-content-primary focus:outline-none focus:border-brand-purple/50 focus:ring-2 focus:ring-brand-purple/10 transition-all cursor-pointer'
 
@@ -671,212 +757,404 @@ export default function StepCustomize({ state, onChange }: Props) {
         </div>
       , document.body)}
 
-      {/* ── 3. Script (screen 1 only) ─────────────────── */}
-      {state.celebrity && !showFinalizeScreen && (
-        <section className="flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <label className="text-sm font-semibold text-content-primary shrink-0">
-                {lang === 'ar' ? 'نص الفيديو' : 'Video Script'}
-                <span className="ml-1 text-red-400">*</span>
-              </label>
-              {/* Template picker pill */}
-              {state.template ? (
-                <div className="flex items-center gap-1 min-w-0">
-                  <button
-                    type="button"
-                    onClick={() => setTemplateModalOpen(true)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-brand-purple/8 border border-brand-purple/20 text-brand-purple hover:bg-brand-purple/15 transition-all max-w-[140px]"
-                  >
-                    <FileText className="w-3 h-3 shrink-0" />
-                    <span className="text-[11px] font-medium truncate">
-                      {lang === 'ar' ? state.template.nameAr : state.template.name}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onChange({ template: null, customScript: '', useCustomScript: false })}
-                    className="p-0.5 rounded text-content-muted hover:text-red-500 transition-colors shrink-0"
-                    title={lang === 'ar' ? 'إزالة القالب' : 'Remove template'}
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setTemplateModalOpen(true)}
-                  className="flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-brand-purple/25 text-content-muted hover:border-brand-purple/50 hover:text-brand-purple hover:bg-brand-purple/5 transition-all"
-                >
-                  <FileText className="w-3 h-3" />
-                  <span className="text-[11px] font-medium">{lang === 'ar' ? 'من قالب' : 'From template'}</span>
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              disabled={improving || !state.customScript.trim()}
-              onClick={handleImproveScript}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-brand-purple/30 text-brand-purple hover:bg-brand-purple/8 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
-            >
-              <Wand2 className={`w-3.5 h-3.5 ${improving ? 'animate-spin' : ''}`} />
-              {improving
-                ? (lang === 'ar' ? 'جارٍ التحسين...' : 'Improving...')
-                : (lang === 'ar' ? 'تحسين بالذكاء الاصطناعي' : 'Improve with AI')}
-            </button>
-          </div>
-
-          <TextArea
-            value={state.customScript}
-            onChange={e => onChange({ customScript: e.target.value, useCustomScript: true })}
-            placeholder={state.template
-              ? (lang === 'ar' ? 'تم تعبئة نص القالب — عدّل كما تشاء...' : 'Template script loaded — edit as needed...')
-              : tr.create.scriptPlaceholder}
-            rows={5}
-          />
-
-          <p className={`text-xs text-right ${scriptOverLimit ? 'text-red-500 font-medium' : 'text-content-muted'}`}>
-            {scriptWordCount} / 40 {lang === 'ar' ? 'كلمة' : 'words'}
-            {scriptOverLimit && (lang === 'ar' ? ' — الحد الأقصى 40 كلمة' : ' — max 40 words')}
-          </p>
-
-          {improveError && <p className="text-xs text-red-500">{improveError}</p>}
-        </section>
-      )}
-
-
-      {/* ── 5. Voice Settings (screen 1 only) ─────────── */}
+      {/* ── Voice Mode Selector + Content (screen 1 only) ── */}
       {state.celebrity && !showFinalizeScreen && (
         <section className="flex flex-col gap-4">
-          <div className="flex items-center gap-2">
-            <Mic className="w-4 h-4 text-brand-purple" />
-            <h3 className="text-sm font-semibold text-content-primary">
-              {lang === 'ar' ? 'إعدادات الصوت' : 'Voice Settings'}
-            </h3>
-          </div>
 
-          {/* Voice Change toggle */}
-          <div className="flex items-start justify-between gap-3 p-3 rounded-xl bg-surface-subtle border border-brand-purple/12">
-            <div className="flex flex-col gap-0.5">
-              <p className="text-sm font-semibold text-content-primary">
-                {lang === 'ar' ? 'تغيير الصوت (Speech-to-Speech)' : 'Voice Change (Speech-to-Speech)'}
-              </p>
-              <p className="text-xs text-content-muted leading-relaxed">
-                {lang === 'ar'
-                  ? 'حوّل تسجيلك الصوتي إلى صوت المشهور مع الحفاظ على إيقاعك وأدائك'
-                  : 'Convert your own audio recording to the celebrity voice while preserving your timing and delivery'}
-              </p>
-            </div>
+          {/* ── Mode switcher — two top-level cards ─────────── */}
+          <div className="grid grid-cols-2 gap-2">
+            {/* Write Script card */}
             <button
               type="button"
               onClick={() => onChange({
-                voiceChangeEnabled: !state.voiceChangeEnabled,
+                voiceChangeEnabled: false,
                 voiceChangeSourceUrl: null,
-                voiceModel: !state.voiceChangeEnabled ? 'eleven_multilingual_sts_v2' : 'eleven_v3',
+                voiceModel: 'eleven_v3',
               })}
-              className="shrink-0 mt-0.5"
+              className={`relative flex flex-col items-start gap-2.5 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
+                !state.voiceChangeEnabled
+                  ? 'border-brand-purple bg-gradient-to-br from-brand-purple/8 to-brand-purple/4'
+                  : 'border-brand-purple/15 bg-white hover:border-brand-purple/35 hover:bg-surface-subtle'
+              }`}
+              style={!state.voiceChangeEnabled
+                ? { boxShadow: '0 0 0 1px rgba(154,120,254,0.18), 0 4px 24px rgba(154,120,254,0.10)' }
+                : undefined}
             >
-              {state.voiceChangeEnabled
-                ? <ToggleRight className="w-6 h-6 text-brand-purple" />
-                : <ToggleLeft className="w-6 h-6 text-content-muted" />}
+              {!state.voiceChangeEnabled && (
+                <span
+                  className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+                >
+                  <CheckCircle2 className="w-3 h-3 text-white" />
+                </span>
+              )}
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                !state.voiceChangeEnabled ? 'bg-brand-purple/15' : 'bg-surface-subtle'
+              }`}>
+                <FileText className={`w-4 h-4 ${!state.voiceChangeEnabled ? 'text-brand-purple' : 'text-content-muted'}`} />
+              </div>
+              <div>
+                <p className={`text-sm font-bold leading-tight ${!state.voiceChangeEnabled ? 'text-content-primary' : 'text-content-secondary'}`}>
+                  {lang === 'ar' ? 'اكتب نصاً' : 'Write Script'}
+                </p>
+                <p className={`text-[11px] mt-0.5 leading-snug ${!state.voiceChangeEnabled ? 'text-brand-purple/70' : 'text-content-muted'}`}>
+                  {lang === 'ar' ? 'نص → صوت المشهور' : 'AI voices your words'}
+                </p>
+              </div>
+            </button>
+
+            {/* Use My Voice card */}
+            <button
+              type="button"
+              onClick={() => onChange({
+                voiceChangeEnabled: true,
+                voiceChangeSourceUrl: null,
+                voiceModel: 'eleven_multilingual_sts_v2',
+              })}
+              className={`relative flex flex-col items-start gap-2.5 p-4 rounded-2xl border-2 text-left transition-all duration-200 ${
+                state.voiceChangeEnabled
+                  ? 'border-brand-purple bg-gradient-to-br from-brand-purple/8 to-brand-purple/4'
+                  : 'border-brand-purple/15 bg-white hover:border-brand-purple/35 hover:bg-surface-subtle'
+              }`}
+              style={state.voiceChangeEnabled
+                ? { boxShadow: '0 0 0 1px rgba(154,120,254,0.18), 0 4px 24px rgba(154,120,254,0.10)' }
+                : undefined}
+            >
+              {state.voiceChangeEnabled && (
+                <span
+                  className="absolute top-2.5 right-2.5 w-4 h-4 rounded-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+                >
+                  <CheckCircle2 className="w-3 h-3 text-white" />
+                </span>
+              )}
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
+                state.voiceChangeEnabled ? 'bg-brand-purple/15' : 'bg-surface-subtle'
+              }`}>
+                <Mic className={`w-4 h-4 ${state.voiceChangeEnabled ? 'text-brand-purple' : 'text-content-muted'}`} />
+              </div>
+              <div>
+                <p className={`text-sm font-bold leading-tight ${state.voiceChangeEnabled ? 'text-content-primary' : 'text-content-secondary'}`}>
+                  {lang === 'ar' ? 'استخدم صوتك' : 'Use My Voice'}
+                </p>
+                <p className={`text-[11px] mt-0.5 leading-snug ${state.voiceChangeEnabled ? 'text-brand-purple/70' : 'text-content-muted'}`}>
+                  {lang === 'ar' ? 'سجّل → صوت المشهور' : 'Record → celebrity voice'}
+                </p>
+              </div>
             </button>
           </div>
 
-          {/* Voice Change: audio upload */}
+          {/* ── TTS panel ────────────────────────────────────── */}
+          {!state.voiceChangeEnabled && (
+            <div className="flex flex-col gap-3 rounded-2xl border border-brand-purple/12 bg-white p-4">
+              {/* Script header */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <label className="text-sm font-semibold text-content-primary shrink-0">
+                    {lang === 'ar' ? 'نص الفيديو' : 'Video Script'}
+                    <span className="ml-1 text-red-400">*</span>
+                  </label>
+                  {state.template ? (
+                    <div className="flex items-center gap-1 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setTemplateModalOpen(true)}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-brand-purple/8 border border-brand-purple/20 text-brand-purple hover:bg-brand-purple/15 transition-all max-w-[140px]"
+                      >
+                        <FileText className="w-3 h-3 shrink-0" />
+                        <span className="text-[11px] font-medium truncate">
+                          {lang === 'ar' ? state.template.nameAr : state.template.name}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onChange({ template: null, customScript: '', useCustomScript: false })}
+                        className="p-0.5 rounded text-content-muted hover:text-red-500 transition-colors shrink-0"
+                        title={lang === 'ar' ? 'إزالة القالب' : 'Remove template'}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setTemplateModalOpen(true)}
+                      className="flex items-center gap-1 px-2 py-1 rounded-lg border border-dashed border-brand-purple/25 text-content-muted hover:border-brand-purple/50 hover:text-brand-purple hover:bg-brand-purple/5 transition-all"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span className="text-[11px] font-medium">{lang === 'ar' ? 'من قالب' : 'From template'}</span>
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  disabled={improving || !state.customScript.trim()}
+                  onClick={handleImproveScript}
+                  className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border border-brand-purple/30 text-brand-purple hover:bg-brand-purple/8 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                >
+                  <Wand2 className={`w-3.5 h-3.5 ${improving ? 'animate-spin' : ''}`} />
+                  {improving
+                    ? (lang === 'ar' ? 'جارٍ التحسين...' : 'Improving...')
+                    : (lang === 'ar' ? 'تحسين بالذكاء الاصطناعي' : 'Improve with AI')}
+                </button>
+              </div>
+
+              <TextArea
+                value={state.customScript}
+                onChange={e => onChange({ customScript: e.target.value, useCustomScript: true })}
+                placeholder={state.template
+                  ? (lang === 'ar' ? 'تم تعبئة نص القالب — عدّل كما تشاء...' : 'Template script loaded — edit as needed...')
+                  : tr.create.scriptPlaceholder}
+                rows={5}
+              />
+
+              <p className={`text-xs text-right ${scriptOverLimit ? 'text-red-500 font-medium' : 'text-content-muted'}`}>
+                {scriptWordCount} / 40 {lang === 'ar' ? 'كلمة' : 'words'}
+                {scriptOverLimit && (lang === 'ar' ? ' — الحد الأقصى 40 كلمة' : ' — max 40 words')}
+              </p>
+
+              {improveError && <p className="text-xs text-red-500">{improveError}</p>}
+
+              {/* TTS model */}
+              <div className="flex flex-col gap-2 pt-1 border-t border-brand-purple/8">
+                <div className="flex flex-col gap-1.5">
+                  {([
+                    {
+                      id:   'eleven_v3',
+                      name: lang === 'ar' ? 'Twinity Pro' : 'Twinity Pro',
+                      tag:  lang === 'ar' ? 'موصى به' : 'Recommended',
+                      desc: lang === 'ar' ? 'متعدد اللغات · أعلى جودة' : 'Multi-language · Highest quality',
+                    },
+                    {
+                      id:   'eleven_multilingual_v2',
+                      name: lang === 'ar' ? 'Twinity Global' : 'Twinity Global',
+                      tag:  null,
+                      desc: lang === 'ar' ? 'متعدد اللغات · أسرع' : 'Multi-language · Faster',
+                    },
+                  ] as const).map(opt => {
+                    const active = state.voiceModel === opt.id
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => onChange({ voiceModel: opt.id as ElevenLabsTTSModel })}
+                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-all duration-150 ${
+                          active
+                            ? 'border-brand-purple/50 bg-brand-purple/6'
+                            : 'border-brand-purple/12 bg-surface-subtle/60 hover:border-brand-purple/30 hover:bg-surface-subtle'
+                        }`}
+                        style={active ? { boxShadow: '0 0 0 1px rgba(154,120,254,0.15)' } : undefined}
+                      >
+                        {/* radio dot */}
+                        <span className={`flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${active ? 'border-brand-purple' : 'border-brand-purple/30'}`}>
+                          {active && <span className="w-2 h-2 rounded-full" style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }} />}
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-sm font-semibold ${active ? 'text-content-primary' : 'text-content-secondary'}`}>
+                              {opt.name}
+                            </span>
+                            {opt.tag && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-white" style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}>
+                                {opt.tag}
+                              </span>
+                            )}
+                          </span>
+                          <span className="block text-xs text-content-muted mt-0.5">{opt.desc}</span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Voice Change panel ──────────────────────────── */}
           {state.voiceChangeEnabled && (
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-content-muted">
-                {lang === 'ar' ? 'رفع التسجيل الصوتي المصدر' : 'Upload Source Audio Recording'}
-                <span className="ml-1 text-red-400">*</span>
-              </label>
-              {state.voiceChangeSourceUrl ? (
-                <div className="flex items-center gap-3 p-3 rounded-xl border border-emerald-200 bg-emerald-50">
-                  <Mic className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <p className="flex-1 text-xs text-emerald-700 font-medium truncate">
-                    {lang === 'ar' ? 'تم رفع الصوت بنجاح' : 'Audio uploaded successfully'}
+            <div className="flex flex-col gap-3 rounded-2xl border border-brand-purple/12 bg-white p-4">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-content-primary">
+                  {lang === 'ar' ? 'المصدر الصوتي' : 'Source Audio'}
+                  <span className="ml-1 text-red-400">*</span>
+                </label>
+                <span className="text-[10px] font-medium text-content-muted px-2 py-0.5 rounded-full bg-surface-subtle border border-brand-purple/10">
+                  {lang === 'ar' ? 'Speech-to-Speech' : 'Speech-to-Speech'}
+                </span>
+              </div>
+
+              {/* Audio ready */}
+              {(sourceAudioDataUrl || state.voiceChangeSourceUrl) ? (
+                <div className="flex flex-col gap-2.5 p-3.5 rounded-xl border border-emerald-200 bg-emerald-50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                      <Mic className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <p className="flex-1 text-sm font-semibold text-emerald-700">
+                      {lang === 'ar' ? 'الصوت جاهز' : 'Audio ready'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { stopSourceAudio(); setSourceAudioDataUrl(null); onChange({ voiceChangeSourceUrl: null }) }}
+                      className="text-emerald-400 hover:text-red-500 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={handleToggleSourceAudio}
+                      className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-emerald-300 bg-white text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors"
+                    >
+                      {sourceAudioPlaying
+                        ? <><Pause className="w-3.5 h-3.5" />{lang === 'ar' ? 'إيقاف مؤقت' : 'Pause'}</>
+                        : <><Play  className="w-3.5 h-3.5" />{lang === 'ar' ? 'معاينة' : 'Preview'}</>}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { stopSourceAudio(); setSourceAudioDataUrl(null); onChange({ voiceChangeSourceUrl: null }) }}
+                      className="flex items-center justify-center gap-1.5 py-2 rounded-xl border border-emerald-300 bg-white text-xs font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      {lang === 'ar' ? 'تسجيل مجدداً' : 'Record Again'}
+                    </button>
+                  </div>
+                </div>
+              ) : isRecording ? (
+                /* Recording in progress */
+                <div className="flex items-center gap-3 p-3.5 rounded-xl border border-red-200 bg-red-50">
+                  <span className="w-3 h-3 rounded-full bg-red-500 animate-pulse shrink-0" />
+                  <p className="flex-1 text-sm font-semibold text-red-700 tabular-nums">
+                    {lang === 'ar' ? 'جارٍ التسجيل ' : 'Recording '}
+                    {String(Math.floor(recordingDuration / 60)).padStart(2, '0')}:{String(recordingDuration % 60).padStart(2, '0')}
                   </p>
                   <button
                     type="button"
-                    onClick={() => onChange({ voiceChangeSourceUrl: null })}
-                    className="text-emerald-500 hover:text-red-500 transition-colors"
+                    onClick={handleStopRecording}
+                    className="shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-red-500 text-white hover:bg-red-600 transition-colors"
                   >
-                    <X className="w-4 h-4" />
+                    {lang === 'ar' ? 'إيقاف' : 'Stop'}
                   </button>
                 </div>
               ) : (
-                <label className={`flex items-center gap-3 p-3 rounded-xl border-2 border-dashed cursor-pointer transition-all ${
-                  voiceAudioUploading
-                    ? 'border-brand-purple/40 bg-surface-subtle'
-                    : 'border-brand-purple/25 hover:border-brand-purple/50 hover:bg-surface-subtle'
-                }`}>
-                  {voiceAudioUploading ? (
-                    <Loader2 className="w-4 h-4 text-brand-purple animate-spin shrink-0" />
-                  ) : (
-                    <Upload className="w-4 h-4 text-content-muted shrink-0" />
+                /* Upload / Record choice */
+                <div className="grid grid-cols-2 gap-2.5">
+                  <label className="group flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-brand-purple/20 cursor-pointer hover:border-brand-purple/50 hover:bg-surface-subtle transition-all text-center">
+                    <div className="w-9 h-9 rounded-xl bg-surface-subtle group-hover:bg-brand-purple/10 flex items-center justify-center transition-colors">
+                      <Upload className="w-4.5 h-4.5 text-content-muted group-hover:text-brand-purple transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-content-secondary group-hover:text-content-primary transition-colors">
+                        {lang === 'ar' ? 'رفع ملف' : 'Upload File'}
+                      </p>
+                      <p className="text-[10px] text-content-muted mt-0.5">MP3, WAV, M4A</p>
+                    </div>
+                    <input type="file" accept="audio/*" className="hidden" onChange={handleVoiceAudioUpload} />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={handleStartRecording}
+                    className="group flex flex-col items-center gap-2 p-4 rounded-xl border-2 border-dashed border-brand-purple/20 hover:border-brand-purple/50 hover:bg-surface-subtle transition-all"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-brand-purple/8 group-hover:bg-brand-purple/15 flex items-center justify-center transition-colors">
+                      <Mic className="w-4.5 h-4.5 text-brand-purple" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-content-secondary group-hover:text-content-primary transition-colors">
+                        {lang === 'ar' ? 'تسجيل مباشر' : 'Record Live'}
+                      </p>
+                      <p className="text-[10px] text-content-muted mt-0.5">
+                        {lang === 'ar' ? 'من الميكروفون' : 'Microphone'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {recordingError && (
+                    <p className="col-span-2 text-xs text-red-500 text-center">{recordingError}</p>
                   )}
-                  <span className="text-xs text-content-muted">
-                    {voiceAudioUploading
-                      ? (lang === 'ar' ? 'جارٍ الرفع...' : 'Uploading...')
-                      : (lang === 'ar' ? 'رفع ملف صوتي (MP3, WAV, M4A, OGG)' : 'Upload audio file (MP3, WAV, M4A, OGG)')}
-                  </span>
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    className="hidden"
-                    disabled={voiceAudioUploading}
-                    onChange={handleVoiceAudioUpload}
-                  />
-                </label>
+                </div>
               )}
 
-              {/* STS Model */}
-              <div className="flex flex-col gap-1.5 mt-1">
-                <label className="text-xs font-medium text-content-muted">
-                  {lang === 'ar' ? 'نموذج التحويل' : 'Conversion Model'}
-                </label>
-                <div className="relative">
-                  <select
-                    value={state.voiceModel}
-                    onChange={e => onChange({ voiceModel: e.target.value as ElevenLabsTTSModel })}
-                    className={selectCls}
-                  >
-                    <option value="eleven_multilingual_sts_v2">{lang === 'ar' ? 'Twinity Swap Pro (موصى به)' : 'Twinity Swap Pro (Recommended)'}</option>
-                    <option value="eleven_english_sts_v2">{lang === 'ar' ? 'Twinity Swap  ' : 'Twinity Swap'}</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
+              {/* STS model */}
+              <div className="flex flex-col gap-2 pt-1 border-t border-brand-purple/8">
+                <div className="flex flex-col gap-1.5">
+                  {([
+                    {
+                      id: 'eleven_multilingual_sts_v2',
+                      name: 'Twinity Swap Pro',
+                      tag: lang === 'ar' ? 'موصى به' : 'Recommended',
+                      desc: lang === 'ar' ? 'متعدد اللغات — جودة عالية' : 'Multi-language · High quality',
+                    },
+                    {
+                      id: 'eleven_english_sts_v2',
+                      name: 'Twinity Swap',
+                      tag: null,
+                      desc: lang === 'ar' ? 'إنجليزي فقط — أسرع' : 'English only · Faster',
+                    },
+                  ] as const).map(opt => {
+                    const active = state.voiceModel === opt.id
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => onChange({ voiceModel: opt.id as ElevenLabsTTSModel })}
+                        className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-all duration-150 ${
+                          active
+                            ? 'border-brand-purple/50 bg-brand-purple/6'
+                            : 'border-brand-purple/12 bg-surface-subtle/60 hover:border-brand-purple/30 hover:bg-surface-subtle'
+                        }`}
+                        style={active ? { boxShadow: '0 0 0 1px rgba(154,120,254,0.15)' } : undefined}
+                      >
+                        {/* Radio dot */}
+                        <span className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                          active ? 'border-brand-purple' : 'border-content-muted/40'
+                        }`}>
+                          {active && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand-purple block" />
+                          )}
+                        </span>
+                        {/* Text */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-xs font-semibold ${active ? 'text-content-primary' : 'text-content-secondary'}`}>
+                              {opt.name}
+                            </span>
+                            {opt.tag && (
+                              <span
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none"
+                                style={active
+                                  ? { background: 'linear-gradient(135deg,#9a78fe,#422266)', color: '#fff' }
+                                  : { background: 'rgba(154,120,254,0.1)', color: '#9a78fe' }}
+                              >
+                                {opt.tag}
+                              </span>
+                            )}
+                          </div>
+                          <p className={`text-[10px] mt-0.5 ${active ? 'text-brand-purple/70' : 'text-content-muted'}`}>
+                            {opt.desc}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
           )}
 
-          {/* TTS Model (only in TTS mode) */}
-          {!state.voiceChangeEnabled && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-content-muted">
-                {lang === 'ar' ? 'نموذج توليد الصوت' : 'Voice Model'}
-              </label>
-              <div className="relative">
-                <select
-                  value={state.voiceModel}
-                  onChange={e => onChange({ voiceModel: e.target.value as ElevenLabsTTSModel })}
-                  className={selectCls}
-                >
-                  <option value="eleven_v3">{lang === 'ar' ? 'Twinity Pro (موصى به)' : 'Twinity Pro (Recommended)'}</option>
-                  <option value="eleven_multilingual_v2">{lang === 'ar' ? 'Twinity Global' : 'Twinity Global'}</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-content-muted" />
-              </div>
-            </div>
-          )}
-
-          {/* Speed slider */}
-          <div className="flex flex-col gap-2">
+          {/* ── Voice Speed — shared by both modes ───────────── */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-brand-purple/12 bg-white p-4">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-content-muted flex items-center gap-1.5">
-                <Gauge className="w-3.5 h-3.5" />
+              <label className="text-sm font-semibold text-content-primary flex items-center gap-1.5">
+                <Gauge className="w-4 h-4 text-brand-purple" />
                 {lang === 'ar' ? 'سرعة الصوت' : 'Voice Speed'}
               </label>
-              <span className="text-xs font-bold text-brand-purple tabular-nums">
+              <span
+                className="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(154,120,254,0.1)', color: '#9a78fe' }}
+              >
                 {state.voiceSpeed.toFixed(2)}×
               </span>
             </div>
@@ -884,12 +1162,13 @@ export default function StepCustomize({ state, onChange }: Props) {
               type="range"
               min={0.70}
               max={1.20}
-              step={0.05}
+              step={0.10}
               value={state.voiceSpeed}
               onChange={e => onChange({ voiceSpeed: parseFloat(e.target.value) })}
-              className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-brand-purple bg-surface-elevated"
+              className="w-full h-1.5 rounded-full appearance-none cursor-pointer accent-brand-purple"
+              style={{ background: `linear-gradient(to right, #9a78fe ${((state.voiceSpeed - 0.70) / 0.50) * 100}%, #ede5ff ${((state.voiceSpeed - 0.70) / 0.50) * 100}%)` }}
             />
-            <div className="flex justify-between text-[10px] text-content-muted">
+            <div className="flex justify-between text-[10px] text-content-muted/70">
               <span>{lang === 'ar' ? 'أبطأ' : 'Slower'}</span>
               <span>{lang === 'ar' ? 'أسرع' : 'Faster'}</span>
             </div>
@@ -914,7 +1193,10 @@ export default function StepCustomize({ state, onChange }: Props) {
             fullWidth size="lg" variant="secondary"
             icon={<Mic className="w-4 h-4" />}
             loading={voicePreviewLoading}
-            disabled={!state.celebrity || !state.productType || voicePreviewLoading || scriptOverLimit || !state.customScript.trim()}
+            disabled={
+              !state.celebrity || !state.productType || voicePreviewLoading ||
+              (state.voiceChangeEnabled ? (!sourceAudioDataUrl && !state.voiceChangeSourceUrl) : (scriptOverLimit || !state.customScript.trim()))
+            }
             onClick={handlePreviewVoice}
           >
             {voicePreviewLoading
@@ -923,11 +1205,18 @@ export default function StepCustomize({ state, onChange }: Props) {
                 ? (lang === 'ar' ? 'توليد نسخة جديدة' : 'Generate New Take')
                 : (lang === 'ar' ? 'معاينة الصوت' : 'Preview Voice')}
           </Button>
-          {!hasVoiceHistory && (
+          {!hasVoiceHistory && !state.voiceChangeEnabled && (
             <p className="text-xs text-content-muted text-center">
               {lang === 'ar'
                 ? 'استمع إلى الصوت في القائمة الجانبية أولاً'
                 : 'Listen to the voice on the right first'}
+            </p>
+          )}
+          {!hasVoiceHistory && state.voiceChangeEnabled && (sourceAudioDataUrl || state.voiceChangeSourceUrl) && (
+            <p className="text-xs text-content-muted text-center">
+              {lang === 'ar'
+                ? 'اضغط "معاينة الصوت" للاستماع إلى الصوت المحوّل'
+                : 'Click "Preview Voice" to hear the converted celebrity voice'}
             </p>
           )}
           {hasVoiceHistory && (
@@ -1299,7 +1588,10 @@ export default function StepCustomize({ state, onChange }: Props) {
             fullWidth size="lg"
             icon={<Sparkles className="w-4 h-4" />}
             loading={jobLoading}
-            disabled={!state.celebrity || !state.productType || jobLoading || scriptOverLimit || !state.customScript.trim()}
+            disabled={
+              !state.celebrity || !state.productType || jobLoading ||
+              (!state.voiceChangeEnabled && (scriptOverLimit || !state.customScript.trim()))
+            }
             onClick={handleGenerateVideo}
           >
             {jobLoading
