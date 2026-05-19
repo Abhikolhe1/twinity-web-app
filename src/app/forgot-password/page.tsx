@@ -1,108 +1,166 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { useLanguage } from '@/lib/context'
-import { Mail, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react'
-import Button from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { ArrowLeft, ArrowRight, Loader2, CheckCircle } from 'lucide-react'
+
 import { authApi } from '@/lib/api'
 
 export default function ForgotPasswordPage() {
-  const { lang } = useLanguage()
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [email, setEmail]       = useState('')
+  const [error, setError]       = useState('')
+  const [sent, setSent]         = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
       await authApi.forgotPassword(email)
       setSent(true)
-    } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please try again.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Request failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-page px-4 relative overflow-hidden">
+    <div
+      className="flex min-h-screen items-center justify-center px-4"
+      style={{ background: '#080808' }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none fixed left-1/2 top-0 h-[480px] w-[640px] -translate-x-1/2"
+        style={{
+          background: 'radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%)',
+          filter:     'blur(40px)',
+        }}
+      />
 
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full opacity-10 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #9a78fe, transparent)', transform: 'translate(20%, -20%)' }} />
-
-      <div className="w-full max-w-md relative z-10">
-
-        <div className="flex justify-center">
-          <img src="/logo/logo.svg" alt="Twinity" className="h-32" />
+      <div className="relative w-full max-w-[400px]">
+        <div className="mb-10 flex justify-center">
+          <Image
+            src="/images/Logo white@4x.png"
+            alt="Twinity"
+            width={3396}
+            height={1327}
+            style={{ height: 28, width: 'auto', objectFit: 'contain' }}
+            priority
+          />
         </div>
 
-        <div className="bg-white rounded-3xl border border-brand-purple/12 shadow-card p-8">
-
-          {!sent ? (
-            <>
-              <div className="mb-7">
-                <h1 className="text-2xl font-bold text-content-primary">
-                  {lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
-                </h1>
-                <p className="mt-2 text-sm text-content-muted">
-                  {lang === 'ar'
-                    ? 'أدخل بريدك الإلكتروني وسنرسل لك رابط إعادة التعيين.'
-                    : "Enter your email and we'll send you a reset link."}
-                </p>
-              </div>
-
-              {error && (
-                <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <Input
-                  label={lang === 'ar' ? 'البريد الإلكتروني' : 'Email Address'}
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  icon={<Mail className="w-4 h-4" />}
-                />
-                <Button size="lg" fullWidth type="submit" loading={loading}>
-                  {lang === 'ar' ? 'إرسال رابط الإعادة' : 'Send Reset Link'}
-                </Button>
-              </form>
-            </>
-          ) : (
-            <div className="text-center py-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 className="w-7 h-7 text-emerald-500" />
-              </div>
-              <h2 className="text-xl font-bold text-content-primary">
-                {lang === 'ar' ? 'تم الإرسال!' : 'Email Sent!'}
-              </h2>
-              <p className="text-sm text-content-muted mt-2">
-                {lang === 'ar'
-                  ? `أرسلنا رابط إعادة تعيين كلمة المرور إلى ${email}`
-                  : `We sent a password reset link to ${email}`}
+        <div
+          className="rounded-2xl p-8"
+          style={{
+            background: '#0D0D0D',
+            border:     '1px solid rgba(255,255,255,0.07)',
+            boxShadow:  '0 24px 64px rgba(0,0,0,0.60)',
+          }}
+        >
+          {sent ? (
+            <div className="flex flex-col items-center text-center">
+              <CheckCircle size={40} style={{ color: '#22C55E', marginBottom: 16 }} />
+              <h1 className="mb-2 text-[22px] font-bold text-white" style={{ letterSpacing: '-0.03em' }}>
+                Check your email
+              </h1>
+              <p className="mb-6 text-[14px]" style={{ color: 'rgba(255,255,255,0.40)', lineHeight: 1.6 }}>
+                We sent a password reset link to <strong className="text-white">{email}</strong>
               </p>
+              <Link
+                href="/login"
+                className="text-[13px] font-medium transition-colors duration-150"
+                style={{ color: 'rgba(167,139,250,0.85)' }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#C4B5FD' }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(167,139,250,0.85)' }}
+              >
+                Back to sign in
+              </Link>
             </div>
-          )}
+          ) : (
+            <>
+              <h1
+                className="mb-1 text-[26px] font-bold text-white"
+                style={{ letterSpacing: '-0.03em', lineHeight: 1.1 }}
+              >
+                Reset password
+              </h1>
+              <p className="mb-8 text-[14px]" style={{ color: 'rgba(255,255,255,0.40)' }}>
+                Enter your email and we&apos;ll send a reset link
+              </p>
 
-          <div className="mt-6 pt-5 border-t border-brand-purple/8 flex justify-center">
-            <Link
-              href="/login"
-              className="flex items-center gap-1.5 text-sm text-content-muted hover:text-brand-purple transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {lang === 'ar' ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
-            </Link>
-          </div>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                {error && (
+                  <div
+                    className="rounded-lg px-4 py-3 text-[13px]"
+                    style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.25)', color: '#FCA5A5' }}
+                  >
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-medium" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                    Email address
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@company.com"
+                    className="h-10 w-full rounded-lg bg-transparent px-3.5 text-[14px] text-white placeholder:text-[rgba(255,255,255,0.22)] focus:outline-none transition-all duration-150"
+                    style={{ border: '1px solid rgba(255,255,255,0.10)', background: 'rgba(255,255,255,0.03)' }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(124,58,237,0.55)'
+                      e.currentTarget.style.boxShadow   = '0 0 0 3px rgba(124,58,237,0.10)'
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'
+                      e.currentTarget.style.boxShadow   = 'none'
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="mt-2 flex h-10 w-full items-center justify-center gap-2 rounded-lg text-[14px] font-semibold text-white transition-opacity duration-150 disabled:opacity-60"
+                  style={{
+                    background: '#7C3AED',
+                    boxShadow:  '0 1px 3px rgba(0,0,0,0.40), 0 0 0 1px rgba(124,58,237,0.50)',
+                  }}
+                  onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.opacity = '0.88' }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
+                >
+                  {loading ? (
+                    <Loader2 size={15} className="animate-spin" />
+                  ) : (
+                    <>
+                      Send reset link
+                      <ArrowRight size={14} aria-hidden />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <p className="mt-6 text-center text-[13px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-1.5 font-medium transition-colors duration-150"
+                  style={{ color: 'rgba(255,255,255,0.40)' }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.70)' }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(255,255,255,0.40)' }}
+                >
+                  <ArrowLeft size={13} aria-hidden />
+                  Back to sign in
+                </Link>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { MarketingHomeWithFunnel } from '@/components/studio/MarketingHomeWithFunnel'
 
-export default function Home() {
-  redirect('/login')
+export default function HomePage() {
+  return <MarketingHomeWithFunnel />
 }

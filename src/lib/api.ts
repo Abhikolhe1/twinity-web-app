@@ -67,6 +67,7 @@ export interface ApiVideoJob {
   errorMessage?: string
   celebrityId: { name: string; nameAr: string; initials: string; avatarColor: string }
   createdAt: string
+  statusHistory?: { status: string; timestamp: string; note?: string }[]
 }
 
 // ── Auth ───────────────────────────────────────────────────
@@ -232,57 +233,47 @@ export const leadApi = {
     api<{ success: boolean; message: string }>('/leads/contact', { method: 'POST', body: JSON.stringify(body) }),
 }
 
-// ── Helpers ────────────────────────────────────────────────
-import type { Celebrity, Template, ProductTypeId, Duration } from './types'
+// ── Job → UI request mapper ────────────────────────────────
+import type { MockRequest } from '@/lib/studio/mock-requests'
+import type { RequestStatus } from '@/lib/request-statuses'
 
-export function mapApiCeleb(c: ApiCelebrity): Celebrity {
-  return {
-    id:            c._id,
-    name:          c.name,
-    nameAr:        c.nameAr,
-    industry:      c.industry as Celebrity['industry'],
-    verified:      c.isActive,
-    nationality:   c.nationality,
-    nationalityAr: c.nationalityAr,
-    languages:     c.languages,
-    tags:          c.tags,
-    tagsAr:        c.tagsAr,
-    avatarColor:   c.avatarColor,
-    initials:      c.initials,
-    image:         c.thumbnailUrl || '',
-    priceRange:    c.priceRange,
+function apiStatusToUIStatus(status: string): RequestStatus {
+  switch (status) {
+    case 'pending':     return 'PENDING_VALIDATION'
+    case 'in-progress': return 'PROVIDER_PROCESSING'
+    case 'review':      return 'PREVIEW_REVIEW'
+    case 'delivered':   return 'DELIVERED'
+    case 'failed':      return 'VALIDATION_FAILED'
+    case 'cancelled':   return 'CANCELLED'
+    default:            return 'PENDING_VALIDATION'
   }
 }
 
-export function mapApiTemplate(t: ApiTemplate): Template {
+function apiProductTypeToUIType(productType: string): MockRequest['type'] {
+  if (productType === 'greeting') return 'GREETING'
+  if (productType === 'image-ad') return 'AD_IMAGE'
+  if (productType === 'custom')   return 'CUSTOM_CAMPAIGN'
+  return 'CAMPAIGN'
+}
+
+export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
   return {
-    id:             t._id,
-    name:           t.name,
-    nameAr:         t.nameAr,
-    description:    t.description,
-    descriptionAr:  t.descriptionAr,
-    purpose:        t.purpose,
-    purposeAr:      t.purposeAr,
-    sampleScript:   t.sampleScript,
-    sampleScriptAr: t.sampleScriptAr,
-    productTypes:   t.productTypes as ProductTypeId[],
-    duration:       (t.duration || '30s') as Duration,
-    tags:           [],
+    requestId: job.referenceId,
+    orderId:   job.referenceId,
+    status:    apiStatusToUIStatus(job.status),
+    type:      apiProductTypeToUIType(job.productType),
+    celebrity: {
+      name:      job.celebrityId?.name ?? 'Celebrity',
+      stageName: job.celebrityId?.name ?? 'Celebrity',
+    },
+    payment: {
+      subtotal: job.estimatedPrice,
+      vat:      Math.round(job.estimatedPrice * 0.15),
+      total:    Math.round(job.estimatedPrice * 1.15),
+      status:   'paid',
+    },
+    previewUrl: job.watermarkedUrl ?? job.previewUrl,
+    createdAt:  job.createdAt,
+    mediaType:  'video',
   }
-}
-
-export function getUserInfo(): { name: string; email: string; company?: string } | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = localStorage.getItem('twinity_user')
-    return raw ? JSON.parse(raw) : null
-  } catch { return null }
-}
-
-export function setUserInfo(user: { name: string; email: string; company?: string }): void {
-  if (typeof window !== 'undefined') localStorage.setItem('twinity_user', JSON.stringify(user))
-}
-
-export function clearUserInfo(): void {
-  if (typeof window !== 'undefined') localStorage.removeItem('twinity_user')
 }

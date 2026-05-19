@@ -1,0 +1,38 @@
+/**
+ * StudioHome.module.css
+ * Scoped styles for the Studio Home page.
+ *
+ * CSS custom properties are defined on .pageRoot so they cascade to all
+ * descendants without polluting the global :root.
+ */
+
+/* ── Semantic text-opacity scale ─────────────────────────────────────── */
+.pageRoot {
+  --tx-2: rgba(255, 255, 255, 0.55); /* secondary — labels, subtitles          */
+  --tx-3: rgba(255, 255, 255, 0.35); /* tertiary  — meta, captions, muted copy */
+  --tx-4: rgba(255, 255, 255, 0.22); /* faint     — placeholders, disabled      */
+}
+
+/* ── Celebrity card interactions ─────────────────────────────────────── */
+.celebCta {
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+.celebCard:hover .celebCta {
+  opacity: 1;
+}
+.celebCard:hover .celebVisual {
+  transform: scale(1.02);
+}
+.celebVisual {
+  transition: transform 220ms ease-out;
+}
+
+/* ── Monogram placeholder pulse ──────────────────────────────────────── */
+@keyframes monogramPulse {
+  0%, 100% { opacity: 0.08; }
+  50%       { opacity: 0.17; }
+}
+.monogram {
+  animation: monogramPulse 3.5s ease-in-out infinite;
+}

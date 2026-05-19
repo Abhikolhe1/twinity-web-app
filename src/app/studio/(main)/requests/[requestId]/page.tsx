@@ -1,0 +1,311 @@
+"use client";
+
+import React, { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { ChevronRight, MessageCircle, RotateCw, XCircle } from "lucide-react";
+import Link from "next/link";
+
+import { RequestActionBanner }  from "@/components/requests/RequestActionBanner";
+import { RequestDetailCard }    from "@/components/requests/RequestDetailCard";
+import { RequestGateStepper }   from "@/components/requests/RequestGateStepper";
+import { RequestMediaPreview }  from "@/components/requests/RequestMediaPreview";
+import { RequestStatusBadge }   from "@/components/requests/RequestStatusBadge";
+import { RequestTimeline }      from "@/components/requests/RequestTimeline";
+import { RegenerationStudio }   from "@/components/requests/RegenerationStudio";
+import type { TimelineEvent, TimelineEventType, TimelineActor } from "@/components/requests/RequestTimeline";
+import { computeGateStatuses }  from "@/lib/request-statuses";
+import { MOCK_CREDIT_BALANCE }  from "@/lib/credits";
+import type { MockRequest }     from "@/lib/studio/mock-requests";
+import { jobApi, mapApiJobToRequest, type ApiVideoJob } from "@/lib/api";
+
+/* ── Status → timeline event mapping ────────────────────────────────────── */
+const STATUS_TIMELINE: Record<string, { eventType: TimelineEventType; actor: TimelineActor; label: string }> = {
+  pending:       { eventType: "REQUEST_CREATED",   actor: "CLIENT", label: "Request submitted" },
+  "in-progress": { eventType: "PROVIDER_JOB",      actor: "SYSTEM", label: "Production started" },
+  review:        { eventType: "PREVIEW_READY",      actor: "SYSTEM", label: "Preview ready for review" },
+  delivered:     { eventType: "DELIVERED",          actor: "SYSTEM", label: "Content delivered" },
+  failed:        { eventType: "VALIDATION_FAILED",  actor: "SYSTEM", label: "Processing failed" },
+  cancelled:     { eventType: "CANCELLED",          actor: "CLIENT", label: "Request cancelled" },
+};
+
+function buildTimeline(job: ApiVideoJob): TimelineEvent[] {
+  const history = job.statusHistory ?? [];
+
+  if (history.length > 0) {
+    return history.map((entry) => {
+      const mapping = STATUS_TIMELINE[entry.status] ?? STATUS_TIMELINE.pending;
+      return {
+        id:          `${job._id}-${entry.status}`,
+        eventType:   mapping.eventType,
+        actor:       mapping.actor,
+        label:       mapping.label,
+        description: entry.note ?? (entry.status === "failed" ? job.errorMessage : undefined),
+        timestamp:   entry.timestamp,
+      };
+    });
+  }
+
+  return [
+    {
+      id:        `${job._id}-created`,
+      eventType: "REQUEST_CREATED",
+      actor:     "CLIENT",
+      label:     "Request submitted",
+      description: `${job.productType} request submitted successfully.`,
+      timestamp: job.createdAt,
+    },
+  ];
+}
+
+/* ── Skeleton ────────────────────────────────────────────────────────────── */
+function Skeleton({ style }: { style?: React.CSSProperties }) {
+  return (
+    <div
+      className="animate-pulse"
+      style={{ background: "#1E1E1E", borderRadius: 8, ...style }}
+    />
+  );
+}
+
+function PageSkeleton() {
+  return (
+    <div style={{ padding: "24px 24px 48px", maxWidth: 1280, margin: "0 auto" }}>
+      <Skeleton style={{ height: 14, width: 280, marginBottom: 20 }} />
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 24 }}>
+        <Skeleton style={{ height: 28, width: 200 }} />
+        <Skeleton style={{ height: 22, width: 80, borderRadius: 9999 }} />
+      </div>
+      <Skeleton style={{ height: 120, borderRadius: 16, marginBottom: 24 }} />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24 }} className="md:grid-cols-[3fr_2fr]">
+        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+          <Skeleton style={{ height: 240, borderRadius: 16 }} />
+          <Skeleton style={{ height: 320, borderRadius: 16 }} />
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <Skeleton style={{ height: 360, borderRadius: 16 }} />
+          <Skeleton style={{ height: 140, borderRadius: 12 }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Not-found view ──────────────────────────────────────────────────────── */
+function NotFoundView() {
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center",
+      justifyContent: "center", padding: "80px 24px", textAlign: "center", gap: 12,
+    }}>
+      <XCircle size={40} color="#EF4444" />
+      <p style={{ fontSize: 16, fontWeight: 700, color: "#F0F0F0", margin: 0 }}>
+        Request not found
+      </p>
+      <p style={{ fontSize: 13, color: "#A0A0A0", margin: 0 }}>
+        This request doesn&apos;t exist or you don&apos;t have access.
+      </p>
+      <Link
+        href="/studio/requests"
+        style={{
+          marginTop: 8, display: "inline-flex", alignItems: "center",
+          height: 40, paddingInline: 20, borderRadius: 10,
+          border: "1px solid #3D3D3D", background: "transparent",
+          color: "#A0A0A0", fontSize: 13, fontWeight: 500, textDecoration: "none",
+        }}
+      >
+        ← Back to My Requests
+      </Link>
+    </div>
+  );
+}
+
+/* ── Support card ────────────────────────────────────────────────────────── */
+function SupportCard() {
+  return (
+    <div style={{ background: "#161616", border: "1px solid #2A2A2A", borderRadius: 12, padding: 20 }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <MessageCircle size={20} color="#7C3AED" style={{ flexShrink: 0, marginTop: 2 }} />
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#F0F0F0", margin: "0 0 6px" }}>
+            Need help?
+          </p>
+          <p style={{ fontSize: 12, color: "#A0A0A0", margin: "0 0 14px", lineHeight: 1.5 }}>
+            Our support team is available to assist with any questions about your request.
+          </p>
+          <a
+            href="mailto:support@twinity.com"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              height: 40, width: "100%", borderRadius: 10,
+              border: "1px solid #3D3D3D", background: "transparent",
+              color: "#A0A0A0", fontSize: 13, fontWeight: 500, textDecoration: "none",
+            }}
+          >
+            Contact Support
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Breadcrumbs ─────────────────────────────────────────────────────────── */
+function Breadcrumbs({ orderId }: { orderId: string }) {
+  return (
+    <nav aria-label="Breadcrumb" style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+      <Link href="/studio" style={{ fontSize: 12, color: "#606060", textDecoration: "none" }}>
+        Studio
+      </Link>
+      <ChevronRight size={12} color="#3D3D3D" />
+      <Link href="/studio/requests" style={{ fontSize: 12, color: "#606060", textDecoration: "none" }}>
+        My Requests
+      </Link>
+      <ChevronRight size={12} color="#3D3D3D" />
+      <span style={{ fontSize: 12, color: "#F0F0F0" }}>#{orderId}</span>
+    </nav>
+  );
+}
+
+/* ── Page component ──────────────────────────────────────────────────────── */
+export default function RequestDetailPage() {
+  const params    = useParams();
+  const requestId = params.requestId as string;
+
+  const [request,  setRequest]  = useState<MockRequest | null>(null);
+  const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  const loadJob = useCallback(() => {
+    setLoading(true);
+    setNotFound(false);
+    jobApi.getJob(requestId)
+      .then((res) => {
+        setRequest(mapApiJobToRequest(res.data));
+        setTimeline(buildTimeline(res.data));
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [requestId]);
+
+  useEffect(() => { loadJob(); }, [loadJob]);
+
+  if (loading)            return <PageSkeleton />;
+  if (notFound || !request) return <NotFoundView />;
+
+  const gateStatuses = computeGateStatuses(request.status, request.type);
+  const activeGateKey = gateStatuses
+    ? (Object.entries(gateStatuses).find(([, v]) => v === "active")?.[0] as unknown as number ?? 0)
+    : 0;
+
+  return (
+    <div
+      style={{ padding: "24px 16px 64px", maxWidth: 1280, margin: "0 auto", width: "100%" }}
+      className="md:px-8"
+    >
+      <Breadcrumbs orderId={request.orderId} />
+
+      {/* Page header */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12, marginBottom: 24, flexWrap: "wrap",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <h1 style={{
+            fontFamily: "var(--font-display, var(--font-sans))",
+            fontSize: 22, fontWeight: 700, color: "#F0F0F0",
+            letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0,
+          }}>
+            Request #{request.orderId}
+          </h1>
+          <RequestStatusBadge status={request.status} size="md" />
+        </div>
+
+        <button
+          type="button"
+          onClick={loadJob}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            height: 36, paddingInline: 14, borderRadius: 8,
+            border: "1px solid #3D3D3D", background: "transparent",
+            color: "#A0A0A0", fontSize: 13, fontWeight: 500, cursor: "pointer",
+          }}
+        >
+          <RotateCw size={14} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Action banner */}
+      <div style={{ marginBottom: 20 }}>
+        <RequestActionBanner
+          status={request.status}
+          editFeedback={request.editFeedback}
+          validationReason={request.validationReason}
+        />
+      </div>
+
+      {/* Gate stepper */}
+      <div style={{ marginBottom: 24 }}>
+        <RequestGateStepper
+          currentGate={activeGateKey}
+          gateStatuses={gateStatuses}
+          requestType={request.type}
+          complianceRequired={request.type === "AD_IMAGE"}
+        />
+      </div>
+
+      {/* Two-column grid */}
+      <div style={{ display: "grid", gap: 24 }} className="grid-cols-1 md:grid-cols-[3fr_2fr]">
+        {/* Left: media + regen studio + timeline */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
+          <RequestMediaPreview
+            status={request.status}
+            previewUrl={request.previewUrl}
+            finalUrl={request.finalUrl}
+            previewImageUrl={request.previewImageUrl}
+            finalImageUrl={request.finalImageUrl}
+            mediaType={request.mediaType}
+            requestType={request.type}
+            aspectRatio={request.adImageBrief?.aspectRatio}
+            licenseId={request.licenseId}
+            licenseExpiry={request.licenseExpiry}
+            licensedChannels={request.licensedChannels}
+            clientName={request.clientName}
+          />
+
+          {(request.type === "GREETING" || request.type === "AD_IMAGE") &&
+            (["DELIVERED", "APPROVED", "PREVIEW_REVIEW"] as const).includes(
+              request.status as "DELIVERED" | "APPROVED" | "PREVIEW_REVIEW",
+            ) && (
+              <RegenerationStudio
+                requestId={request.requestId ?? requestId}
+                requestType={request.type === "AD_IMAGE" ? "AD_IMAGE" : "GREETING"}
+                requestStatus={request.status}
+                creditBalance={MOCK_CREDIT_BALANCE}
+                previousAttempts={[]}
+              />
+            )}
+
+          <RequestTimeline events={timeline} />
+        </div>
+
+        {/* Right: detail card + support */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
+          <RequestDetailCard
+            orderId={request.orderId}
+            type={request.type}
+            celebrity={request.celebrity}
+            licenseScope={request.licenseScope}
+            adImageBrief={request.adImageBrief}
+            brief={request.brief}
+            payment={request.payment}
+            createdAt={request.createdAt}
+            submittedAt={request.submittedAt}
+          />
+          <SupportCard />
+        </div>
+      </div>
+    </div>
+  );
+}
