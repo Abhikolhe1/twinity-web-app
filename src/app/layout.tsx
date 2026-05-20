@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from 'next'
 import React from 'react'
 
-import { ThemeProvider } from '@/components/theme-provider'
-import { UserProvider }  from '@/contexts/UserContext'
+import { ThemeProvider }   from '@/components/theme-provider'
+import { UserProvider }    from '@/contexts/UserContext'
+import { GoogleProvider }  from '@/components/providers/GoogleProvider'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -53,9 +54,11 @@ export default function RootLayout({
         level to avoid blocking renders for English-locale sessions.
       */}
       <body className="min-h-full" suppressHydrationWarning>
-        <UserProvider>
-          <ThemeProvider>{children}</ThemeProvider>
-        </UserProvider>
+        <GoogleProvider>
+          <UserProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </UserProvider>
+        </GoogleProvider>
       </body>
     </html>
   )

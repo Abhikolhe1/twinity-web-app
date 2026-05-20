@@ -46,8 +46,8 @@ function mapCeleb(c: ApiCelebrity): CelebItem {
   const cat  = toCelebCategory(c.industry);
   const sub  = c.tags?.slice(0, 2).join(" · ") || c.nationality || c.industry;
   const slug = c.industry.toLowerCase();
-  const img  = c.thumbnailUrl || `/placeholders/celeb-${slug === "tv" ? "tv" : slug === "sports" ? "sports" : slug === "music" ? "music" : "comedy"}.png`;
-  return { _id: c._id, name: c.name, category: cat, sub, img };
+  const img  = c.thumbnail_url || `/placeholders/celeb-${slug === "tv" ? "tv" : slug === "sports" ? "sports" : slug === "music" ? "music" : "comedy"}.png`;
+  return { _id: c.id, name: c.name, category: cat, sub, img };
 }
 
 type LicenseTypeId = "greeting" | "video" | "image-ad" | "custom";
@@ -196,11 +196,11 @@ export function StudioHomeWithFunnel() {
 
     jobApi.myJobs(undefined, 1, 5)
       .then((res) => setRecentJobs(res.data.map((j) => ({
-        id:         j.referenceId,
-        orderId:    j.referenceId,
-        celebrity:  j.celebrityId?.name ?? "Celebrity",
+        id:         j.reference_id,
+        orderId:    j.reference_id,
+        celebrity:  j.celebrity?.name ?? "Celebrity",
         status:     j.status,
-        createdAt:  j.createdAt,
+        createdAt:  j.created_at,
       }))))
       .catch(() => { /* keep empty */ });
   }, []);

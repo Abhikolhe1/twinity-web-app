@@ -8,6 +8,9 @@ import { Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 
 import { authApi } from '@/lib/api'
 import { useUser } from '@/contexts/UserContext'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
+
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -19,6 +22,12 @@ export default function RegisterPage() {
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
   const [error, setError]               = useState('')
+
+  async function handleGoogleSuccess(accessToken: string) {
+    const res = await authApi.googleAuth(accessToken)
+    login(res.token, res.user)
+    router.push('/studio')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -194,6 +203,18 @@ export default function RegisterPage() {
               )}
             </button>
           </form>
+
+          {/* Google sign-in */}
+          {googleClientId && (
+            <div className="mt-5 flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.08)' }} />
+                <span className="text-[12px]" style={{ color: 'rgba(255,255,255,0.28)' }}>or</span>
+                <div className="h-px flex-1" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              </div>
+              <GoogleSignInButton onSuccess={handleGoogleSuccess} label="Sign up with Google" />
+            </div>
+          )}
 
           <p className="mt-6 text-center text-[13px]" style={{ color: 'rgba(255,255,255,0.28)' }}>
             Already have an account?{' '}

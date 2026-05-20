@@ -48,26 +48,26 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
 // ── Types ──────────────────────────────────────────────────
 export interface ApiUser {
-  id: string; name: string; email: string; status: string; isEmailVerified: boolean; avatarUrl?: string
-  authProvider: 'email' | 'google'
-  hasEmailPassword: boolean
-  accountType: 'individual' | 'influencer' | 'agency'
+  id: string; name: string; email: string; status: string; is_email_verified: boolean; avatar_url?: string
+  auth_provider: 'email' | 'google'
+  has_email_password: boolean
+  account_type: 'individual' | 'influencer' | 'agency'
 }
 export interface ApiCelebrity {
-  _id: string; name: string; nameAr: string; slug: string; industry: string
-  nationality: string; nationalityAr: string; languages: string[]; tags: string[]; tagsAr: string[]
-  initials: string; avatarColor: string; thumbnailUrl?: string; isActive: boolean; isFeatured: boolean
-  priceRange: { greeting: {min:number;max:number}; 'avatar-studio': {min:number;max:number}; 'full-body': {min:number;max:number} }
-  totalOrders: number
+  id: string; name: string; name_ar: string; slug: string; industry: string
+  nationality: string; nationality_ar: string; languages: string[]; tags: string[]; tags_ar: string[]
+  initials: string; avatar_color: string; thumbnail_url?: string; is_active: boolean; is_featured: boolean
+  price_range: { greeting: {min:number;max:number}; 'avatar-studio': {min:number;max:number}; 'full-body': {min:number;max:number} }
+  total_orders: number
 }
 export interface ApiVideoJob {
-  _id: string; referenceId: string; status: string; productType: string; purpose: string
-  script: string; processedScript?: string; estimatedPrice: number; currency: string; downloadEnabled: boolean
-  previewUrl?: string; watermarkedUrl?: string; finalVideoUrl?: string
-  errorMessage?: string
-  celebrityId: { name: string; nameAr: string; initials: string; avatarColor: string }
-  createdAt: string
-  statusHistory?: { status: string; timestamp: string; note?: string }[]
+  id: string; reference_id: string; status: string; product_type: string; purpose: string
+  script: string; processed_script?: string; estimated_price: number; currency: string; download_enabled: boolean
+  preview_url?: string; watermarked_url?: string; final_video_url?: string
+  error_message?: string
+  celebrity?: { name: string; name_ar: string; initials: string; avatar_color: string; thumbnail_url?: string }
+  created_at: string
+  status_history?: { status: string; timestamp: string; note?: string }[]
 }
 
 // ── Auth ───────────────────────────────────────────────────
@@ -84,7 +84,7 @@ export const authApi = {
   getMe: () =>
     api<{ success: boolean; user: ApiUser }>('/auth/me'),
 
-  updateProfile: (body: { name?: string; avatarUrl?: string }) =>
+  updateProfile: (body: { name?: string; avatar_url?: string }) =>
     api<{ success: boolean; user: ApiUser }>('/auth/profile', { method: 'PUT', body: JSON.stringify(body) }),
 
   forgotPassword: (email: string) =>
@@ -178,16 +178,16 @@ export const jobApi = {
 
 // ── Templates ──────────────────────────────────────────────
 export interface ApiTemplate {
-  _id: string
+  id: string
   name: string
-  nameAr: string
+  name_ar: string
   description: string
-  descriptionAr: string
+  description_ar: string
   purpose: string
-  purposeAr: string
-  sampleScript: string
-  sampleScriptAr: string
-  productTypes: string[]
+  purpose_ar: string
+  sample_script: string
+  sample_script_ar: string
+  product_types: string[]
   duration: string
 }
 
@@ -200,21 +200,21 @@ export const templateApi = {
 
 // ── Product Types (public) ─────────────────────────────────
 export interface ApiProductType {
-  _id: string
+  id: string
   slug: string
   name: string
-  nameAr: string
+  name_ar: string
   description: string
-  descriptionAr: string
+  description_ar: string
   detail: string
-  detailAr: string
+  detail_ar: string
   icon: string
-  priceFrom: number
+  price_from: number
   duration: string
-  durationAr: string
-  useCases: string[]
-  useCasesAr: string[]
-  isActive: boolean
+  duration_ar: string
+  use_cases: string[]
+  use_cases_ar: string[]
+  is_active: boolean
   order: number
 }
 
@@ -258,22 +258,23 @@ function apiProductTypeToUIType(productType: string): MockRequest['type'] {
 
 export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
   return {
-    requestId: job.referenceId,
-    orderId:   job.referenceId,
+    requestId: job.reference_id,
+    orderId:   job.reference_id,
     status:    apiStatusToUIStatus(job.status),
-    type:      apiProductTypeToUIType(job.productType),
+    type:      apiProductTypeToUIType(job.product_type),
     celebrity: {
-      name:      job.celebrityId?.name ?? 'Celebrity',
-      stageName: job.celebrityId?.name ?? 'Celebrity',
+      name:      job.celebrity?.name ?? 'Celebrity',
+      stageName: job.celebrity?.name ?? 'Celebrity',
+      avatarUrl: job.celebrity?.thumbnail_url,
     },
     payment: {
-      subtotal: job.estimatedPrice,
-      vat:      Math.round(job.estimatedPrice * 0.15),
-      total:    Math.round(job.estimatedPrice * 1.15),
+      subtotal: job.estimated_price,
+      vat:      Math.round(job.estimated_price * 0.15),
+      total:    Math.round(job.estimated_price * 1.15),
       status:   'paid',
     },
-    previewUrl: job.watermarkedUrl ?? job.previewUrl,
-    createdAt:  job.createdAt,
+    previewUrl: job.watermarked_url ?? job.preview_url,
+    createdAt:  job.created_at,
     mediaType:  'video',
   }
 }

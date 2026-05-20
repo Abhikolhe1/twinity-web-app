@@ -29,17 +29,17 @@ const STATUS_TIMELINE: Record<string, { eventType: TimelineEventType; actor: Tim
 };
 
 function buildTimeline(job: ApiVideoJob): TimelineEvent[] {
-  const history = job.statusHistory ?? [];
+  const history = job.status_history ?? [];
 
   if (history.length > 0) {
     return history.map((entry) => {
       const mapping = STATUS_TIMELINE[entry.status] ?? STATUS_TIMELINE.pending;
       return {
-        id:          `${job._id}-${entry.status}`,
+        id:          `${job.id}-${entry.status}`,
         eventType:   mapping.eventType,
         actor:       mapping.actor,
         label:       mapping.label,
-        description: entry.note ?? (entry.status === "failed" ? job.errorMessage : undefined),
+        description: entry.note ?? (entry.status === "failed" ? job.error_message : undefined),
         timestamp:   entry.timestamp,
       };
     });
@@ -47,12 +47,12 @@ function buildTimeline(job: ApiVideoJob): TimelineEvent[] {
 
   return [
     {
-      id:        `${job._id}-created`,
+      id:        `${job.id}-created`,
       eventType: "REQUEST_CREATED",
       actor:     "CLIENT",
       label:     "Request submitted",
-      description: `${job.productType} request submitted successfully.`,
-      timestamp: job.createdAt,
+      description: `${job.product_type} request submitted successfully.`,
+      timestamp: job.created_at,
     },
   ];
 }
