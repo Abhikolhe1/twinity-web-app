@@ -1,14 +1,24 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Download } from "lucide-react";
 
 interface ImageAdSuccessProps {
-  onViewRequest:  () => void;
-  onBackToStudio: () => void;
+  onViewRequest:   () => void;
+  onBackToStudio:  () => void;
+  generatedImageUrl?: string;
 }
 
-export function ImageAdSuccess({ onViewRequest, onBackToStudio }: ImageAdSuccessProps) {
+export function ImageAdSuccess({ onViewRequest, onBackToStudio, generatedImageUrl }: ImageAdSuccessProps) {
+  function handleDownload() {
+    if (!generatedImageUrl) return
+    const a = document.createElement('a')
+    a.href = generatedImageUrl
+    a.download = 'image-ad-preview.jpg'
+    a.target = '_blank'
+    a.rel = 'noopener noreferrer'
+    a.click()
+  }
   return (
     <>
       <style>{`
@@ -49,7 +59,29 @@ export function ImageAdSuccess({ onViewRequest, onBackToStudio }: ImageAdSuccess
             animation:     "_successIn 300ms cubic-bezier(0.16,1,0.3,1) both",
           }}
         >
-          <CheckCircle2 size={52} color="var(--color-success)" />
+          {/* Generated image preview */}
+          {generatedImageUrl && (
+            <div style={{
+              width:        "100%",
+              borderRadius: "var(--radius-lg)",
+              overflow:     "hidden",
+              border:       "1px solid var(--color-border)",
+              maxHeight:    220,
+              display:      "flex",
+              alignItems:   "center",
+              justifyContent: "center",
+              background:   "#0a0a0a",
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={generatedImageUrl}
+                alt="Generated image ad"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", maxHeight: 220 }}
+              />
+            </div>
+          )}
+
+          <CheckCircle2 size={generatedImageUrl ? 36 : 52} color="var(--color-success)" />
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <h2 style={{
@@ -59,32 +91,49 @@ export function ImageAdSuccess({ onViewRequest, onBackToStudio }: ImageAdSuccess
               letterSpacing: "-0.025em",
               margin:        0,
             }}>
-              Request submitted!
+              {generatedImageUrl ? "Image generated!" : "Request submitted!"}
             </h2>
             <p style={{ fontSize: 14, color: "var(--color-text-secondary)", margin: 0, lineHeight: 1.6 }}>
-              Your Image Ad is now in review.
+              {generatedImageUrl
+                ? "Your licensed image ad is ready for review."
+                : "Your Image Ad is now in review."
+              }
             </p>
           </div>
 
-          <span style={{
-            fontFamily:    "var(--font-mono, monospace)",
-            fontSize:      12,
-            color:         "var(--color-text-muted)",
-            background:    "var(--color-surface-2)",
-            paddingInline:  12,
-            paddingBlock:   6,
-            borderRadius:  "var(--radius-md)",
-            display:       "inline-block",
-          }}>
-            ORD-2026-AD001
-          </span>
-
           <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.6, margin: 0 }}>
-            You will be notified at each approval stage.
+            {generatedImageUrl
+              ? "Download your preview or return to generate another."
+              : "Our team will review your request and follow up shortly."
+            }
           </p>
 
           {/* CTAs */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", marginTop: 8 }}>
+            {generatedImageUrl && (
+              <button
+                type="button"
+                onClick={handleDownload}
+                style={{
+                  width:        "100%",
+                  height:       44,
+                  borderRadius: "var(--radius-lg)",
+                  background:   "rgba(255,255,255,0.06)",
+                  border:       "1px solid rgba(255,255,255,0.12)",
+                  color:        "var(--color-text)",
+                  fontSize:     14,
+                  fontWeight:   600,
+                  cursor:       "pointer",
+                  display:      "flex",
+                  alignItems:   "center",
+                  justifyContent: "center",
+                  gap:          6,
+                }}
+              >
+                <Download size={14} />
+                Download Preview
+              </button>
+            )}
             <button
               type="button"
               onClick={onViewRequest}

@@ -32,6 +32,8 @@ import { ImageAdLeftPanel }  from "@/components/studio/image-ad/ImageAdLeftPanel
 import { ImageAdRightPanel } from "@/components/studio/image-ad/ImageAdRightPanel";
 import { ImageAdSuccess }    from "@/components/studio/image-ad/ImageAdSuccess";
 
+import { imageAdApi } from "@/lib/api";
+
 import {
   calcAdImagePrice,
   type AspectRatio,
@@ -60,6 +62,7 @@ export default function ImageAdPage() {
   const [acknowledged, setAcknowledged] = useState(false);
   const [submitted,    setSubmitted]    = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   /* ── Derived ────────────────────────────────────────────────────── */
   const pricing: AdPricingResult = useMemo(
@@ -94,13 +97,29 @@ export default function ImageAdPage() {
   })();
 
   /* ── Handlers ───────────────────────────────────────────────────── */
-  function handleSubmit() {
-    if (!canGenerate || isSubmitting) return;
+  async function handleSubmit() {
+    if (!celebrity || !canGenerate) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setGenerateError(null);
+    try {
+      await imageAdApi.generate({
+        celebrityId:    celebrity.id,
+        prompt:         prompt.trim(),
+        style:          style ?? undefined,
+        aspectRatio:    ratio  ?? undefined,
+        channels,
+        duration,
+        territory,
+        exclusivity,
+        estimatedPrice: pricing?.total ?? 0,
+      });
       setSubmitted(true);
-    }, 1000);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setGenerateError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   /* ── Render ─────────────────────────────────────────────────────── */
@@ -241,10 +260,69 @@ export default function ImageAdPage() {
         />
       </div>
 
+      {/* ── Generation error ─────────────────────────────────────── */}
+      {generateError && (
+        <div
+          style={{
+            position:      "fixed",
+            bottom:        24,
+            left:          "50%",
+            transform:     "translateX(-50%)",
+            zIndex:        60,
+            background:    "rgba(239,68,68,0.12)",
+            border:        "1px solid rgba(239,68,68,0.30)",
+            borderRadius:  12,
+            padding:       "12px 20px",
+            color:         "#FCA5A5",
+            fontSize:      13,
+            maxWidth:      480,
+            textAlign:     "center",
+          }}
+        >
+          {generateError}
+        </div>
+      )}
+
+      {/* ── Generating overlay ───────────────────────────────────────── */}
+      {isSubmitting && (
+        <div
+          style={{
+            position:       "fixed",
+            inset:          0,
+            zIndex:         50,
+            background:     "rgba(8,8,8,0.75)",
+            backdropFilter: "blur(6px)",
+            display:        "flex",
+            flexDirection:  "column",
+            alignItems:     "center",
+            justifyContent: "center",
+            gap:            16,
+          }}
+        >
+          <div
+            style={{
+              width:        44,
+              height:       44,
+              borderRadius: "50%",
+              border:       "3px solid rgba(124,58,237,0.20)",
+              borderTop:    "3px solid #7C3AED",
+              animation:    "spin 0.9s linear infinite",
+            }}
+          />
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+            Generating your image ad…
+          </p>
+          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.40)", margin: 0 }}>
+            This usually takes 15–30 seconds
+          </p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
       {/* ── Success overlay ──────────────────────────────────────── */}
       {submitted && (
         <ImageAdSuccess
-          onViewRequest={()  => router.push("/studio/requests/req-ad-001")}
+          onViewRequest={()  => router.push("/studio/requests")}
           onBackToStudio={() => router.push("/studio")}
         />
       )}

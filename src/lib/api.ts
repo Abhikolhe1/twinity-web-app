@@ -233,6 +233,25 @@ export const leadApi = {
     api<{ success: boolean; message: string }>('/leads/contact', { method: 'POST', body: JSON.stringify(body) }),
 }
 
+// ── Image Ad (Video Ad) ────────────────────────────────────
+export const imageAdApi = {
+  generate: (body: {
+    celebrityId:    string
+    prompt:         string
+    style?:         string
+    aspectRatio?:   string
+    channels?:      string[]
+    duration?:      string
+    territory?:     string
+    exclusivity?:   boolean
+    estimatedPrice?: number
+  }) =>
+    api<{ success: boolean; referenceId: string; message: string }>(
+      '/image-ads/generate',
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
+}
+
 // ── Job → UI request mapper ────────────────────────────────
 import type { MockRequest } from '@/lib/studio/mock-requests'
 import type { RequestStatus } from '@/lib/request-statuses'
@@ -250,9 +269,9 @@ function apiStatusToUIStatus(status: string): RequestStatus {
 }
 
 function apiProductTypeToUIType(productType: string): MockRequest['type'] {
-  if (productType === 'greeting') return 'GREETING'
-  if (productType === 'image-ad') return 'AD_IMAGE'
-  if (productType === 'custom')   return 'CUSTOM_CAMPAIGN'
+  if (productType === 'greeting')                              return 'GREETING'
+  if (productType === 'image_ad' || productType === 'image-ad') return 'AD_IMAGE'
+  if (productType === 'custom')                                return 'CUSTOM_CAMPAIGN'
   return 'CAMPAIGN'
 }
 

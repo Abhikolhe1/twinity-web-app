@@ -79,6 +79,7 @@ import {
 
 import { FUNNEL_CELEBRITIES } from "@/lib/studio/studio-funnel-data";
 import type { FunnelCelebrity } from "@/lib/studio/studio-funnel-data";
+import { celebrityApi, imageAdApi } from "@/lib/api";
 
 /* ── Types ─────────────────────────────────────────────────────────────── */
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -251,22 +252,47 @@ function StepIndicator({ current }: { current: Step }) {
 }
 
 /* ── Celebrity grid ─────────────────────────────────────────────────────── */
+function industryToFilter(industry: string): FunnelCelebrity["filter"] {
+  const i = (industry || "").toLowerCase();
+  if (i.includes("sport") || i.includes("athlete") || i.includes("football")) return "Sports";
+  if (i.includes("music") || i.includes("singer") || i.includes("artist"))    return "Music";
+  if (i.includes("business") || i.includes("entrepreneur"))                    return "Business";
+  if (i.includes("tv") || i.includes("television") || i.includes("host"))     return "TV";
+  return "Entertainment";
+}
+
 function CelebrityGrid({
   selected,
   onSelect,
 }: {
-  selected: string | null;
-  onSelect: (id: string) => void;
+  selected: FunnelCelebrity | null;
+  onSelect: (c: FunnelCelebrity) => void;
 }) {
+  const [celebs, setCelebs] = useState<FunnelCelebrity[]>(FUNNEL_CELEBRITIES);
+
+  useEffect(() => {
+    celebrityApi.list({ featured: true }).then(res => {
+      if (res.data.length === 0) return;
+      setCelebs(res.data.map(a => ({
+        id:           a.id,
+        name:         a.name,
+        category:     a.industry,
+        filter:       industryToFilter(a.industry),
+        priceFromSar: a.price_range["avatar-studio"]?.min ?? 999,
+        imageUrl:     a.thumbnail_url ?? `https://picsum.photos/seed/${a.slug}/400/400`,
+      })));
+    }).catch(() => null);
+  }, []);
+
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px,1fr))", gap: 12 }}>
-      {FUNNEL_CELEBRITIES.map((c: FunnelCelebrity) => {
-        const sel = selected === c.id;
+      {celebs.map((c: FunnelCelebrity) => {
+        const sel = selected?.id === c.id;
         return (
           <button
             key={c.id}
             type="button"
-            onClick={() => onSelect(c.id)}
+            onClick={() => onSelect(c)}
             style={{
               position:   "relative",
               background: sel ? "rgba(124,58,237,0.08)" : "#161616",
@@ -395,7 +421,7 @@ function PriceCalculator({
 }
 
 /* ── Success screen ─────────────────────────────────────────────────────── */
-function SuccessScreen({ onViewRequest, orderId }: { onViewRequest: () => void; orderId: string }) {
+function SuccessScreen({ onViewRequest }: { onViewRequest: () => void }) {
   return (
     <div
       style={{
@@ -404,46 +430,33 @@ function SuccessScreen({ onViewRequest, orderId }: { onViewRequest: () => void; 
         alignItems:     "center",
         justifyContent: "center",
         textAlign:      "center",
-        padding:        "60px 32px",
+        padding:        "40px 32px",
         flex:           1,
         background:     "radial-gradient(ellipse at center, rgba(124,58,237,0.08) 0%, transparent 70%)",
         animation:      "_scaleIn 300ms cubic-bezier(0.16,1,0.3,1) both",
+        gap:            16,
+        overflowY:      "auto",
       }}
     >
-      <CheckCircle2 size={52} color="#22C55E" style={{ marginBottom: 20 }} />
-      <h2 style={{ fontSize: 22, fontWeight: 800, color: "#F0F0F0", letterSpacing: "-0.025em", margin: "0 0 10px" }}>
-        Request submitted!
-      </h2>
-      <p style={{ fontSize: 15, color: "#A0A0A0", margin: "0 0 6px", lineHeight: 1.6 }}>
-        Your Image Ad request is now in review.
-      </p>
-      <p style={{ fontFamily: "var(--font-mono,monospace)", fontSize: 13, color: "#606060", margin: "0 0 28px" }}>
-        Order #{orderId}
-      </p>
-      <p style={{ fontSize: 13, color: "#A0A0A0", maxWidth: 320, lineHeight: 1.6, margin: "0 0 28px" }}>
-        You&apos;ll be notified at each approval stage. Celebrity approval is required before image generation begins.
-      </p>
-      <button
-        type="button"
-        onClick={onViewRequest}
-        style={{
-          display:        "inline-flex",
-          alignItems:     "center",
-          gap:            8,
-          height:         48,
-          paddingInline:  24,
-          borderRadius:   12,
-          background:     "linear-gradient(135deg, #8B5CF6 0%, #3D1A6E 100%)",
-          border:         "none",
-          color:          "#FFFFFF",
-          fontSize:       14,
-          fontWeight:     600,
-          cursor:         "pointer",
-          boxShadow:      "0 0 24px rgba(139,92,246,0.25), 0 0 8px rgba(139,92,246,0.15)",
-        }}
-      >
-        View Request <ArrowRight size={14} />
-      </button>
+      <CheckCircle2 size={52} color="#22C55E" />
+      <div>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#F0F0F0", letterSpacing: "-0.025em", margin: "0 0 8px" }}>
+          Request submitted!
+        </h2>
+        <p style={{ fontSize: 14, color: "#A0A0A0", margin: 0, lineHeight: 1.6 }}>
+          Your Image Ad request is now in review.
+        </p>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320 }}>
+        <button
+          type="button"
+          onClick={onViewRequest}
+          style={{ height: 44, borderRadius: 10, background: "linear-gradient(135deg, #8B5CF6 0%, #3D1A6E 100%)", border: "none", color: "#FFFFFF", fontSize: 14, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+        >
+          View Request <ArrowRight size={14} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -461,7 +474,7 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
   const [animKey,   setAnimKey]   = useState(0);
 
   /* step 1 */
-  const [celebrity, setCelebrity] = useState<string | null>(null);
+  const [celebrity, setCelebrity] = useState<FunnelCelebrity | null>(null);
 
   /* step 2 */
   const [prompt,   setPrompt]   = useState("");
@@ -479,9 +492,10 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
   const [exclusivity, setExclusivity] = useState(false);
 
   /* step 5 */
-  const [acknowledged, setAcknowledged] = useState(false);
-  const [submitting,   setSubmitting]   = useState(false);
-  const [submitted,    setSubmitted]    = useState(false);
+  const [acknowledged,  setAcknowledged]  = useState(false);
+  const [submitting,    setSubmitting]    = useState(false);
+  const [submitted,     setSubmitted]     = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const router    = useRouter();
@@ -494,6 +508,7 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
       setStyle(null); setAspectRatio("16:9");
       setChannels([]); setDuration("12 months"); setTerritory("Saudi Arabia"); setExclusivity(false);
       setAcknowledged(false); setSubmitting(false); setSubmitted(false);
+      setGenerateError(null);
     }, 0);
     return () => clearTimeout(id);
   }, [sessionId]);
@@ -502,11 +517,6 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [step]);
 
   const price = useMemo(() => calcPrice(duration, territory, exclusivity), [duration, territory, exclusivity]);
-
-  const celebDetails = useMemo(
-    () => FUNNEL_CELEBRITIES.find((c) => c.id === celebrity) ?? null,
-    [celebrity],
-  );
 
   function goTo(target: Step) {
     const fwd = target > step;
@@ -534,17 +544,33 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
   }
 
   /* submit */
-  function handleSubmit() {
-    if (!acknowledged) return;
+  async function handleSubmit() {
+    if (!celebrity) return;
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    setGenerateError(null);
+    try {
+      await imageAdApi.generate({
+        celebrityId:    celebrity.id,
+        prompt:         prompt.trim(),
+        style:          style ?? undefined,
+        aspectRatio,
+        channels,
+        duration,
+        territory,
+        exclusivity,
+        estimatedPrice: price?.total ?? 0,
+      });
       setSubmitted(true);
-    }, 1200);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setGenerateError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function handleViewRequest() {
-    router.push("/studio/requests/req-ad-001");
+    router.push("/studio/requests");
     onClose();
   }
 
@@ -564,7 +590,7 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
 
   /* ── render ── */
   if (submitted) {
-    return <SuccessScreen onViewRequest={handleViewRequest} orderId="ORD-2026-AD001" />;
+    return <SuccessScreen onViewRequest={handleViewRequest} />;
   }
 
   return (
@@ -582,6 +608,7 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
           from { opacity:0; transform: scale(0.95); }
           to   { opacity:1; transform: scale(1);    }
         }
+        @keyframes _spin { to { transform: rotate(360deg); } }
       `}</style>
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
@@ -684,15 +711,15 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
 
                 <CelebrityGrid selected={celebrity} onSelect={setCelebrity} />
 
-                {celebrity && celebDetails && (
+                {celebrity && (
                   <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.20)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: 9999, overflow: "hidden", flexShrink: 0 }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={celebDetails.imageUrl} alt={celebDetails.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <img src={celebrity.imageUrl} alt={celebrity.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       </div>
                       <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>{celebDetails.name}</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>{celebrity.name}</p>
                         <p style={{ fontSize: 11, color: "#606060", margin: 0 }}>Watermarked samples available</p>
                       </div>
                     </div>
@@ -1036,14 +1063,14 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
                   {/* Celebrity section */}
                   <div style={{ padding: "18px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      {celebDetails && (
+                      {celebrity && (
                         <div style={{ width: 36, height: 36, borderRadius: 9999, overflow: "hidden", flexShrink: 0 }}>
                           {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={celebDetails.imageUrl} alt={celebDetails.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <img src={celebrity.imageUrl} alt={celebrity.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </div>
                       )}
                       <div>
-                        <p style={{ fontSize: 14, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>{celebDetails?.name ?? "—"}</p>
+                        <p style={{ fontSize: 14, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>{celebrity?.name ?? "—"}</p>
                         <p style={{ fontSize: 11, color: "#606060", margin: 0 }}>Celebrity approval required after payment</p>
                       </div>
                     </div>
@@ -1230,6 +1257,22 @@ export function ImageAdFunnelWorkspace({ onClose, sessionId }: ImageAdFunnelWork
 
         </div>
       </div>
+
+      {/* ── Generating overlay ─────────────────────────────────── */}
+      {submitting && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 20, background: "rgba(8,8,8,0.80)", backdropFilter: "blur(6px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14 }}>
+          <div style={{ width: 40, height: 40, borderRadius: "50%", border: "3px solid rgba(124,58,237,0.20)", borderTop: "3px solid #7C3AED", animation: "_spin 0.9s linear infinite" }} />
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>Generating your image ad…</p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.40)", margin: 0 }}>This usually takes 15–30 seconds</p>
+        </div>
+      )}
+
+      {/* ── Error toast ────────────────────────────────────────── */}
+      {generateError && !submitting && (
+        <div style={{ position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)", zIndex: 20, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.30)", borderRadius: 10, padding: "10px 18px", color: "#FCA5A5", fontSize: 13, maxWidth: 420, textAlign: "center", whiteSpace: "pre-wrap" }}>
+          {generateError}
+        </div>
+      )}
     </>
   );
 }

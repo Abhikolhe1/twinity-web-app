@@ -1,12 +1,21 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Check, Search, ShieldCheck } from "lucide-react";
 
-import {
-  FUNNEL_CELEBRITIES,
-  type FunnelCelebrity,
-} from "@/lib/studio/studio-funnel-data";
+import type { FunnelCelebrity } from "@/lib/studio/studio-funnel-data";
+import { FUNNEL_CELEBRITIES } from "@/lib/studio/studio-funnel-data";
+import { celebrityApi } from "@/lib/api";
+
+/* ── Map API industry string to FunnelCelebrity filter ─────────────── */
+function industryToFilter(industry: string): FunnelCelebrity["filter"] {
+  const i = (industry || "").toLowerCase();
+  if (i.includes("sport") || i.includes("athlete") || i.includes("football") || i.includes("soccer") || i.includes("basketball")) return "Sports";
+  if (i.includes("music") || i.includes("singer") || i.includes("artist") || i.includes("musician")) return "Music";
+  if (i.includes("business") || i.includes("entrepreneur") || i.includes("ceo") || i.includes("executive")) return "Business";
+  if (i.includes("tv") || i.includes("television") || i.includes("host") || i.includes("presenter")) return "TV";
+  return "Entertainment";
+}
 
 /* ── Style tags per category ───────────────────────────────────────── */
 const STYLE_TAGS: Record<FunnelCelebrity["filter"], string[]> = {
@@ -25,20 +34,79 @@ interface CelebrityPickerProps {
   onSelect: (c: FunnelCelebrity) => void;
 }
 
+/* ── Skeleton card ─────────────────────────────────────────────────── */
+function SkeletonCard() {
+  return (
+    <div
+      style={{
+        padding:      "9px 6px",
+        borderRadius: "var(--radius-md)",
+        border:       "1px solid var(--color-border)",
+        background:   "var(--color-surface)",
+        display:      "flex",
+        flexDirection:"column",
+        alignItems:   "center",
+        gap:          5,
+        animation:    "_skelPulse 1.4s ease-in-out infinite",
+      }}
+    >
+      <div style={{ width: 34, height: 34, borderRadius: "50%", background: "var(--color-surface-2)" }} />
+      <div style={{ width: 36, height: 8, borderRadius: 4, background: "var(--color-surface-2)" }} />
+      <div style={{ width: 24, height: 7, borderRadius: 4, background: "var(--color-surface-3)" }} />
+    </div>
+  );
+}
+
 export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
-  const [query,    setQuery]    = useState("");
-  const [category, setCategory] = useState<FilterCategory>("All");
-  const [hovered,  setHovered]  = useState<string | null>(null);
-  const [pressed,  setPressed]  = useState<string | null>(null);
+  const [query,       setQuery]       = useState("");
+  const [category,   setCategory]    = useState<FilterCategory>("All");
+  const [hovered,    setHovered]     = useState<string | null>(null);
+  const [pressed,    setPressed]     = useState<string | null>(null);
+  const [celebrities, setCelebrities] = useState<FunnelCelebrity[]>([]);
+  const [loading,    setLoading]     = useState(true);
+
+  /* Fetch celebrities from API on mount */
+  useEffect(() => {
+    let cancelled = false;
+    celebrityApi.list({ featured: undefined })
+      .then((res) => {
+        if (cancelled) return;
+        if (res.data && res.data.length > 0) {
+          const mapped: FunnelCelebrity[] = res.data
+            .filter((c) => c.is_active)
+            .map((c) => ({
+              id:          c.id,
+              name:        c.name,
+              category:    c.industry,
+              filter:      industryToFilter(c.industry),
+              priceFromSar: (() => {
+                const pr = c.price_range as Record<string, { min: number; max: number }>;
+                return pr?.["avatar-studio"]?.min ?? pr?.["greeting"]?.min ?? 0;
+              })(),
+              imageUrl:    c.thumbnail_url ?? `https://picsum.photos/seed/twinity-${c.id}/400/400`,
+            }));
+          setCelebrities(mapped);
+        } else {
+          setCelebrities(FUNNEL_CELEBRITIES);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCelebrities(FUNNEL_CELEBRITIES);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();
-    return FUNNEL_CELEBRITIES.filter((c) => {
+    return celebrities.filter((c) => {
       const matchSearch   = !q || c.name.toLowerCase().includes(q);
       const matchCategory = category === "All" || c.filter === category;
       return matchSearch && matchCategory;
     }).slice(0, 8);
-  }, [query, category]);
+  }, [query, category, celebrities]);
 
   function handleCardClick(c: FunnelCelebrity) {
     setPressed(c.id);
@@ -129,7 +197,13 @@ export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
           marginTop:           8,
         }}
       >
-        {filtered.map((c) => {
+        {/* Loading skeletons */}
+        {loading && Array.from({ length: 8 }).map((_, i) => (
+          <SkeletonCard key={`skel-${i}`} />
+        ))}
+
+        {/* Celebrity cards */}
+        {!loading && filtered.map((c) => {
           const isSelected = selected?.id === c.id;
           const isHovered  = hovered === c.id;
           const isPressed  = pressed === c.id;
@@ -236,20 +310,20 @@ export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
               {isHovered && (
                 <div
                   style={{
-                    position:     "absolute",
-                    top:          "calc(100% + 4px)",
+                    position:         "absolute",
+                    top:              "calc(100% + 4px)",
                     insetInlineStart: 0,
                     insetInlineEnd:   0,
-                    background:   "var(--color-surface-2)",
-                    border:       "1px solid var(--color-border-strong)",
-                    borderRadius: "var(--radius-md)",
-                    padding:      "8px 10px",
-                    zIndex:       30,
-                    display:      "flex",
-                    flexDirection:"column",
-                    gap:          6,
-                    boxShadow:    "0 8px 24px rgba(0,0,0,0.6)",
-                    animation:    "_cardHover 120ms ease both",
+                    background:       "var(--color-surface-2)",
+                    border:           "1px solid var(--color-border-strong)",
+                    borderRadius:     "var(--radius-md)",
+                    padding:          "8px 10px",
+                    zIndex:           30,
+                    display:          "flex",
+                    flexDirection:    "column",
+                    gap:              6,
+                    boxShadow:        "0 8px 24px rgba(0,0,0,0.6)",
+                    animation:        "_cardHover 120ms ease both",
                   }}
                 >
                   {/* Licensed badge */}
@@ -309,7 +383,7 @@ export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
         })}
 
         {/* Empty state */}
-        {filtered.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <div style={{ gridColumn: "1 / -1", paddingBlock: 20, textAlign: "center", fontSize: 11, color: "var(--color-text-muted)" }}>
             No celebrities match
           </div>
@@ -318,6 +392,7 @@ export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
 
       <style>{`
         @keyframes _cardHover { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes _skelPulse  { 0%,100% { opacity:1; } 50% { opacity:0.45; } }
       `}</style>
     </div>
   );
