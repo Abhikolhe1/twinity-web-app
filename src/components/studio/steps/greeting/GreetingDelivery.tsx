@@ -5,12 +5,10 @@ import { Loader2 } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import type { ApiCelebrity, ApiTemplate, ApiVideoJob } from "@/lib/api";
 import { jobApi } from "@/lib/api";
-import type { GreetingOccasionId } from "@/lib/studio/greeting-funnel-data";
-import { getGreetingOccasion } from "@/lib/studio/greeting-funnel-data";
 
 export type GreetingDeliveryProps = {
   referenceId: string | null;
-  occasionId: GreetingOccasionId | null;
+  occasion: string | null;
   celebrity: ApiCelebrity | null;
   template: ApiTemplate | null;
   recipientName: string;
@@ -18,7 +16,7 @@ export type GreetingDeliveryProps = {
 
 export function GreetingDelivery({
   referenceId,
-  occasionId,
+  occasion,
   celebrity,
   template,
   recipientName,
@@ -30,8 +28,6 @@ export function GreetingDelivery({
     if (!referenceId) return;
     jobApi.getJob(referenceId).then((res) => setJob(res.data)).catch(() => {});
   }, [referenceId]);
-
-  const occ = getGreetingOccasion(occasionId);
   const duration = template?.duration ?? "—";
   const displayRecipient = recipientName.trim() || "—";
   const videoUrl = job?.watermarked_url ?? job?.final_video_url ?? job?.preview_url;
@@ -73,7 +69,7 @@ export function GreetingDelivery({
             )}
           </div>
           <p className="mt-4 text-center text-sm text-white/60">
-            {celebrity?.name ?? "—"} · {occ?.label ?? "—"} · {duration}
+            {celebrity?.name ?? "—"} · {occasion ?? "—"} · {duration}
           </p>
           <button
             type="button"
@@ -119,7 +115,7 @@ export function GreetingDelivery({
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-white/45">Occasion</dt>
-                <dd className="text-end text-white">{occ ? `${occ.icon} ${occ.label}` : "—"}</dd>
+                <dd className="text-end text-white">{occasion ?? "—"}</dd>
               </div>
               <div className="flex justify-between gap-3">
                 <dt className="text-white/45">Usage</dt>

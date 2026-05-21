@@ -2,17 +2,14 @@
 
 import { useRef, useState } from "react";
 import type { ApiCelebrity, ApiTemplate } from "@/lib/api";
-import type { GreetingOccasionId } from "@/lib/studio/greeting-funnel-data";
-import { getGreetingOccasion } from "@/lib/studio/greeting-funnel-data";
 
 export type GreetingOrderSummaryCardProps = {
-  occasionId: GreetingOccasionId | null;
+  occasion: string | null;
   celebrity: ApiCelebrity | null;
   template: ApiTemplate | null;
 };
 
-export function GreetingOrderSummaryCard({ occasionId, celebrity, template }: GreetingOrderSummaryCardProps) {
-  const occ = getGreetingOccasion(occasionId);
+export function GreetingOrderSummaryCard({ occasion, celebrity, template }: GreetingOrderSummaryCardProps) {
   const priceMin = celebrity?.price_range?.greeting?.min;
   const priceLabel = priceMin
     ? `From SAR ${priceMin.toLocaleString("en-SA")}`
@@ -25,14 +22,7 @@ export function GreetingOrderSummaryCard({ occasionId, celebrity, template }: Gr
         <div className="flex justify-between gap-3">
           <dt className="text-white/45">Occasion</dt>
           <dd className="text-end text-white">
-            {occ ? (
-              <span className="inline-flex items-center gap-1.5">
-                <span aria-hidden>{occ.icon}</span>
-                {occ.label}
-              </span>
-            ) : (
-              <span className="text-white/30">—</span>
-            )}
+            {occasion ?? <span className="text-white/30">—</span>}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
@@ -86,13 +76,13 @@ export function GreetingOrderSummaryCard({ occasionId, celebrity, template }: Gr
 }
 
 export type PreviewGreetingSampleProps = {
-  occasionId: GreetingOccasionId | null;
+  occasion: string | null;
   celebrity: ApiCelebrity | null;
   template: ApiTemplate | null;
 };
 
 export function PreviewGreetingSample({
-  occasionId,
+  occasion,
   celebrity,
   template,
 }: PreviewGreetingSampleProps) {
@@ -174,7 +164,7 @@ export function PreviewGreetingSample({
           </div>
         </div>
         <div className="min-w-0 flex-[0.4] lg:max-w-md lg:self-stretch">
-          <GreetingOrderSummaryCard occasionId={occasionId} celebrity={celebrity} template={template} />
+          <GreetingOrderSummaryCard occasion={occasion} celebrity={celebrity} template={template} />
         </div>
       </div>
     </div>

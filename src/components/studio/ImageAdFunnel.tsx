@@ -278,7 +278,7 @@ function CelebrityGrid({
         name:         a.name,
         category:     a.industry,
         filter:       industryToFilter(a.industry),
-        priceFromSar: a.price_range["avatar-studio"]?.min ?? 999,
+        priceFromSar: a.price_range["video-ad"]?.min ?? 999,
         imageUrl:     a.thumbnail_url ?? `https://picsum.photos/seed/${a.slug}/400/400`,
       })));
     }).catch(() => null);

@@ -2,7 +2,6 @@
 
 import { Loader2 } from "lucide-react";
 import type { ApiTemplate } from "@/lib/api";
-import type { GreetingOccasionId } from "@/lib/studio/greeting-funnel-data";
 
 const GRADIENT_PAIRS: [string, string][] = [
   ["#7C3AED", "#5B21B6"],
@@ -14,7 +13,6 @@ const GRADIENT_PAIRS: [string, string][] = [
 ];
 
 export type SelectGreetingTemplateProps = {
-  occasion: GreetingOccasionId | null;
   templates: ApiTemplate[];
   loading: boolean;
   selectedId: string | null;

@@ -4,13 +4,12 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { ApiCelebrity, ApiTemplate, ApiUser } from "@/lib/api";
 import { authApi } from "@/lib/api";
-import type { GreetingOccasionId } from "@/lib/studio/greeting-funnel-data";
 import { GreetingOrderSummaryCard } from "./PreviewGreetingSample";
 
 export type LoginAndPayProps = {
   isLoggedIn: boolean;
   user: ApiUser | null;
-  occasionId: GreetingOccasionId | null;
+  occasion: string | null;
   celebrity: ApiCelebrity | null;
   template: ApiTemplate | null;
   onLoginSuccess: (token: string, user: ApiUser) => void;
@@ -19,7 +18,7 @@ export type LoginAndPayProps = {
 export function LoginAndPay({
   isLoggedIn,
   user,
-  occasionId,
+  occasion,
   celebrity,
   template,
   onLoginSuccess,
@@ -204,7 +203,7 @@ export function LoginAndPay({
           )}
         </div>
         <div className="w-full min-w-0 lg:max-w-md lg:flex-[0.4]">
-          <GreetingOrderSummaryCard occasionId={occasionId} celebrity={celebrity} template={template} />
+          <GreetingOrderSummaryCard occasion={occasion} celebrity={celebrity} template={template} />
         </div>
       </div>
     </div>

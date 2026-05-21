@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { ApiCelebrity, ApiTemplate, ApiVideoJob } from "@/lib/api";
 import { jobApi } from "@/lib/api";
-import type { GreetingOccasionId } from "@/lib/studio/greeting-funnel-data";
 import { GreetingOrderSummaryCard } from "./PreviewGreetingSample";
 
 type TimelineRow = { title: string; sub: string; state: "done" | "active" | "pending" };
@@ -62,7 +61,7 @@ function statusBadge(status: string | undefined) {
 
 export type ApprovalStatusProps = {
   referenceId: string | null;
-  occasionId: GreetingOccasionId | null;
+  occasion: string | null;
   celebrity: ApiCelebrity | null;
   template: ApiTemplate | null;
   onDelivered: () => void;
@@ -70,7 +69,7 @@ export type ApprovalStatusProps = {
 
 export function ApprovalStatus({
   referenceId,
-  occasionId,
+  occasion,
   celebrity,
   template,
   onDelivered,
@@ -157,7 +156,7 @@ export function ApprovalStatus({
         </div>
 
         <div className="w-full min-w-0 lg:max-w-md lg:flex-[0.4]">
-          <GreetingOrderSummaryCard occasionId={occasionId} celebrity={celebrity} template={template} />
+          <GreetingOrderSummaryCard occasion={occasion} celebrity={celebrity} template={template} />
           <div className="mt-4 rounded-xl bg-[#1F1F1F] p-5 ring-1 ring-white/[0.06]">
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs font-medium uppercase tracking-wide text-white/45">Status</span>

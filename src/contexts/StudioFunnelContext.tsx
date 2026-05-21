@@ -12,19 +12,21 @@ type StudioFunnelContextValue = {
 const StudioFunnelContext = createContext<StudioFunnelContextValue | null>(null)
 
 export function StudioFunnelProvider({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
-  const [tab, setTab]   = useState<StudioFunnelTab>('greeting')
+  const [open, setOpen]         = useState(false)
+  const [tab, setTab]           = useState<StudioFunnelTab>('greeting')
+  const [sessionId, setSessionId] = useState(0)
 
   const openFunnel = useCallback((t: StudioFunnelTab = 'greeting') => {
     setTab(t)
     setOpen(true)
+    setSessionId((s) => s + 1)
   }, [])
 
   const closeFunnel = useCallback(() => setOpen(false), [])
 
   return (
     <StudioFunnelContext.Provider value={{ openFunnel, closeFunnel }}>
-      <StudioTabbedFunnels open={open} onClose={closeFunnel} initialTab={tab} />
+      <StudioTabbedFunnels open={open} onClose={closeFunnel} initialTab={tab} sessionId={sessionId} />
       {children}
     </StudioFunnelContext.Provider>
   )

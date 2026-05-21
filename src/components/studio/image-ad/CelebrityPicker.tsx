@@ -81,7 +81,7 @@ export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
               filter:      industryToFilter(c.industry),
               priceFromSar: (() => {
                 const pr = c.price_range as Record<string, { min: number; max: number }>;
-                return pr?.["avatar-studio"]?.min ?? pr?.["greeting"]?.min ?? 0;
+                return pr?.["video-ad"]?.min ?? pr?.["greeting"]?.min ?? 0;
               })(),
               imageUrl:    c.thumbnail_url ?? `https://picsum.photos/seed/twinity-${c.id}/400/400`,
             }));

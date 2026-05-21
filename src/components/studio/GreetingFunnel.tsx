@@ -11,8 +11,6 @@ import { PreviewGreetingSample } from "@/components/studio/steps/greeting/Previe
 import { SelectGreetingCelebrity } from "@/components/studio/steps/greeting/SelectGreetingCelebrity";
 import { SelectGreetingTemplate } from "@/components/studio/steps/greeting/SelectGreetingTemplate";
 
-import type { GreetingOccasionId } from "@/lib/studio/greeting-funnel-data";
-import { getGreetingOccasion } from "@/lib/studio/greeting-funnel-data";
 import {
   type ApiCelebrity,
   type ApiTemplate,
@@ -21,15 +19,6 @@ import {
   templateApi,
 } from "@/lib/api";
 import { useUser } from "@/contexts/UserContext";
-
-const OCCASION_PURPOSE: Record<GreetingOccasionId, string> = {
-  birthday:         "Birthday Wish",
-  congratulations:  "Congratulations",
-  ramadan_eid:      "Holiday Greeting",
-  graduation:       "Graduation",
-  new_baby:         "Celebration",
-  custom_occasion:  "Custom",
-};
 
 const horizonPrimaryBtn =
   "inline-flex h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px";
@@ -63,10 +52,10 @@ export type GreetingFunnelWorkspaceProps = {
 export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWorkspaceProps) {
   const { user } = useUser();
 
-  const [currentStep, setCurrentStep] = useState(1);
-  const [occasionId, setOccasionId]   = useState<GreetingOccasionId | null>(null);
-  const [templateId, setTemplateId]   = useState<string | null>(null);
-  const [celebrityId, setCelebrityId] = useState<string | null>(null);
+  const [currentStep, setCurrentStep]     = useState(1);
+  const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
+  const [templateId, setTemplateId]       = useState<string | null>(null);
+  const [celebrityId, setCelebrityId]     = useState<string | null>(null);
 
   const [recipientName, setRecipientName] = useState("");
   const [messageBody, setMessageBody]     = useState("");
@@ -74,18 +63,18 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   const [language, setLanguage]           = useState<"ar" | "en" | "both">("en");
   const [special, setSpecial]             = useState("");
 
-  const [celebrities, setCelebrities] = useState<ApiCelebrity[]>([]);
-  const [templates, setTemplates]     = useState<ApiTemplate[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [allTemplates, setAllTemplates]   = useState<ApiTemplate[]>([]);
+  const [celebrities, setCelebrities]     = useState<ApiCelebrity[]>([]);
+  const [loadingInit, setLoadingInit]     = useState(true);
 
-  const [referenceId, setReferenceId]   = useState<string | null>(null);
-  const [submitting, setSubmitting]     = useState(false);
-  const [submitError, setSubmitError]   = useState("");
+  const [referenceId, setReferenceId]         = useState<string | null>(null);
+  const [submitting, setSubmitting]           = useState(false);
+  const [submitError, setSubmitError]         = useState("");
   const [showSubmitToast, setShowSubmitToast] = useState(false);
 
   useEffect(() => {
     setCurrentStep(1);
-    setOccasionId(null);
+    setSelectedPurpose(null);
     setTemplateId(null);
     setCelebrityId(null);
     setRecipientName("");
@@ -96,19 +85,29 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     setReferenceId(null);
     setSubmitError("");
     setShowSubmitToast(false);
-    setLoadingData(true);
+    setAllTemplates([]);
+    setLoadingInit(true);
 
-    Promise.all([
-      celebrityApi.list(),
-      templateApi.list("greeting"),
-    ])
-      .then(([celebsRes, tplsRes]) => {
+    Promise.all([templateApi.list("greeting"), celebrityApi.list()])
+      .then(([tplRes, celebsRes]) => {
+        setAllTemplates(tplRes.data);
         setCelebrities(celebsRes.data);
-        setTemplates(tplsRes.data);
       })
       .catch(() => {})
-      .finally(() => setLoadingData(false));
+      .finally(() => setLoadingInit(false));
   }, [sessionId]);
+
+  // Unique ordered purposes from all greeting templates
+  const occasions = useMemo(
+    () => [...new Set(allTemplates.map((t) => t.purpose))],
+    [allTemplates],
+  );
+
+  // Templates filtered by the selected purpose
+  const templates = useMemo(
+    () => (selectedPurpose ? allTemplates.filter((t) => t.purpose === selectedPurpose) : []),
+    [allTemplates, selectedPurpose],
+  );
 
   const selectedCelebrity = useMemo(
     () => celebrities.find((c) => c.id === celebrityId) ?? null,
@@ -119,7 +118,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     [templates, templateId],
   );
 
-  const selectionsComplete = Boolean(occasionId && templateId && celebrityId);
+  const selectionsComplete = Boolean(selectedPurpose && templateId && celebrityId);
 
   const SIDEBAR_IDS = SIDEBAR.map((s) => s.id);
 
@@ -131,11 +130,11 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   };
 
   const canNextEarly = useMemo(() => {
-    if (currentStep === 1) return occasionId !== null;
+    if (currentStep === 1) return selectedPurpose !== null;
     if (currentStep === 2) return templateId !== null;
     if (currentStep === 3) return celebrityId !== null;
     return true;
-  }, [currentStep, occasionId, templateId, celebrityId]);
+  }, [currentStep, selectedPurpose, templateId, celebrityId]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
@@ -159,11 +158,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
         // Proceed without audio (stub mode or no ElevenLabs key)
       }
 
-      const purpose = occasionId ? (OCCASION_PURPOSE[occasionId] ?? "Custom") : "Custom";
       const res = await jobApi.create({
         celebrityId:  selectedCelebrity.id,
         productType:  "greeting",
-        purpose,
+        purpose:      selectedPurpose ?? "Custom",
         script:       messageBody,
         templateId:   selectedTemplate?.id,
         duration:     selectedTemplate?.duration,
@@ -195,14 +193,13 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     if (idx < SIDEBAR_IDS.length - 1) setCurrentStep(SIDEBAR_IDS[idx + 1]);
   };
 
-  const occ = getGreetingOccasion(occasionId);
   const greetingPriceMin = selectedCelebrity?.price_range?.greeting?.min;
   const priceLabel = greetingPriceMin
     ? `From SAR ${greetingPriceMin.toLocaleString("en-SA")}`
     : "Contact for pricing";
 
   const summaryParts = {
-    o: occ ? `${occ.icon} ${occ.label}` : null,
+    o: selectedPurpose ?? null,
     t: selectedTemplate?.name ?? null,
     c: selectedCelebrity?.name ?? null,
     p: priceLabel,
@@ -316,12 +313,18 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
 
         <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto p-4 md:p-8">
           <div key={currentStep} className="funnel-step-animate">
-            {currentStep === 1 && <ChooseOccasion selected={occasionId} onSelect={setOccasionId} />}
+            {currentStep === 1 && (
+              <ChooseOccasion
+                occasions={occasions}
+                loading={loadingInit}
+                selectedPurpose={selectedPurpose}
+                onSelect={(p) => { setSelectedPurpose(p); setTemplateId(null); }}
+              />
+            )}
             {currentStep === 2 && (
               <SelectGreetingTemplate
-                occasion={occasionId}
                 templates={templates}
-                loading={loadingData}
+                loading={loadingInit}
                 selectedId={templateId}
                 onSelect={setTemplateId}
               />
@@ -329,14 +332,14 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
             {currentStep === 3 && (
               <SelectGreetingCelebrity
                 celebrities={celebrities}
-                loading={loadingData}
+                loading={loadingInit}
                 selectedId={celebrityId}
                 onSelect={setCelebrityId}
               />
             )}
             {currentStep === 4 && (
               <PreviewGreetingSample
-                occasionId={occasionId}
+                occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
               />
@@ -359,7 +362,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
             {currentStep === 7 && (
               <ApprovalStatus
                 referenceId={referenceId}
-                occasionId={occasionId}
+                occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
                 onDelivered={() => setCurrentStep(8)}
@@ -368,7 +371,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
             {currentStep === 8 && (
               <GreetingDelivery
                 referenceId={referenceId}
-                occasionId={occasionId}
+                occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
                 recipientName={recipientName}
@@ -387,7 +390,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           )}
           {!submitError && (
             <p className="hidden md:block min-w-0 flex-1 truncate text-sm" style={{ color: "rgba(255,255,255,0.40)" }}>
-              <span style={{ color: occasionId     ? "rgba(255,255,255,0.75)" : undefined }}>🎂 {summaryParts.o ?? "Occasion"}</span>
+              <span style={{ color: selectedPurpose ? "rgba(255,255,255,0.75)" : undefined }}>🎂 {summaryParts.o ?? "Occasion"}</span>
               {" · "}
               <span style={{ color: templateId     ? "rgba(255,255,255,0.75)" : undefined }}>🎬 {summaryParts.t ?? "Template"}</span>
               {" · "}

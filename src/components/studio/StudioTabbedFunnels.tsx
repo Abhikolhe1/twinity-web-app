@@ -13,6 +13,7 @@ export type StudioTabbedFunnelsProps = {
   open: boolean;
   onClose: () => void;
   initialTab: StudioFunnelTab;
+  sessionId: number;
 };
 
 const TABS: {
@@ -29,17 +30,11 @@ const TABS: {
   { id: "custom",   label: "Custom Campaign",   mobileLabel: "Custom",   Icon: Building2, badge: "Enterprise", desc: "Full-scope brief"            },
 ];
 
-export function StudioTabbedFunnels({ open, onClose, initialTab }: StudioTabbedFunnelsProps) {
+export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: StudioTabbedFunnelsProps) {
   const [tab, setTab] = useState<StudioFunnelTab>(initialTab);
-  const [sessionId, setSessionId] = useState(0);
 
   useEffect(() => {
-    if (!open) return;
-    const id = setTimeout(() => {
-      setTab(initialTab);
-      setSessionId((s) => s + 1);
-    }, 0);
-    return () => clearTimeout(id);
+    if (open) setTab(initialTab);
   }, [open, initialTab]);
 
   if (!open) return null;

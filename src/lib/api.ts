@@ -57,7 +57,7 @@ export interface ApiCelebrity {
   id: string; name: string; name_ar: string; slug: string; industry: string
   nationality: string; nationality_ar: string; languages: string[]; tags: string[]; tags_ar: string[]
   initials: string; avatar_color: string; thumbnail_url?: string; is_active: boolean; is_featured: boolean
-  price_range: { greeting: {min:number;max:number}; 'avatar-studio': {min:number;max:number}; 'full-body': {min:number;max:number} }
+  price_range: { greeting: {min:number;max:number}; 'video-ad': {min:number;max:number} }
   total_orders: number
 }
 export interface ApiVideoJob {
