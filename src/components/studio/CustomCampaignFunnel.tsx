@@ -643,7 +643,7 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
           ))}
         </div>
         <p className="mt-3 text-[11px]" style={{ color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>
-          All assets are stored in Twinity's secure signed-URL vault. No raw identity or model files are accepted or generated here.
+          All assets are stored in Twinity&apos;s secure signed-URL vault. No raw identity or model files are accepted or generated here.
         </p>
       </div>
     </div>
