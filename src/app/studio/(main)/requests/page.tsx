@@ -25,6 +25,7 @@ import { REQUEST_STATUS_MAP }  from "@/lib/request-statuses";
 import type { RequestStatus }  from "@/lib/request-statuses";
 import type { MockRequest }    from "@/lib/studio/mock-requests";
 import { jobApi, mapApiJobToRequest } from "@/lib/api";
+import { useStudioFunnel } from "@/contexts/StudioFunnelContext";
 
 /* ─────────────────────────────────────────────────────────────────────────────
    DESIGN TOKENS  (scoped to this page; no global pollution)
@@ -555,7 +556,7 @@ function MobileCard({ request, index }: { request: MockRequest; index: number })
    EMPTY STATE
 ───────────────────────────────────────────────────────────────────────────── */
 
-function EmptyState({ typeFilter }: { typeFilter: TabId }) {
+function EmptyState({ typeFilter, onNewRequest }: { typeFilter: TabId; onNewRequest: () => void }) {
   const isAll     = typeFilter === "all";
   const typeLabel = TYPE_META[typeFilter]?.label ?? typeFilter;
   return (
@@ -574,8 +575,9 @@ function EmptyState({ typeFilter }: { typeFilter: TabId }) {
           : `You haven't submitted any ${typeLabel} requests yet.`
         }
       </p>
-      <Link
-        href="/studio"
+      <button
+        type="button"
+        onClick={onNewRequest}
         style={{
           display:"inline-flex", alignItems:"center", gap:6,
           height:34, paddingInline:16, borderRadius:7,
@@ -583,12 +585,12 @@ function EmptyState({ typeFilter }: { typeFilter: TabId }) {
           border:         isAll ? "none" : `1px solid ${T.border}`,
           boxShadow:      isAll ? "0 1px 3px rgba(0,0,0,0.40),0 0 0 1px rgba(124,58,237,0.45)" : "none",
           color:          isAll ? "#FFFFFF" : T.textTertiary,
-          fontSize:13, fontWeight:600, textDecoration:"none",
+          fontSize:13, fontWeight:600, cursor:"pointer",
           transition:"opacity 150ms",
         }}
       >
-        {isAll ? "Browse Services" : `Start a ${typeLabel} Request`}
-      </Link>
+        {isAll ? "New Request" : `Start a ${typeLabel} Request`}
+      </button>
     </div>
   );
 }
@@ -922,6 +924,7 @@ export default function StudioRequestsPage() {
   const [statusFilter, setStatusFilter] = useState<RequestStatus[]>([]);
   const [requests,     setRequests]     = useState<MockRequest[]>([]);
   const [loadingReqs,  setLoadingReqs]  = useState(true);
+  const { openFunnel } = useStudioFunnel();
 
   useEffect(() => {
     jobApi.myJobs(undefined, 1, 100)
@@ -998,22 +1001,23 @@ export default function StudioRequestsPage() {
             </p>
           </div>
 
-          <Link
-            href="/studio"
+          <button
+            type="button"
+            onClick={() => openFunnel("greeting")}
             style={{
               display:"inline-flex", alignItems:"center", gap:6,
               height:34, paddingInline:16, borderRadius:7,
               background: T.violet,
               boxShadow:  "0 1px 3px rgba(0,0,0,0.40),0 0 0 1px rgba(124,58,237,0.45)",
               color:"#FFFFFF", fontSize:13, fontWeight:600,
-              textDecoration:"none", flexShrink:0, transition:"opacity 150ms",
+              border:"none", flexShrink:0, cursor:"pointer", transition:"opacity 150ms",
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity="0.84"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity="1"; }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity="0.84"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity="1"; }}
           >
             <Plus size={13} aria-hidden />
             New Request
-          </Link>
+          </button>
         </div>
 
         {/* ── KPI STRIP ─────────────────────────────────────────────── */}
@@ -1104,7 +1108,7 @@ export default function StudioRequestsPage() {
           ) : filtered.length === 0 ? (
             <div style={{ background:T.cardBg, border:`1px solid ${T.border}`,
                           borderRadius:12, overflow:"hidden" }}>
-              <EmptyState typeFilter={typeFilter} />
+              <EmptyState typeFilter={typeFilter} onNewRequest={() => openFunnel("greeting")} />
             </div>
           ) : (
             <>

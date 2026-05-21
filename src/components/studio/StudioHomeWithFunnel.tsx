@@ -11,10 +11,9 @@ import {
 } from "lucide-react";
 
 import { StudioFunnel }        from "@/components/studio/StudioFunnel";
-import { StudioTabbedFunnels } from "@/components/studio/StudioTabbedFunnels";
-import type { StudioFunnelTab } from "@/components/studio/StudioTabbedFunnels";
 import type { FunnelServiceId } from "@/lib/studio/studio-funnel-data";
 import { useUser }             from "@/contexts/UserContext";
+import { useStudioFunnel }     from "@/contexts/StudioFunnelContext";
 import { jobApi, celebrityApi, type ApiCelebrity } from "@/lib/api";
 import styles from "./StudioHome.module.css";
 
@@ -161,10 +160,9 @@ const GRAIN_SVG =
 export function StudioHomeWithFunnel() {
   const router = useRouter();
   const { user } = useUser();
+  const { openFunnel: openTabbedFunnel } = useStudioFunnel();
 
-  /* funnel state */
-  const [studioOpen, setStudioOpen] = useState(false);
-  const [studioTab,  setStudioTab]  = useState<StudioFunnelTab>("greeting");
+  /* funnel state — custom/intent only; tabbed funnel is in layout context */
   const [customOpen, setCustomOpen] = useState(false);
   const [intent,     setIntent]     = useState<FunnelServiceId | null>(null);
 
@@ -265,10 +263,10 @@ export function StudioHomeWithFunnel() {
   );
 
   function openFunnel(service: FunnelServiceId) {
-    if (service === "greeting")  { setStudioTab("greeting");  setStudioOpen(true); return; }
-    if (service === "campaign")  { setStudioTab("campaign");  setStudioOpen(true); return; }
+    if (service === "greeting")  { openTabbedFunnel("greeting"); return; }
+    if (service === "campaign")  { openTabbedFunnel("campaign"); return; }
     if (service === "image-ad")  { router.push("/studio/image-ad"); return; }
-    if (service === "custom")    { setStudioTab("custom");    setStudioOpen(true); return; }
+    if (service === "custom")    { openTabbedFunnel("custom"); return; }
     setIntent(service);
     setCustomOpen(true);
   }
@@ -283,11 +281,6 @@ export function StudioHomeWithFunnel() {
   return (
     /* FIX 4: pageRoot provides scoped CSS vars (--tx-2, --tx-3, --tx-4) */
     <div className={styles.pageRoot}>
-      <StudioTabbedFunnels
-        open={studioOpen}
-        onClose={() => setStudioOpen(false)}
-        initialTab={studioTab}
-      />
       <StudioFunnel
         open={customOpen}
         onClose={() => setCustomOpen(false)}
@@ -336,10 +329,8 @@ export function StudioHomeWithFunnel() {
               <button
                 type="button"
                 onClick={() => {
-                  /* Image Ad is a separate page — funnel CTA always opens the 3-tab video funnel */
                   const funnelTarget = activeLic.funnel === "image-ad" ? "greeting" : activeLic.funnel;
-                  setStudioTab(funnelTarget as StudioFunnelTab);
-                  setStudioOpen(true);
+                  openTabbedFunnel(funnelTarget as Parameters<typeof openTabbedFunnel>[0]);
                 }}
                 className="inline-flex h-9 items-center gap-2 rounded-lg px-5 text-[13px] font-semibold text-white transition-opacity duration-150 hover:opacity-90"
                 style={{ background: "#7C3AED", boxShadow: "0 1px 3px rgba(0,0,0,0.40), 0 0 0 1px rgba(124,58,237,0.50)" }}

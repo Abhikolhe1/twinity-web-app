@@ -98,7 +98,7 @@ export const SIDEBAR_STEPS: Omit<SidebarStep, "icon">[] = [
   { id: 3, label: "Celebrity", locked: false },
   { id: 4, label: "Preview Sample", locked: false },
   { id: 5, label: "Configure", locked: false },
-  { id: 6, label: "Login & Pay", locked: true, afterPayment: true },
+  { id: 6, label: "Sign In", locked: true, afterPayment: true },
   { id: 7, label: "Submit Brief", locked: true },
   { id: 8, label: "Approval", locked: true },
   { id: 9, label: "Delivery", locked: true },
@@ -174,22 +174,11 @@ export function SidebarNav({ currentStep, onStepClick }: SidebarNavProps) {
               >
                 {s.label}
               </span>
-              {isLocked && (
-                <span className="shrink-0 text-[10px]" style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden>🔒</span>
-              )}
             </>
           );
 
           return (
             <li key={s.id}>
-              {s.afterPayment && s.id === 6 ? (
-                <div
-                  className="my-2 px-3 text-[10px] font-bold uppercase"
-                  style={{ color: "rgba(255,255,255,0.15)", letterSpacing: "0.14em" }}
-                >
-                  After Payment
-                </div>
-              ) : null}
               <button
                 type="button"
                 disabled={isLocked || (!isDone && s.id !== currentStep)}

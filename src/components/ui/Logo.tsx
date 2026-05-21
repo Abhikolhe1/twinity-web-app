@@ -1,8 +1,7 @@
 import Image from "next/image";
 
-const WHITE_LOGO_SRC = `/images/${encodeURIComponent("Logo white@4x.png")}`;
+const WHITE_LOGO_SRC = "/logo/logo-white.png";
 
-/** Intrinsic size (matches @4x export). */
 const LOGO_WIDTH = 3396;
 const LOGO_HEIGHT = 1327;
 
