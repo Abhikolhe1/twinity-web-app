@@ -86,6 +86,7 @@ function MediaElement({
     <video
       src={url}
       controls={!blurred}
+      controlsList="nodownload"
       style={mediaStyle}
       playsInline
       preload="metadata"
@@ -234,7 +235,7 @@ function LicenseInfoCard({
             }}
           >
             <DownloadCloud size={18} />
-            Download Content
+            Download Video
           </a>
           {licenseExpiry && (
             <p style={{
@@ -254,6 +255,7 @@ function LicenseInfoCard({
           )}
         </div>
       )}
+
     </div>
   );
 }

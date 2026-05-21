@@ -97,7 +97,7 @@ function GateCircle({ status, gateId }: { status: GateStatus; gateId: number }) 
         style={{
           ...base,
           background: "transparent",
-          border:     "1px dashed #444444",
+          border:     "1px dashed #686868",
         }}
         title="Not required for this request type"
       >
@@ -162,9 +162,9 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
       >
         {/* ── Desktop: horizontal row ────────────────────────────────────── */}
         <div className="hidden md:flex items-start">
-          {GATES.map((gate, idx) => {
+          {GATES.filter(g => !(g.id === 4 && requestType === "GREETING")).map((gate, idx, arr) => {
             const status    = resolvedStatuses[gate.id] ?? "pending";
-            const isLast    = idx === GATES.length - 1;
+            const isLast    = idx === arr.length - 1;
             const isActive  = status === "active";
             const isSkipped = status === "skipped";
             const isDone    = status === "completed";
@@ -182,7 +182,7 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
                       fontWeight: isActive ? 600 : 500,
                       color:      isActive  ? "#C4B5FD"
                                 : isDone    ? "#A0A0A0"
-                                : isSkipped ? "#444444"
+                                : isSkipped ? "#686868"
                                 : "#606060",
                       lineHeight: 1.3,
                     }}>
@@ -231,9 +231,9 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
 
         {/* ── Mobile: vertical list ──────────────────────────────────────── */}
         <div className="flex flex-col gap-3 md:hidden">
-          {GATES.map((gate, idx) => {
+          {GATES.filter(g => !(g.id === 4 && requestType === "GREETING")).map((gate, idx, arr) => {
             const status    = resolvedStatuses[gate.id] ?? "pending";
-            const isLast    = idx === GATES.length - 1;
+            const isLast    = idx === arr.length - 1;
             const isActive  = status === "active";
             const isSkipped = status === "skipped";
             const isDone    = status === "completed";
@@ -253,7 +253,7 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
                       fontWeight: isActive ? 600 : 500,
                       color:      isActive  ? "#C4B5FD"
                                 : isDone    ? "#A0A0A0"
-                                : isSkipped ? "#444444"
+                                : isSkipped ? "#686868"
                                 : "#606060",
                       lineHeight: 1.3,
                     }}>
