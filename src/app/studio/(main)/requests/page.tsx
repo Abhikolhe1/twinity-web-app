@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   AlertCircle,
@@ -331,12 +332,34 @@ function GateCell({ status }: { status: RequestStatus }) {
 function TableRow({ request, isLast }: {
   request: MockRequest; index: number; isLast: boolean;
 }) {
-  const [hov, setHov] = useState(false);
+  const router                        = useRouter();
+  const [hov,         setHov]         = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const accent      = ROW_ACCENT[request.status];
   const dimmed      = request.status === "REJECTED" || request.status === "CANCELLED";
   const hasVideo    = VIDEO_READY.has(request.status);
-  const videoUrl    = (request as MockRequest & { videoUrl?: string }).videoUrl ?? null;
+  const videoUrl    = request.previewUrl ?? null;
   const showActions = hasVideo;
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (downloading) return;
+    try {
+      setDownloading(true);
+      const blob = await jobApi.getDownloadBlob(request.requestId);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${request.requestId}.mp4`;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      /* ignore — user can try from detail page */
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   return (
     <Link
@@ -417,6 +440,11 @@ function TableRow({ request, isLast }: {
             <button
               aria-label="Preview video"
               title="Preview video"
+              onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/studio/requests/${request.requestId}`);
+              }}
               style={{
                 display:         "inline-flex",
                 alignItems:      "center",
@@ -436,12 +464,11 @@ function TableRow({ request, isLast }: {
             </button>
 
             {/* Download */}
-            <a
-              href={videoUrl ?? "#"}
-              download
-              aria-label="Download video"
-              title="Download video"
-              onClick={e => e.stopPropagation()}
+            <button
+              aria-label={downloading ? "Downloading…" : "Download video"}
+              title={downloading ? "Downloading…" : "Download video"}
+              disabled={downloading}
+              onClick={handleDownload}
               style={{
                 display:         "inline-flex",
                 alignItems:      "center",
@@ -451,15 +478,15 @@ function TableRow({ request, isLast }: {
                 borderRadius:    7,
                 border:          `1px solid ${hov ? "rgba(34,197,94,0.35)" : "rgba(255,255,255,0.09)"}`,
                 background:      hov ? "rgba(34,197,94,0.10)" : "rgba(255,255,255,0.04)",
-                cursor:          "pointer",
+                cursor:          downloading ? "wait" : "pointer",
                 color:           hov ? T.green : T.textMuted,
+                opacity:         downloading ? 0.6 : 1,
                 transition:      "all 150ms ease",
-                textDecoration:  "none",
                 flexShrink:      0,
               }}
             >
               <Download size={11} />
-            </a>
+            </button>
           </>
         ) : null}
       </div>
@@ -1167,5 +1194,6 @@ export default function StudioRequestsPage() {
 
       </div>
     </div>
+
   );
 }

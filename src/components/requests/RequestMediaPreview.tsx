@@ -62,7 +62,7 @@ function MediaElement({
   const mediaStyle: React.CSSProperties = {
     width:      "100%",
     height:     "100%",
-    objectFit:  "cover",
+    objectFit:  "contain",
     display:    "block",
     filter:     blurred ? "blur(1.5px)" : "none",
     opacity:    blurred ? 0.65 : 1,

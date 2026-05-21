@@ -97,7 +97,7 @@ function GateCircle({ status, gateId }: { status: GateStatus; gateId: number }) 
         style={{
           ...base,
           background: "transparent",
-          border:     "1px dashed #2A2A2A",
+          border:     "1px dashed #444444",
         }}
         title="Not required for this request type"
       >
@@ -182,7 +182,7 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
                       fontWeight: isActive ? 600 : 500,
                       color:      isActive  ? "#C4B5FD"
                                 : isDone    ? "#A0A0A0"
-                                : isSkipped ? "#2A2A2A"
+                                : isSkipped ? "#444444"
                                 : "#606060",
                       lineHeight: 1.3,
                     }}>
@@ -253,7 +253,7 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
                       fontWeight: isActive ? 600 : 500,
                       color:      isActive  ? "#C4B5FD"
                                 : isDone    ? "#A0A0A0"
-                                : isSkipped ? "#3D3D3D"
+                                : isSkipped ? "#444444"
                                 : "#606060",
                       lineHeight: 1.3,
                     }}>
