@@ -758,16 +758,17 @@ export function StudioHomeWithFunnel() {
 
                   {/* Start request link */}
                   {sel && (
-                    <button
-                      type="button"
-                      className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-medium transition-colors duration-150"
+                    <span
+                      role="button"
+                      tabIndex={-1}
+                      className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-medium transition-colors duration-150 cursor-pointer"
                       style={{ color: "var(--tx-2)" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.90)"; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--tx-2)"; }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLSpanElement).style.color = "rgba(255,255,255,0.90)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLSpanElement).style.color = "var(--tx-2)"; }}
                       onClick={(e) => { e.stopPropagation(); openFunnel(funnel); }}
                     >
                       Start request <ArrowRight size={10} />
-                    </button>
+                    </span>
                   )}
                 </button>
               );

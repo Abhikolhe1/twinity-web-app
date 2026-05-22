@@ -272,6 +272,7 @@ export default function RequestDetailPage() {
             licenseExpiry={request.licenseExpiry}
             licensedChannels={request.licensedChannels}
             clientName={request.clientName}
+            referenceId={request.orderId}
           />
 
           {(request.type === "GREETING" || request.type === "AD_IMAGE") &&

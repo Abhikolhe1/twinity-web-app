@@ -3,6 +3,7 @@
 import React from "react";
 import { AlertTriangle, DownloadCloud, Eye, Film, Image as ImageIcon, XCircle } from "lucide-react";
 
+import { jobApi } from "@/lib/api";
 import type { RequestStatus } from "@/lib/request-statuses";
 
 /* ── Props ───────────────────────────────────────────────────────────────── */
@@ -21,6 +22,7 @@ export type RequestMediaPreviewProps = {
   licensedChannels?: string[];
   licenseId?:        string;
   clientName?:       string;
+  referenceId?:      string;
 };
 
 /* ── Helpers ─────────────────────────────────────────────────────────────── */
@@ -138,6 +140,17 @@ function WatermarkOverlay() {
   );
 }
 
+/* ── Download helper — proxies through API to avoid S3 CORS restrictions ── */
+async function downloadViaApi(referenceId: string) {
+  const blob = await jobApi.getDownloadBlob(referenceId);
+  const blobUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = `${referenceId}.mp4`;
+  a.click();
+  URL.revokeObjectURL(blobUrl);
+}
+
 /* ── License info card ───────────────────────────────────────────────────── */
 function LicenseInfoCard({
   licenseId,
@@ -145,13 +158,16 @@ function LicenseInfoCard({
   licenseExpiry,
   licensedChannels,
   finalUrl,
+  referenceId,
 }: {
   licenseId?: string;
   clientName?: string;
   licenseExpiry?: string;
   licensedChannels?: string[];
   finalUrl?: string;
+  referenceId?: string;
 }) {
+  const [downloading, setDownloading] = React.useState(false);
   const expiryDays   = licenseExpiry ? daysUntil(licenseExpiry) : null;
   const urgentExpiry = expiryDays !== null && expiryDays <= 3;
 
@@ -215,9 +231,15 @@ function LicenseInfoCard({
 
       {finalUrl && (
         <div style={{ marginTop: 16 }}>
-          <a
-            href={finalUrl}
-            download
+          <button
+            type="button"
+            disabled={downloading || !referenceId}
+            onClick={() => {
+              if (!referenceId) return;
+              setDownloading(true);
+              downloadViaApi(referenceId)
+                .finally(() => setDownloading(false));
+            }}
             style={{
               display:        "flex",
               alignItems:     "center",
@@ -226,17 +248,18 @@ function LicenseInfoCard({
               width:          "100%",
               height:         44,
               borderRadius:   10,
-              background:     "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)",
+              background:     downloading ? "rgba(124,58,237,0.5)" : "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)",
               color:          "#FFFFFF",
               fontWeight:     600,
               fontSize:       14,
-              textDecoration: "none",
+              border:         "none",
+              cursor:         downloading ? "not-allowed" : "pointer",
               boxShadow:      "0 4px 16px rgba(124,58,237,0.25)",
             }}
           >
             <DownloadCloud size={18} />
-            Download Video
-          </a>
+            {downloading ? "Downloading…" : "Download Video"}
+          </button>
           {licenseExpiry && (
             <p style={{
               marginTop:      8,
@@ -284,13 +307,15 @@ export function RequestMediaPreview({
   licensedChannels,
   licenseId,
   clientName,
+  referenceId,
 }: RequestMediaPreviewProps) {
 
-  const isImageAd   = requestType === "AD_IMAGE" || mediaType === "image";
+  const isImageAd   = requestType === "AD_IMAGE";
   /* Resolve the effective preview / final URLs for AD_IMAGE */
   const effectivePreview = previewUrl ?? (previewImageUrl ?? undefined);
   const effectiveFinal   = finalUrl   ?? (finalImageUrl   ?? undefined);
-  const mediaKind: "video" | "image" | "audio" = isImageAd ? "image" : (mediaType ?? "video");
+  // mediaType from props is authoritative — AD_IMAGE produces video output (Seedance 2.0)
+  const mediaKind: "video" | "image" | "audio" = mediaType ?? "video";
   const boxStyle: React.CSSProperties = isImageAd
     ? { ...aspectRatioStyle(aspectRatio), position: "relative", width: "100%", overflow: "hidden" }
     : { ...aspectBox };
@@ -388,6 +413,7 @@ export function RequestMediaPreview({
           licenseExpiry={licenseExpiry}
           licensedChannels={licensedChannels}
           finalUrl={status === "DELIVERED" ? (effectiveFinal ?? undefined) : undefined}
+          referenceId={referenceId}
         />
       </div>
     );
