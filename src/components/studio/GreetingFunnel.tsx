@@ -142,6 +142,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     return true;
   }, [currentStep, selectedPurpose, templateId, celebrityId]);
 
+  useEffect(() => {
+    setMessageBody(selectedTemplate?.sample_script ?? "");
+  }, [templateId]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
 
@@ -371,8 +375,6 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 fromName={fromName}
                 language={language}
                 special={special}
-                templateScript={selectedTemplate?.sample_script}
-                templateScriptAr={selectedTemplate?.sample_script_ar}
                 onRecipientNameChange={setRecipientName}
                 onMessageChange={setMessageBody}
                 onFromNameChange={setFromName}

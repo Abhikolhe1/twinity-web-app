@@ -180,7 +180,7 @@ function LicenseInfoCard({
       {licenseExpiry && (
         <div style={{ ...rowStyle, borderBottom: "none" }}>
           <span style={labelStyle}>Valid until</span>
-          <span style={{ ...valueStyle, color: urgentExpiry ? "#EF4444" : "#F0F0F0" }}>
+          <span style={{ ...valueStyle, color: urgentExpiry ? "#EF4444" : "#0F0A1E" }}>
             {formatExpiry(licenseExpiry)}
           </span>
         </div>
@@ -339,7 +339,7 @@ export function RequestMediaPreview({
             background:     "#F8F7FF",
             minHeight:      200,
           }}>
-            {isImageAd ? <ImageIcon size={40} color="#2A2A2A" /> : <Film size={40} color="rgba(0,0,0,0.18)" />}
+            {isImageAd ? <ImageIcon size={40} color="rgba(0,0,0,0.18)" /> : <Film size={40} color="rgba(0,0,0,0.18)" />}
             <p style={{ fontSize: 14, color: "rgba(15,10,30,0.45)", margin: 0}}>
               {isImageAd ? "Image ready — link pending" : "Content ready — link pending"}
             </p>
@@ -412,7 +412,7 @@ export function RequestMediaPreview({
       background:     "#F8F7FF",
     }}>
       <Film size={40} color="rgba(0,0,0,0.18)" />
-      <p style={{ fontSize: 14, fontWeight: 600, color: "#A0A0A0", margin: 0 }}>
+      <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(15,10,30,0.45)", margin: 0 }}>
         Content not yet ready
       </p>
       <p style={{ fontSize: 12, color: "#606060", margin: 0, textAlign: "center", maxWidth: 260 }}>

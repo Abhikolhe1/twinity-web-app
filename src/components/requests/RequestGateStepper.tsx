@@ -110,8 +110,8 @@ function GateCircle({ status, gateId }: { status: GateStatus; gateId: number }) 
   return (
     <div style={{
       ...base,
-      background: "#161616",
-      border:     "1px solid #2A2A2A",
+      background: "#F5F5F5",
+      border:     "1px solid rgba(0,0,0,0.10)",
     }}>
       <span style={{ color: "#606060", fontWeight: 500, fontSize: 13, userSelect: "none" }}>
         {gateId}
@@ -153,11 +153,12 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
       {/* Task 4.6: card matches Studio Home dark-solid card pattern */}
       <div
         style={{
-          background:   "#161616",
-          border:       "1px solid #2A2A2A",
+          background:   "#FFFFFF",
+          border:       "1px solid rgba(0,0,0,0.08)",
           borderRadius: 16,
           padding:      24,
           width:        "100%",
+          boxShadow:    "0 1px 4px rgba(0,0,0,0.05)",
         }}
       >
         {/* ── Desktop: horizontal row ────────────────────────────────────── */}
@@ -220,7 +221,7 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
                         borderRadius: 1,
                       }} />
                     ) : (
-                      <div style={{ height: 1, background: "#2A2A2A" }} />
+                      <div style={{ height: 1, background: "rgba(0,0,0,0.10)" }} />
                     )}
                   </div>
                 )}
@@ -305,7 +306,7 @@ export function RequestGateStepper({ gateStatuses, requestType, complianceRequir
                     marginInlineStart: 17,
                     background:  isDone
                       ? "linear-gradient(180deg, #8B5CF6 0%, #3D1A6E 100%)"
-                      : "#2A2A2A",
+                      : "rgba(0,0,0,0.10)",
                     borderRadius: 1,
                     flexShrink:  0,
                   }} />

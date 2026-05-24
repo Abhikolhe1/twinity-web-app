@@ -52,13 +52,13 @@ function Toast({
       display:    "flex",
       alignItems: "flex-start",
       gap:        12,
-      background: "#161616",
-      border:     "1px solid #2A2A2A",
+      background: "#FFFFFF",
+      border:     "1px solid rgba(0,0,0,0.10)",
       borderRadius: 12,
       padding:    "14px 18px",
       boxShadow:  isSuccess
-        ? "0 0 24px rgba(34,197,94,0.12), 0 8px 32px rgba(0,0,0,0.6)"
-        : "0 0 24px rgba(239,68,68,0.12), 0 8px 32px rgba(0,0,0,0.6)",
+        ? "0 0 24px rgba(34,197,94,0.10), 0 8px 32px rgba(0,0,0,0.12)"
+        : "0 0 24px rgba(239,68,68,0.10), 0 8px 32px rgba(0,0,0,0.12)",
       animation:  "funnelStepIn 200ms ease both",
       maxWidth:   360,
     }}>
@@ -67,9 +67,9 @@ function Toast({
         : <AlertTriangle size={20} color="#EF4444" style={{ flexShrink: 0, marginTop: 1 }} />
       }
       <div>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#F0F0F0" }}>{message}</p>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#0F0A1E" }}>{message}</p>
         {sub && (
-          <p style={{ margin: "3px 0 0", fontSize: 12, color: "#A0A0A0" }}>{sub}</p>
+          <p style={{ margin: "3px 0 0", fontSize: 12, color: "rgba(15,10,30,0.50)" }}>{sub}</p>
         )}
       </div>
     </div>
@@ -80,14 +80,14 @@ function Toast({
 function DegradedState({ onRefresh }: { onRefresh: () => void }) {
   return (
     <div style={{
-      background:   "#161616",
-      border:       "1px solid #2A2A2A",
+      background:   "#FFFFFF",
+      border:       "1px solid rgba(0,0,0,0.08)",
       borderRadius: 16,
       padding:      "24px 20px",
       textAlign:    "center",
     }}>
       <AlertTriangle size={28} color="#606060" style={{ margin: "0 auto 10px" }} />
-      <p style={{ fontSize: 13, fontWeight: 600, color: "#A0A0A0", margin: 0 }}>
+      <p style={{ fontSize: 13, fontWeight: 600, color: "rgba(15,10,30,0.50)", margin: 0 }}>
         Credit information unavailable — refresh to try again.
       </p>
       <button
@@ -100,9 +100,9 @@ function DegradedState({ onRefresh }: { onRefresh: () => void }) {
           height:       36,
           paddingInline: 16,
           borderRadius: 8,
-          border:       "1px solid #3D3D3D",
+          border:       "1px solid rgba(0,0,0,0.12)",
           background:   "transparent",
-          color:        "#A0A0A0",
+          color:        "rgba(15,10,30,0.45)",
           fontSize:     13,
           fontWeight:   500,
           cursor:       "pointer",
@@ -196,7 +196,7 @@ function SubmitButton({
 
   if (state === "cooldown") {
     return (
-      <button type="button" disabled style={{ ...base, background: "#1E1E1E", border: "1px solid #2A2A2A", color: "#606060", cursor: "not-allowed" }}>
+      <button type="button" disabled style={{ ...base, background: "#F5F5F5", border: "1px solid rgba(0,0,0,0.10)", color: "rgba(15,10,30,0.35)", cursor: "not-allowed" }}>
         <Clock size={14} />
         Wait {cooldownSeconds}s
       </button>
@@ -205,7 +205,7 @@ function SubmitButton({
 
   /* no-credits */
   return (
-    <button type="button" disabled style={{ ...base, background: "#111111", border: "1px solid #2A2A2A", color: "#606060", cursor: "not-allowed" }}>
+    <button type="button" disabled style={{ ...base, background: "#F5F5F5", border: "1px solid rgba(0,0,0,0.10)", color: "rgba(15,10,30,0.35)", cursor: "not-allowed" }}>
       <Lock size={14} />
       No Credits
     </button>
@@ -460,8 +460,8 @@ function RegenerationStudioInner({
       {/* Section container — entrance animation matching Studio Home reveal() */}
       <div
         style={{
-          background:   "#161616",
-          border:       "1px solid #2A2A2A",
+          background:   "#FFFFFF",
+          border:       "1px solid rgba(0,0,0,0.08)",
           borderRadius: 16,
           padding:      24,
           animation:    "fadeUp 250ms cubic-bezier(0.16,1,0.3,1) both",
@@ -485,10 +485,10 @@ function RegenerationStudioInner({
               <Sparkles size={14} color="#7C3AED" />
             </div>
             <div>
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#F0F0F0", margin: 0, lineHeight: 1.3 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#0F0A1E", margin: 0, lineHeight: 1.3 }}>
                 {isImageMode ? "Regenerate Image" : "Regenerate Greeting"}
               </p>
-              <p style={{ fontSize: 12, color: "#A0A0A0", marginTop: 3 }}>
+              <p style={{ fontSize: 12, color: "rgba(15,10,30,0.50)", marginTop: 3 }}>
                 {isImageMode
                   ? "Request a new version — each attempt uses 1 credit."
                   : `Request a new version — each attempt uses ${REGENERATION_CREDIT_COST} credit.`}
@@ -504,7 +504,7 @@ function RegenerationStudioInner({
         </div>
 
         {/* Divider */}
-        <div style={{ height: 1, background: "#2A2A2A", margin: "16px 0" }} />
+        <div style={{ height: 1, background: "rgba(0,0,0,0.08)", margin: "16px 0" }} />
 
         {/* ── Credit gate ──────────────────────────────────────────────── */}
         <RegenerationCreditGate
@@ -548,7 +548,7 @@ function RegenerationStudioInner({
             <div style={{
               position:         "absolute",
               inset:            0,
-              background:       "rgba(13,13,13,0.85)",
+              background:       "rgba(255,255,255,0.85)",
               backdropFilter:   "blur(4px)",
               borderRadius:     10,
               display:          "flex",
@@ -560,10 +560,10 @@ function RegenerationStudioInner({
               padding:          24,
             }}>
               <Lock size={32} color="#606060" />
-              <p style={{ fontSize: 15, fontWeight: 700, color: "#F0F0F0", margin: 0 }}>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "#0F0A1E", margin: 0 }}>
                 No credits remaining
               </p>
-              <p style={{ fontSize: 13, color: "#A0A0A0", margin: "4px 0 0" }}>
+              <p style={{ fontSize: 13, color: "rgba(15,10,30,0.50)", margin: "4px 0 0" }}>
                 Purchase credits to regenerate your greeting.
               </p>
               {onPurchaseCredits && (
@@ -636,7 +636,7 @@ function RegenerationStudioInner({
 
         {/* ── Regeneration history ──────────────────────────────────────── */}
         {history.length > 0 && (
-          <div style={{ marginTop: 24, borderTop: "1px solid #2A2A2A", paddingTop: 20 }}>
+          <div style={{ marginTop: 24, borderTop: "1px solid rgba(0,0,0,0.08)", paddingTop: 20 }}>
             <RegenerationHistory
               attempts={history}
               onSelectAttempt={(attempt) => {

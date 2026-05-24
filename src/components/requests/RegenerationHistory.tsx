@@ -77,8 +77,9 @@ function AttemptCard({
         display:      "flex",
         alignItems:   "center",
         gap:          12,
-        background:   "#161616",
-        border:       `1px solid ${hovered ? "rgba(124,58,237,0.20)" : "#2A2A2A"}`,
+        background:   "#FFFFFF",
+        border:       `1px solid ${hovered ? "rgba(124,58,237,0.25)" : "rgba(0,0,0,0.08)"}`,
+        boxShadow:    hovered ? "0 2px 12px rgba(124,58,237,0.08)" : "0 1px 3px rgba(0,0,0,0.04)",
         borderRadius: 12,
         padding:      "14px 16px",
         marginBottom: 8,
@@ -112,7 +113,7 @@ function AttemptCard({
       {/* Center info */}
       <div style={{ flex: 1, minWidth: 0 }}>
         {attempt.prompt.trim() ? (
-          <p style={{ fontSize: 13, fontWeight: 500, color: "#F0F0F0", margin: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 500, color: "#0F0A1E", margin: 0 }}>
             {truncatedPrompt}
           </p>
         ) : (
@@ -142,9 +143,9 @@ function AttemptCard({
             style={{
               fontSize:     11,
               fontWeight:   500,
-              color:        "#A0A0A0",
+              color:        "rgba(15,10,30,0.45)",
               background:   "transparent",
-              border:       "1px solid #2A2A2A",
+              border:       "1px solid rgba(0,0,0,0.10)",
               borderRadius: 6,
               padding:      "4px 10px",
               cursor:       "pointer",
@@ -157,8 +158,8 @@ function AttemptCard({
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget as HTMLButtonElement;
-              el.style.borderColor = "#2A2A2A";
-              el.style.color       = "#A0A0A0";
+              el.style.borderColor = "rgba(0,0,0,0.10)";
+              el.style.color       = "rgba(15,10,30,0.45)";
             }}
           >
             View

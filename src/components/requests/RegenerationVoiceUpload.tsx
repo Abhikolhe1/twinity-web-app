@@ -80,7 +80,7 @@ export function RegenerationVoiceUpload({
   return (
     <div style={{ opacity: disabled ? 0.4 : 1, pointerEvents: disabled ? "none" : "auto", cursor: disabled ? "not-allowed" : "auto" }}>
       {/* Label */}
-      <p style={{ fontSize: 12, fontWeight: 600, color: "#F0F0F0", margin: "0 0 2px" }}>
+      <p style={{ fontSize: 12, fontWeight: 600, color: "#0F0A1E", margin: "0 0 2px" }}>
         Voice Reference <span style={{ color: "#606060", fontWeight: 400 }}>(optional)</span>
       </p>
       <p style={{ fontSize: 11, color: "#606060", margin: "0 0 10px", lineHeight: 1.5 }}>
@@ -105,8 +105,8 @@ export function RegenerationVoiceUpload({
             display:      "flex",
             alignItems:   "center",
             gap:          12,
-            background:   "#1E1E1E",
-            border:       "1px solid #2A2A2A",
+            background:   "#F8F7FF",
+            border:       "1px solid rgba(0,0,0,0.08)",
             borderRadius: 10,
             padding:      "12px 16px",
           }}
@@ -133,7 +133,7 @@ export function RegenerationVoiceUpload({
               style={{
                 fontSize:     13,
                 fontWeight:   600,
-                color:        "#F0F0F0",
+                color:        "#0F0A1E",
                 margin:       0,
                 overflow:     "hidden",
                 textOverflow: "ellipsis",
@@ -187,8 +187,8 @@ export function RegenerationVoiceUpload({
               ? "rgba(124,58,237,0.08)"
               : isActive
                 ? "rgba(124,58,237,0.04)"
-                : "#161616",
-            border:       `2px dashed ${dragOver ? "#7C3AED" : isActive ? "rgba(124,58,237,0.40)" : "#2A2A2A"}`,
+                : "#FFFFFF",
+            border:       `2px dashed ${dragOver ? "#7C3AED" : isActive ? "rgba(124,58,237,0.40)" : "rgba(0,0,0,0.12)"}`,
             borderRadius: 10,
             padding:      20,
             textAlign:    "center",
@@ -200,7 +200,7 @@ export function RegenerationVoiceUpload({
         >
           <Mic
             size={24}
-            color={isActive ? "#7C3AED" : "#2A2A2A"}
+            color={isActive ? "#7C3AED" : "rgba(0,0,0,0.20)"}
             style={{ margin: "0 auto", transition: "color 180ms", display: "block" }}
           />
           <p style={{

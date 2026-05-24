@@ -51,7 +51,7 @@ export function RegenerationPromptInput({
     <div>
       {/* Label */}
       <label>
-        <p style={{ fontSize: 12, fontWeight: 600, color: "#F0F0F0", margin: "0 0 2px" }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: "#0F0A1E", margin: "0 0 2px" }}>
           Describe your changes
         </p>
         <p style={{ fontSize: 11, color: "#606060", margin: "0 0 10px", lineHeight: 1.5 }}>
@@ -72,11 +72,11 @@ export function RegenerationPromptInput({
             style={{
               display:        "block",
               width:          "100%",
-              background:     "#1E1E1E",
-              border:         `1px solid ${focused ? "#7C3AED" : "#2A2A2A"}`,
+              background:     "#FFFFFF",
+              border:         `1px solid ${focused ? "#7C3AED" : "rgba(0,0,0,0.10)"}`,
               borderRadius:   10,
               padding:        "14px 16px",
-              color:          "#F0F0F0",
+              color:          "#0F0A1E",
               fontSize:       14,
               lineHeight:     1.6,
               minHeight:      100,
@@ -154,12 +154,12 @@ function QuickPromptPill({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        background:   "#1E1E1E",
-        border:       `1px solid ${hovered ? "rgba(124,58,237,0.35)" : "#2A2A2A"}`,
+        background:   "#F8F7FF",
+        border:       `1px solid ${hovered ? "rgba(124,58,237,0.35)" : "rgba(0,0,0,0.10)"}`,
         borderRadius: 9999,
         padding:      "4px 12px",
         fontSize:     11,
-        color:        hovered ? "#C4B5FD" : "#A0A0A0",
+        color:        hovered ? "#C4B5FD" : "rgba(15,10,30,0.45)",
         cursor:       "pointer",
         transition:   "border-color 150ms, color 150ms",
         whiteSpace:   "nowrap",

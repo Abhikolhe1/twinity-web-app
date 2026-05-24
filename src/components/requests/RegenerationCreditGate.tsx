@@ -47,8 +47,8 @@ export function RegenerationCreditGate({
   return (
     <div
       style={{
-        background:   "#161616",
-        border:       "1px solid #2A2A2A",
+        background:   "#FFFFFF",
+        border:       "1px solid rgba(0,0,0,0.08)",
         borderRadius: 12,
         padding:      "16px 20px",
       }}
@@ -73,10 +73,10 @@ export function RegenerationCreditGate({
         >
           <AlertTriangle size={14} color="#F59E0B" style={{ flexShrink: 0, marginTop: 1 }} />
           <div style={{ flex: 1 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#0F0A1E", margin: 0 }}>
               Only {available} credit{available !== 1 ? "s" : ""} remaining
             </p>
-            <p style={{ fontSize: 12, color: "#A0A0A0", marginTop: 3, margin: "3px 0 0" }}>
+            <p style={{ fontSize: 12, color: "rgba(15,10,30,0.50)", marginTop: 3, margin: "3px 0 0" }}>
               Purchase more credits to continue regenerating.{" "}
               {onPurchaseCredits && (
                 <button
@@ -119,8 +119,8 @@ export function RegenerationCreditGate({
               width:          52,
               height:         52,
               borderRadius:   9999,
-              background:     "#1E1E1E",
-              border:         "1px solid #2A2A2A",
+              background:     "#F5F5F5",
+              border:         "1px solid rgba(0,0,0,0.10)",
               display:        "flex",
               alignItems:     "center",
               justifyContent: "center",
@@ -128,10 +128,10 @@ export function RegenerationCreditGate({
           >
             <Lock size={22} color="#606060" />
           </div>
-          <p style={{ fontSize: 15, fontWeight: 700, color: "#F0F0F0", margin: "4px 0 0" }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: "#0F0A1E", margin: "4px 0 0" }}>
             No credits remaining
           </p>
-          <p style={{ fontSize: 13, color: "#A0A0A0", margin: "2px 0 0" }}>
+          <p style={{ fontSize: 13, color: "rgba(15,10,30,0.50)", margin: "2px 0 0" }}>
             Purchase credits to regenerate your greeting.
           </p>
           {onPurchaseCredits && (
@@ -196,7 +196,7 @@ export function RegenerationCreditGate({
               marginTop:    10,
               height:       4,
               borderRadius: 9999,
-              background:   "#1E1E1E",
+              background:   "rgba(0,0,0,0.07)",
               overflow:     "hidden",
             }}
           >

@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
-
 export type PersonalizeMessageProps = {
   recipientName: string;
   message: string;
   fromName: string;
   language: "ar" | "en" | "both";
   special: string;
-  templateScript?: string;
-  templateScriptAr?: string;
   onRecipientNameChange: (v: string) => void;
   onMessageChange: (v: string) => void;
   onFromNameChange: (v: string) => void;
@@ -18,7 +14,7 @@ export type PersonalizeMessageProps = {
   onSubmit: () => void;
 };
 
-const MAX_MSG = 300;
+const MAX_MSG = 1000;
 
 export function PersonalizeMessage({
   recipientName,
@@ -26,8 +22,6 @@ export function PersonalizeMessage({
   fromName,
   language,
   special,
-  templateScript,
-  templateScriptAr,
   onRecipientNameChange,
   onMessageChange,
   onFromNameChange,
@@ -35,7 +29,6 @@ export function PersonalizeMessage({
   onSpecialChange,
   onSubmit,
 }: PersonalizeMessageProps) {
-  const [scriptExpanded, setScriptExpanded] = useState(false);
   const canSubmit = recipientName.trim().length > 0 && message.trim().length > 0;
 
   return (
@@ -60,76 +53,6 @@ export function PersonalizeMessage({
             required
           />
         </label>
-        {(templateScript || templateScriptAr) && (
-          <div
-            className="rounded-xl border"
-            style={{
-              background: "rgba(124,58,237,0.04)",
-              borderColor: "rgba(124,58,237,0.18)",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => setScriptExpanded((v) => !v)}
-              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className="flex size-5 shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
-                  style={{ background: "rgba(124,58,237,0.12)", color: "#7C3AED" }}
-                  aria-hidden
-                >
-                  T
-                </span>
-                <span className="text-[13px] font-semibold" style={{ color: "#7C3AED" }}>
-                  Template Script
-                </span>
-                <span className="text-[11px]" style={{ color: "rgba(15,10,30,0.38)" }}>
-                  — use as a reference for your message
-                </span>
-              </div>
-              <span className="text-[11px] font-medium shrink-0" style={{ color: "rgba(15,10,30,0.38)" }}>
-                {scriptExpanded ? "Hide ▲" : "Show ▼"}
-              </span>
-            </button>
-
-            {scriptExpanded && (
-              <div
-                className="border-t px-4 pb-4 pt-3"
-                style={{ borderColor: "rgba(124,58,237,0.12)" }}
-              >
-                {templateScript && (
-                  <div className="mb-3">
-                    <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.07em]" style={{ color: "rgba(15,10,30,0.35)" }}>
-                      English
-                    </p>
-                    <p
-                      className="whitespace-pre-wrap text-[13px] leading-relaxed"
-                      style={{ color: "rgba(15,10,30,0.72)" }}
-                    >
-                      {templateScript}
-                    </p>
-                  </div>
-                )}
-                {templateScriptAr && (
-                  <div>
-                    {templateScript && <div className="mb-3 h-px" style={{ background: "rgba(124,58,237,0.10)" }} />}
-                    <p className="mb-1.5 text-[10.5px] font-bold uppercase tracking-[0.07em]" style={{ color: "rgba(15,10,30,0.35)" }}>
-                      Arabic
-                    </p>
-                    <p
-                      className="whitespace-pre-wrap text-[13px] leading-relaxed font-arabic"
-                      style={{ color: "rgba(15,10,30,0.72)", direction: "rtl", textAlign: "right" }}
-                    >
-                      {templateScriptAr}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         <label className="block">
           <span className="text-sm font-medium" style={{ color: "rgba(15,10,30,0.80)" }}>Your Message / Key Points *</span>
           <textarea
