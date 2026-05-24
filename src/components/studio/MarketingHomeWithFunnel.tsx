@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Film, Mic, Building2, Lock, ChevronRight, Shield, Clock, FileText } from "lucide-react";
+import { Film, Mic, Building2, Lock, ChevronRight, Shield, Clock, FileText, Sparkles, Library } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import { StudioTabbedFunnels } from "@/components/studio/StudioTabbedFunnels";
 import type { StudioFunnelTab } from "@/components/studio/StudioTabbedFunnels";
@@ -10,14 +10,15 @@ import type { StudioFunnelTab } from "@/components/studio/StudioTabbedFunnels";
 /* ─── Data ─────────────────────────────────────────────────────────────── */
 
 const SERVICES: {
-  tab:       StudioFunnelTab;
-  num:       string;
-  badge:     string;
-  Icon:      React.ElementType;
-  title:     string;
-  desc:      string;
-  cta:       string;
-  priceFrom: string;
+  tab?:        StudioFunnelTab;
+  num:         string;
+  badge:       string;
+  Icon:        React.ElementType;
+  title:       string;
+  desc:        string;
+  cta:         string;
+  priceFrom:   string;
+  comingSoon?: true;
 }[] = [
   {
     tab:       "greeting",
@@ -49,6 +50,26 @@ const SERVICES: {
     cta:       "Submit Custom Request",
     priceFrom: "From SAR 8,000",
   },
+  {
+    num:        "04",
+    badge:      "AI · Image",
+    Icon:       Sparkles,
+    title:      "Image Ad",
+    desc:       "Generate AI-powered static image advertisements featuring licensed celebrity likenesses — optimised for social and digital channels.",
+    cta:        "Coming Soon",
+    priceFrom:  "Pricing TBA",
+    comingSoon: true,
+  },
+  {
+    num:        "05",
+    badge:      "Licensing",
+    Icon:       Library,
+    title:      "License Existing Content",
+    desc:       "Browse and license pre-produced celebrity content from our library for use across approved media channels and campaigns.",
+    cta:        "Coming Soon",
+    priceFrom:  "Pricing TBA",
+    comingSoon: true,
+  },
 ];
 
 const PUBLIC_STEPS = [
@@ -59,35 +80,14 @@ const PUBLIC_STEPS = [
 ];
 
 const SAMPLE_VIDEOS: {
-  badge:     string;
-  occasion:  string;
-  gradient:  string;
-  duration:  string;
+  badge:    string;
+  occasion: string;
+  src:      string;
 }[] = [
-  {
-    badge:     "Greeting",
-    occasion:  "Birthday Surprise",
-    gradient:  "linear-gradient(145deg, #1A0D2E 0%, #0D1A2E 50%, #0A0A0A 100%)",
-    duration:  "0:32",
-  },
-  {
-    badge:     "Ad Campaign",
-    occasion:  "Ramadan Campaign",
-    gradient:  "linear-gradient(145deg, #0D1A3A 0%, #0A1A14 50%, #0A0A0A 100%)",
-    duration:  "0:45",
-  },
-  {
-    badge:     "Greeting",
-    occasion:  "Wedding Congratulations",
-    gradient:  "linear-gradient(145deg, #1A0A2A 0%, #1A0D0D 50%, #0A0A0A 100%)",
-    duration:  "0:28",
-  },
-  {
-    badge:     "Ad Campaign",
-    occasion:  "Product Launch",
-    gradient:  "linear-gradient(145deg, #0A1A26 0%, #1A0D1A 50%, #0A0A0A 100%)",
-    duration:  "1:00",
-  },
+  { badge: "Greeting",    occasion: "Celebrity Sample",         src: "/video/sample-video.mp4"         },
+  { badge: "Ad Campaign", occasion: "Female Celebrity Sample",  src: "/video/female-sample-video.mp4" },
+  { badge: "Greeting",    occasion: "Nasser Al Qasabi",         src: "/video/NasserAlQasabi.mp4"       },
+  { badge: "Ad Campaign", occasion: "Mohammed Abdu",            src: "/video/MohammedAbdu.mp4"         },
 ];
 
 const TRUST_ITEMS = [
@@ -287,7 +287,7 @@ export function MarketingHomeWithFunnel() {
             {/* Stats */}
             <div className="flex flex-wrap gap-7">
               {[
-                { n: "3",       l: "Service types" },
+                { n: "5",       l: "Service types" },
                 { n: "3-layer", l: "Approval & governance" },
                 { n: "100%",    l: "Licensed & auditable" },
               ].map((s, i) => (
@@ -433,7 +433,7 @@ export function MarketingHomeWithFunnel() {
                 className="text-[34px] font-semibold leading-[1.12] tracking-[-0.025em]"
                 style={{ color: "#0F0A1E" }}
               >
-                Three ways to create.
+                Five ways to create.
               </h2>
             </div>
             <p
@@ -446,93 +446,139 @@ export function MarketingHomeWithFunnel() {
 
           {/* Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {SERVICES.map(({ tab, num, badge, Icon, title, desc, cta, priceFrom }) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => openFunnel(tab)}
-                className="relative flex min-h-[220px] cursor-pointer flex-col rounded-2xl p-5 text-left transition-all duration-200"
-                style={{
-                  background: "#FFFFFF",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                  fontFamily: "inherit",
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.transform = "translateY(-5px)";
-                  e.currentTarget.style.boxShadow = "0 20px 48px rgba(124,58,237,0.12), 0 0 0 1px rgba(124,58,237,0.22)";
-                  e.currentTarget.style.borderColor = "rgba(124,58,237,0.30)";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.transform = "";
-                  e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)";
-                  e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
-                }}
-              >
-                {/* Badge */}
-                <span
-                  className="absolute right-4 top-4 rounded-full text-[9.5px] font-bold uppercase tracking-[0.04em]"
+            {SERVICES.map(({ tab, num, badge, Icon, title, desc, cta, priceFrom, comingSoon }) => {
+              const cardContent = (
+                <>
+                  {/* Coming Soon ribbon */}
+                  {comingSoon && (
+                    <div
+                      className="absolute left-0 right-0 top-0 flex items-center justify-center gap-1.5 rounded-t-2xl py-[5px] text-[10px] font-bold uppercase tracking-[0.08em]"
+                      style={{
+                        background: "linear-gradient(90deg, rgba(245,158,11,0.12), rgba(245,158,11,0.08))",
+                        borderBottom: "1px solid rgba(245,158,11,0.20)",
+                        color: "#B45309",
+                      }}
+                    >
+                      <span
+                        className="block size-[5px] shrink-0 rounded-full"
+                        style={{ background: "#F59E0B" }}
+                        aria-hidden
+                      />
+                      Coming Soon
+                    </div>
+                  )}
+
+                  {/* Badge */}
+                  <span
+                    className="absolute right-4 rounded-full text-[9.5px] font-bold uppercase tracking-[0.04em]"
+                    style={{
+                      top: comingSoon ? 36 : 16,
+                      background: comingSoon ? "rgba(0,0,0,0.05)" : "rgba(124,58,237,0.08)",
+                      border: comingSoon ? "1px solid rgba(0,0,0,0.10)" : "1px solid rgba(124,58,237,0.18)",
+                      color: comingSoon ? "rgba(15,10,30,0.35)" : "#6D28D9",
+                      padding: "3px 9px",
+                    }}
+                  >
+                    {badge}
+                  </span>
+
+                  {/* Number */}
+                  <div
+                    className="mb-3 text-[11.5px] font-bold tracking-[0.04em]"
+                    style={{ color: "rgba(15,10,30,0.22)", marginTop: comingSoon ? 28 : 0 }}
+                  >
+                    {num}
+                  </div>
+
+                  {/* Icon */}
+                  <div
+                    className="mb-3.5 flex size-11 items-center justify-center rounded-[12px]"
+                    style={{
+                      background: comingSoon ? "rgba(0,0,0,0.04)" : "rgba(124,58,237,0.08)",
+                      border: comingSoon ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(124,58,237,0.14)",
+                    }}
+                  >
+                    <Icon size={20} style={{ color: comingSoon ? "rgba(15,10,30,0.30)" : "#7C3AED" }} />
+                  </div>
+
+                  {/* Title */}
+                  <h3
+                    className="mb-2 text-[18px] font-semibold leading-[1.22] tracking-[-0.01em]"
+                    style={{ color: comingSoon ? "rgba(15,10,30,0.45)" : "#0F0A1E" }}
+                  >
+                    {title}
+                  </h3>
+
+                  {/* Desc */}
+                  <p
+                    className="grow text-[12.5px] font-light leading-[1.56]"
+                    style={{ color: "rgba(15,10,30,0.38)" }}
+                  >
+                    {desc}
+                  </p>
+
+                  {/* Footer */}
+                  <div className="mt-3.5 flex items-center justify-between">
+                    <span
+                      className="flex items-center gap-1 text-[12.5px] font-semibold"
+                      style={{ color: comingSoon ? "rgba(15,10,30,0.30)" : "#7C3AED" }}
+                    >
+                      {cta}
+                      {!comingSoon && <ChevronRight size={13} aria-hidden />}
+                    </span>
+                    <span
+                      className="text-[11.5px] font-medium"
+                      style={{ color: "rgba(15,10,30,0.28)" }}
+                    >
+                      {priceFrom}
+                    </span>
+                  </div>
+                </>
+              );
+
+              if (comingSoon) {
+                return (
+                  <div
+                    key={num}
+                    className="relative flex min-h-[220px] flex-col rounded-2xl p-5"
+                    style={{
+                      background: "#FAFAFA",
+                      border: "1px solid rgba(0,0,0,0.07)",
+                      boxShadow: "none",
+                    }}
+                  >
+                    {cardContent}
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => tab && openFunnel(tab)}
+                  className="relative flex min-h-[220px] cursor-pointer flex-col rounded-2xl p-5 text-left transition-all duration-200"
                   style={{
-                    background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)",
-                    color: "#6D28D9", padding: "3px 9px",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(0,0,0,0.08)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = "translateY(-5px)";
+                    e.currentTarget.style.boxShadow = "0 20px 48px rgba(124,58,237,0.12), 0 0 0 1px rgba(124,58,237,0.22)";
+                    e.currentTarget.style.borderColor = "rgba(124,58,237,0.30)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = "";
+                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)";
+                    e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
                   }}
                 >
-                  {badge}
-                </span>
-
-                {/* Number */}
-                <div
-                  className="mb-3 text-[11.5px] font-bold tracking-[0.04em]"
-                  style={{ color: "rgba(15,10,30,0.22)" }}
-                >
-                  {num}
-                </div>
-
-                {/* Icon */}
-                <div
-                  className="mb-3.5 flex size-11 items-center justify-center rounded-[12px]"
-                  style={{
-                    background: "rgba(124,58,237,0.08)",
-                    border: "1px solid rgba(124,58,237,0.14)",
-                  }}
-                >
-                  <Icon size={20} style={{ color: "#7C3AED" }} />
-                </div>
-
-                {/* Title */}
-                <h3
-                  className="mb-2 text-[18px] font-semibold leading-[1.22] tracking-[-0.01em]"
-                  style={{ color: "#0F0A1E" }}
-                >
-                  {title}
-                </h3>
-
-                {/* Desc */}
-                <p
-                  className="grow text-[12.5px] font-light leading-[1.56]"
-                  style={{ color: "rgba(15,10,30,0.50)" }}
-                >
-                  {desc}
-                </p>
-
-                {/* Footer */}
-                <div className="mt-3.5 flex items-center justify-between">
-                  <span
-                    className="flex items-center gap-1 text-[12.5px] font-semibold"
-                    style={{ color: "#7C3AED" }}
-                  >
-                    {cta}
-                    <ChevronRight size={13} aria-hidden />
-                  </span>
-                  <span
-                    className="text-[11.5px] font-medium"
-                    style={{ color: "rgba(15,10,30,0.35)" }}
-                  >
-                    {priceFrom}
-                  </span>
-                </div>
-              </button>
-            ))}
+                  {cardContent}
+                </button>
+              );
+            })}
           </div>
 
           <p
@@ -598,14 +644,20 @@ export function MarketingHomeWithFunnel() {
                   e.currentTarget.style.borderColor = "rgba(0,0,0,0.08)";
                 }}
               >
-                {/* Thumbnail area */}
-                <div
-                  className="relative flex h-[180px] w-full items-center justify-center"
-                  style={{ background: v.gradient }}
-                >
+                {/* Video thumbnail */}
+                <div className="relative w-full overflow-hidden" style={{ background: "#0A0A0A" }}>
+                  <video
+                    src={v.src}
+                    playsInline
+                    preload="metadata"
+                    controlsList="nodownload nofullscreen"
+                    controls
+                    className="block w-full"
+                    style={{ height: 240, width: "100%", objectFit: "cover", display: "block" }}
+                  />
                   {/* Watermark overlay */}
                   <div
-                    className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                    className="pointer-events-none absolute inset-0"
                     style={{ userSelect: "none" }}
                     aria-hidden
                   >
@@ -613,65 +665,20 @@ export function MarketingHomeWithFunnel() {
                       [...Array(3)].map((_, col) => (
                         <span
                           key={`${row}-${col}`}
-                          className="absolute text-[9px] font-bold uppercase tracking-[0.14em]"
+                          className="absolute text-[8px] font-bold uppercase tracking-[0.14em]"
                           style={{
-                            color: "rgba(255,255,255,0.07)",
+                            color: "rgba(255,255,255,0.18)",
                             transform: "rotate(-35deg)",
-                            top: `${22 + row * 30}%`,
-                            left: `${8 + col * 33}%`,
+                            top: `${20 + row * 30}%`,
+                            left: `${6 + col * 33}%`,
                             whiteSpace: "nowrap",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.6)",
                           }}
                         >
                           TWINITY SAMPLE
                         </span>
                       ))
                     )}
-                  </div>
-
-                  {/* Simulated waveform */}
-                  <div className="pointer-events-none absolute bottom-3 left-3 right-3 flex items-end gap-[2px]" aria-hidden>
-                    {[5,9,14,8,12,18,11,7,15,10,13,6,16,9,12,7,10,14,8,11,15,9,13,6,10,14,8,12,9,11,7,15].map((h, j) => (
-                      <div
-                        key={j}
-                        className="flex-1 rounded-sm"
-                        style={{
-                          height: h,
-                          background: "rgba(124,58,237,0.50)",
-                          opacity: 0.7 + (j % 3) * 0.1,
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Play button */}
-                  <div
-                    className="relative flex size-14 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-110"
-                    style={{
-                      background: "rgba(124,58,237,0.90)",
-                      boxShadow: "0 8px 32px rgba(124,58,237,0.55), 0 0 0 8px rgba(124,58,237,0.14)",
-                      backdropFilter: "blur(8px)",
-                    }}
-                  >
-                    <svg
-                      width="18" height="18" viewBox="0 0 24 24" fill="#fff"
-                      style={{ marginLeft: 3 }}
-                    >
-                      <polygon points="5,3 19,12 5,21" />
-                    </svg>
-                  </div>
-
-                  {/* Duration badge */}
-                  <div
-                    className="absolute bottom-3 right-3 rounded-md text-[10.5px] font-semibold"
-                    style={{
-                      background: "rgba(0,0,0,0.55)",
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      color: "rgba(255,255,255,0.90)",
-                      padding: "2px 7px",
-                      backdropFilter: "blur(6px)",
-                    }}
-                  >
-                    {v.duration}
                   </div>
                 </div>
 

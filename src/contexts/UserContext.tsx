@@ -34,7 +34,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     clearToken()
     localStorage.removeItem('twinity_user')
     setUser(null)
-    window.location.href = '/login'
+    window.location.href = '/'
   }, [])
 
   return (

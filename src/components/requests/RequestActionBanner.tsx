@@ -254,10 +254,10 @@ export function RequestActionBanner({
 
       {/* Text */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 700, color: "#F0F0F0", margin: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: "#0F0A1E", margin: 0 }}>
           {title}
         </p>
-        <p style={{ fontSize: 13, fontWeight: 400, color: "#A0A0A0", marginTop: 4, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, fontWeight: 400, color: "rgba(15,10,30,0.55)", marginTop: 4, lineHeight: 1.5 }}>
           {body}
         </p>
       </div>

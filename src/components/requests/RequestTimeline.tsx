@@ -121,15 +121,16 @@ function TimestampCell({ iso }: { iso: string }) {
             position:  "absolute",
             bottom:    "calc(100% + 4px)",
             insetInlineStart: 0,
-            background: "#262626",
-            border:     "1px solid #3D3D3D",
+            background: "#FFFFFF",
+            border:     "1px solid rgba(0,0,0,0.10)",
             borderRadius: 6,
             padding:    "4px 8px",
             fontSize:   10,
-            color:      "#A0A0A0",
+            color:      "rgba(15,10,30,0.55)",
             whiteSpace: "nowrap",
             zIndex:     10,
             pointerEvents: "none",
+            boxShadow:  "0 2px 8px rgba(0,0,0,0.08)",
           }}
         >
           {formatAbsolute(iso)}
@@ -174,8 +175,8 @@ function EventCard({ event }: { event: TimelineEvent }) {
           background:   dotColor,
           flexShrink:   0,
           marginTop:    16,
-          border:       "2px solid #161616",
-          boxShadow:    "0 0 0 1px #2A2A2A",
+          border:       "2px solid #FFFFFF",
+          boxShadow:    "0 0 0 1px rgba(0,0,0,0.10)",
         }}
       />
 
@@ -183,12 +184,13 @@ function EventCard({ event }: { event: TimelineEvent }) {
       <div
         style={{
           flex:         1,
-          background:   "#161616",
-          border:       `1px solid ${hovered ? "rgba(124,58,237,0.20)" : "#2A2A2A"}`,
+          background:   "#FFFFFF",
+          border:       `1px solid ${hovered ? "rgba(124,58,237,0.25)" : "rgba(0,0,0,0.08)"}`,
           borderRadius: 12,
           padding:      "12px 16px",
           minWidth:     0,
           transition:   "border-color 180ms",
+          boxShadow:    hovered ? "0 2px 12px rgba(124,58,237,0.08)" : "0 1px 3px rgba(0,0,0,0.04)",
         }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
@@ -214,13 +216,13 @@ function EventCard({ event }: { event: TimelineEvent }) {
         </span>
 
         {/* Label */}
-        <p style={{ fontSize: 13, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "#0F0A1E", margin: 0 }}>
           {event.label}
         </p>
 
         {/* Description */}
         {event.description && (
-          <p style={{ fontSize: 12, fontWeight: 400, color: "#A0A0A0", margin: "2px 0 0", lineHeight: 1.5 }}>
+          <p style={{ fontSize: 12, fontWeight: 400, color: "rgba(15,10,30,0.50)", margin: "2px 0 0", lineHeight: 1.5 }}>
             {event.description}
           </p>
         )}
@@ -267,15 +269,16 @@ export function RequestTimeline({ events }: RequestTimelineProps) {
           alignItems:     "center",
           justifyContent: "center",
           padding:        "40px 24px",
-          background:     "#161616",
-          border:         "1px solid #2A2A2A",
+          background:     "#FFFFFF",
+          border:         "1px solid rgba(0,0,0,0.08)",
           borderRadius:   16,
           textAlign:      "center",
           gap:            12,
+          boxShadow:      "0 1px 4px rgba(0,0,0,0.04)",
         }}
       >
-        <Clock size={28} color="#2A2A2A" />
-        <p style={{ fontSize: 13, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+        <Clock size={28} color="rgba(0,0,0,0.18)" />
+        <p style={{ fontSize: 13, fontWeight: 600, color: "#0F0A1E", margin: 0 }}>
           No activity recorded yet.
         </p>
         <p style={{ fontSize: 12, color: "#606060", margin: 0 }}>
@@ -311,7 +314,7 @@ export function RequestTimeline({ events }: RequestTimelineProps) {
             top:              8,
             bottom:           8,
             width:            1,
-            background:       "#2A2A2A",
+            background:       "rgba(0,0,0,0.10)",
             zIndex:           0,
           }}
           aria-hidden="true"

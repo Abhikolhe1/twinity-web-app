@@ -160,8 +160,12 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           script:      messageBody,
         });
         voiceAudioUrl = voiceRes.audioUrl;
-      } catch {
-        // Proceed without audio (stub mode or no ElevenLabs key)
+      } catch (voiceErr) {
+        const msg = voiceErr instanceof Error ? voiceErr.message : "";
+        if (msg === "Authentication required" || msg === "Session expired" || msg === "Account is not active") {
+          throw voiceErr;
+        }
+        // Non-auth error (e.g. ElevenLabs not configured) — proceed without audio
       }
 
       const res = await jobApi.create({
@@ -367,6 +371,8 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 fromName={fromName}
                 language={language}
                 special={special}
+                templateScript={selectedTemplate?.sample_script}
+                templateScriptAr={selectedTemplate?.sample_script_ar}
                 onRecipientNameChange={setRecipientName}
                 onMessageChange={setMessageBody}
                 onFromNameChange={setFromName}

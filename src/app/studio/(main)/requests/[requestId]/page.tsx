@@ -62,7 +62,7 @@ function Skeleton({ style }: { style?: React.CSSProperties }) {
   return (
     <div
       className="animate-pulse"
-      style={{ background: "#1E1E1E", borderRadius: 8, ...style }}
+      style={{ background: "#E5E7EB", borderRadius: 8, ...style }}
     />
   );
 }
@@ -156,12 +156,12 @@ function Breadcrumbs({ orderId }: { orderId: string }) {
       <Link href="/studio" style={{ fontSize: 12, color: "#606060", textDecoration: "none" }}>
         Studio
       </Link>
-      <ChevronRight size={12} color="#3D3D3D" />
+      <ChevronRight size={12} color="rgba(0,0,0,0.22)" />
       <Link href="/studio/requests" style={{ fontSize: 12, color: "#606060", textDecoration: "none" }}>
         My Requests
       </Link>
-      <ChevronRight size={12} color="#3D3D3D" />
-      <span style={{ fontSize: 12, color: "#F0F0F0" }}>#{orderId}</span>
+      <ChevronRight size={12} color="rgba(0,0,0,0.22)" />
+      <span style={{ fontSize: 12, color: "#0F0A1E" }}>#{orderId}</span>
     </nav>
   );
 }
@@ -213,7 +213,7 @@ export default function RequestDetailPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <h1 style={{
             fontFamily: "var(--font-display, var(--font-sans))",
-            fontSize: 22, fontWeight: 700, color: "#F0F0F0",
+            fontSize: 22, fontWeight: 700, color: "#0F0A1E",
             letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0,
           }}>
             Request #{request.orderId}
@@ -227,8 +227,8 @@ export default function RequestDetailPage() {
           style={{
             display: "inline-flex", alignItems: "center", gap: 6,
             height: 36, paddingInline: 14, borderRadius: 8,
-            border: "1px solid #3D3D3D", background: "transparent",
-            color: "#A0A0A0", fontSize: 13, fontWeight: 500, cursor: "pointer",
+            border: "1px solid rgba(0,0,0,0.10)", background: "transparent",
+            color: "rgba(15,10,30,0.45)", fontSize: 13, fontWeight: 500, cursor: "pointer",
           }}
         >
           <RotateCw size={14} />

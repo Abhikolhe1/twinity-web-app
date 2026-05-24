@@ -41,8 +41,9 @@ const cardBase: React.CSSProperties = {
   width:        "100%",
   borderRadius: 16,
   overflow:     "hidden",
-  border:       "1px solid #2A2A2A",
-  background:   "#161616",
+  border:       "1px solid rgba(0,0,0,0.08)",
+  background:   "#FFFFFF",
+  boxShadow:    "0 1px 4px rgba(0,0,0,0.05)",
 };
 
 const aspectBox: React.CSSProperties = {
@@ -78,7 +79,7 @@ function MediaElement({
 
   if (type === "audio") {
     return (
-      <div style={{ ...aspectBox, display: "flex", alignItems: "center", justifyContent: "center", background: "#0D0D0D" }}>
+      <div style={{ ...aspectBox, display: "flex", alignItems: "center", justifyContent: "center", background: "#F5F5F5" }}>
         <audio controls src={url} style={{ width: "90%" }} />
       </div>
     );
@@ -132,13 +133,13 @@ function LicenseInfoCard({
     justifyContent: "space-between",
     alignItems:     "center",
     padding:        "8px 0",
-    borderBottom:   "1px solid #1A1A1A",
+    borderBottom:   "1px solid rgba(0,0,0,0.06)",
   };
-  const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "#606060" };
-  const valueStyle: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "#F0F0F0" };
+  const labelStyle: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "rgba(15,10,30,0.45)" };
+  const valueStyle: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "#0F0A1E" };
 
   return (
-    <div style={{ padding: "16px 20px", background: "#161616", borderTop: "1px solid #2A2A2A" }}>
+    <div style={{ padding: "16px 20px", background: "#FFFFFF", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
       {licenseId && (
         <div style={rowStyle}>
           <span style={labelStyle}>License ID</span>
@@ -163,9 +164,9 @@ function LicenseInfoCard({
                 style={{
                   fontSize:     11,
                   fontWeight:   500,
-                  color:        "#A0A0A0",
-                  background:   "#1E1E1E",
-                  border:       "1px solid #2A2A2A",
+                  color:        "rgba(15,10,30,0.55)",
+                  background:   "#F5F3FF",
+                  border:       "1px solid rgba(124,58,237,0.15)",
                   borderRadius: 9999,
                   padding:      "3px 10px",
                 }}
@@ -296,14 +297,14 @@ export function RequestMediaPreview({
             alignItems:     "center",
             justifyContent: "center",
             gap:            12,
-            background:     "#0D0D0D",
+            background:     "#F8F7FF",
             minHeight:      200,
           }}>
             {isImageAd
-              ? <ImageIcon size={36} color="#2A2A2A" />
+              ? <ImageIcon size={36} color="rgba(0,0,0,0.18)" />
               : <Eye size={36} color="#3B82F6" />
             }
-            <p style={{ fontSize: 14, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+            <p style={{ fontSize: 14, fontWeight: 600, color: "#0F0A1E", margin: 0 }}>
               {isImageAd ? "Your image is being generated" : "Preview is being prepared"}
             </p>
             <p style={{ fontSize: 12, color: "#606060", margin: 0, textAlign: "center", maxWidth: 280 }}>
@@ -335,11 +336,11 @@ export function RequestMediaPreview({
             alignItems:     "center",
             justifyContent: "center",
             gap:            12,
-            background:     "#0D0D0D",
+            background:     "#F8F7FF",
             minHeight:      200,
           }}>
-            {isImageAd ? <ImageIcon size={40} color="#2A2A2A" /> : <Film size={40} color="#2A2A2A" />}
-            <p style={{ fontSize: 14, color: "#606060", margin: 0 }}>
+            {isImageAd ? <ImageIcon size={40} color="#2A2A2A" /> : <Film size={40} color="rgba(0,0,0,0.18)" />}
+            <p style={{ fontSize: 14, color: "rgba(15,10,30,0.45)", margin: 0}}>
               {isImageAd ? "Image ready — link pending" : "Content ready — link pending"}
             </p>
           </div>
@@ -369,10 +370,10 @@ export function RequestMediaPreview({
         gap:            12,
       }}>
         <XCircle size={40} color="#EF4444" />
-        <p style={{ fontSize: 14, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "#0F0A1E", margin: 0 }}>
           This request was not completed.
         </p>
-        <p style={{ fontSize: 12, color: "#606060", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "rgba(15,10,30,0.45)", margin: 0}}>
           Contact support if you need assistance.
         </p>
         <a
@@ -384,9 +385,9 @@ export function RequestMediaPreview({
             height:         36,
             paddingInline:  16,
             borderRadius:   8,
-            border:         "1px solid #3D3D3D",
+            border:         "1px solid rgba(0,0,0,0.12)",
             background:     "transparent",
-            color:          "#A0A0A0",
+            color:          "rgba(15,10,30,0.50)",
             fontSize:       13,
             fontWeight:     500,
             textDecoration: "none",
@@ -408,9 +409,9 @@ export function RequestMediaPreview({
       alignItems:     "center",
       justifyContent: "center",
       gap:            12,
-      background:     "#0D0D0D",
+      background:     "#F8F7FF",
     }}>
-      <Film size={40} color="#2A2A2A" />
+      <Film size={40} color="rgba(0,0,0,0.18)" />
       <p style={{ fontSize: 14, fontWeight: 600, color: "#A0A0A0", margin: 0 }}>
         Content not yet ready
       </p>

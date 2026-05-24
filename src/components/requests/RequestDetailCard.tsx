@@ -154,17 +154,17 @@ const SECTION_LABEL: React.CSSProperties = {
   display:        "block",
   fontSize:       10,
   fontWeight:     600,
-  color:          "#606060",
+  color:          "rgba(15,10,30,0.40)",
   letterSpacing:  "0.10em",
   textTransform:  "uppercase",
   paddingBottom:  8,
-  borderBottom:   "1px solid #2A2A2A",
+  borderBottom:   "1px solid rgba(0,0,0,0.08)",
   marginBottom:   14,
 };
 
 /* ── Row ─────────────────────────────────────────────────────────────────── */
-const LABEL_CELL: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "#606060" };
-const VALUE_CELL: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "#F0F0F0" };
+const LABEL_CELL: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "rgba(15,10,30,0.45)" };
+const VALUE_CELL: React.CSSProperties = { fontSize: 12, fontWeight: 500, color: "#0F0A1E" };
 
 function Row({
   label,
@@ -183,7 +183,7 @@ function Row({
       justifyContent: "space-between",
       alignItems:     alignStart ? "flex-start" : "center",
       padding:        "8px 0",
-      borderBottom:   last ? "none" : "1px solid #1A1A1A",
+      borderBottom:   last ? "none" : "1px solid rgba(0,0,0,0.06)",
       gap:            8,
     }}>
       <span style={LABEL_CELL}>{label}</span>
@@ -193,7 +193,7 @@ function Row({
 }
 
 function Divider() {
-  return <div style={{ height: 1, background: "#2A2A2A", margin: "16px 0" }} />;
+  return <div style={{ height: 1, background: "rgba(0,0,0,0.08)", margin: "16px 0" }} />;
 }
 
 /* ── Channel pill ────────────────────────────────────────────────────────── */
@@ -202,9 +202,9 @@ function ChannelPill({ label }: { label: string }) {
     <span style={{
       fontSize:     11,
       fontWeight:   500,
-      color:        "#A0A0A0",
-      background:   "#1E1E1E",
-      border:       "1px solid #2A2A2A",
+      color:        "rgba(15,10,30,0.55)",
+      background:   "#F5F3FF",
+      border:       "1px solid rgba(124,58,237,0.15)",
       borderRadius: 9999,
       padding:      "3px 10px",
       whiteSpace:   "nowrap",
@@ -326,11 +326,12 @@ export function RequestDetailCard({
   return (
     <div
       style={{
-        background:   "#161616",
-        border:       `1px solid ${cardHovered ? "rgba(124,58,237,0.20)" : "#2A2A2A"}`,
+        background:   "#FFFFFF",
+        border:       `1px solid ${cardHovered ? "rgba(124,58,237,0.25)" : "rgba(0,0,0,0.08)"}`,
         borderRadius: 16,
         overflow:     "hidden",
         transition:   "border-color 180ms",
+        boxShadow:    cardHovered ? "0 4px 20px rgba(124,58,237,0.08)" : "0 1px 4px rgba(0,0,0,0.05)",
       }}
       onMouseEnter={() => setCardHovered(true)}
       onMouseLeave={() => setCardHovered(false)}
@@ -338,7 +339,7 @@ export function RequestDetailCard({
       {/* ── Request info ──────────────────────────────────────────────────── */}
       <div style={{
         padding:      24,
-        borderBottom: "1px solid #2A2A2A",
+        borderBottom: "1px solid rgba(0,0,0,0.08)",
       }}>
         <span style={SECTION_LABEL}>Request Details</span>
 
@@ -434,13 +435,13 @@ export function RequestDetailCard({
           </span>
         </Row>
 
-        <div style={{ height: 1, background: "#2A2A2A", margin: "8px 0" }} />
+        <div style={{ height: 1, background: "rgba(0,0,0,0.08)", margin: "8px 0" }} />
 
         <Row label="Total" last>
           <span style={{
             fontSize:           18,
             fontWeight:         800,
-            color:              "#F0F0F0",
+            color:              "#0F0A1E",
             fontVariantNumeric: "tabular-nums",
             letterSpacing:      "-0.01em",
           }}>
