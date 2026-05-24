@@ -81,21 +81,21 @@ const hPrimaryStyle: React.CSSProperties = {
 const hSecondaryBtn =
   "inline-flex h-[44px] items-center justify-center rounded-xl px-5 text-[13px] font-semibold transition-all duration-200";
 const hSecondaryStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.05)",
-  border:     "1px solid rgba(255,255,255,0.10)",
-  color:      "rgba(255,255,255,0.65)",
+  background: "rgba(0,0,0,0.04)",
+  border:     "1px solid rgba(0,0,0,0.10)",
+  color:      "rgba(15,10,30,0.60)",
 };
 
 /* ─── form input shared styles ──────────────────────────────────────────── */
 const inputStyle: React.CSSProperties = {
-  background:   "rgba(255,255,255,0.04)",
-  border:       "1px solid rgba(255,255,255,0.08)",
+  background:   "rgba(0,0,0,0.04)",
+  border:       "1px solid rgba(0,0,0,0.09)",
   borderRadius: 12,
-  color:        "#F0F0F0",
+  color:        "#0F0A1E",
   fontSize:     14,
 };
 const INPUT_CLS =
-  "w-full px-4 py-3 text-base md:text-[14px] text-[#F0F0F0] placeholder:text-[rgba(255,255,255,0.25)] focus:outline-none transition-all duration-150 focus:border-[rgba(124,58,237,0.50)] focus:bg-[rgba(124,58,237,0.06)] focus:shadow-[0_0_0_3px_rgba(124,58,237,0.12)]";
+  "w-full px-4 py-3 text-base md:text-[14px] text-[#0F0A1E] placeholder:text-[rgba(15,10,30,0.30)] focus:outline-none transition-all duration-150 focus:border-[rgba(124,58,237,0.50)] focus:bg-[rgba(124,58,237,0.06)] focus:shadow-[0_0_0_3px_rgba(124,58,237,0.12)]";
 
 const LABEL_CLS = "block text-[13px] font-medium mb-2" as const;
 
@@ -143,17 +143,17 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
       {/* Left — form */}
       <div className="space-y-5">
         <div>
-          <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+          <h2 className="font-display text-[22px] font-bold" style={{ letterSpacing: "-0.02em", color: "#0F0A1E" }}>
             Campaign Basics
           </h2>
-          <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+          <p className="mt-1 text-[14px]" style={{ color: "rgba(15,10,30,0.45)" }}>
             Tell us about your brand and campaign goals.
           </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block">
-            <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+            <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
               Campaign name <span style={{ color: "#8B5CF6" }}>*</span>
             </span>
             <input
@@ -166,7 +166,7 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
             />
           </label>
           <label className="block">
-            <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+            <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
               Brand / company <span style={{ color: "#8B5CF6" }}>*</span>
             </span>
             <input
@@ -182,7 +182,7 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
 
         {/* Category chips */}
         <div>
-          <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
             Campaign category <span style={{ color: "#8B5CF6" }}>*</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -193,9 +193,9 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
                 onClick={() => onCategory(cat)}
                 className="rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all duration-150"
                 style={{
-                  background: category === cat ? "rgba(124,58,237,0.20)" : "rgba(255,255,255,0.04)",
-                  border:     category === cat ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(255,255,255,0.08)",
-                  color:      category === cat ? "#C4B5FD" : "rgba(255,255,255,0.40)",
+                  background: category === cat ? "rgba(124,58,237,0.20)" : "rgba(0,0,0,0.04)",
+                  border:     category === cat ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(0,0,0,0.09)",
+                  color:      category === cat ? "#7C3AED" : "rgba(15,10,30,0.45)",
                 }}
               >
                 {cat}
@@ -212,7 +212,7 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
 
         {/* Objective */}
         <label className="block">
-          <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+          <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
             Campaign objective
           </span>
           <textarea
@@ -227,7 +227,7 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
 
         {/* Budget */}
         <label className="block">
-          <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+          <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
             Estimated production budget (SAR, optional)
           </span>
           <input
@@ -242,7 +242,7 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
 
         {/* Celebrity selection */}
         <div>
-          <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+          <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
             Preferred talent
           </p>
           {/* Filter chips */}
@@ -254,9 +254,9 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
                 onClick={() => setCelFilter(f)}
                 className="rounded-full px-3 py-1 text-[11px] font-semibold transition-all duration-150"
                 style={{
-                  background: celFilter === f ? "rgba(124,58,237,0.20)" : "rgba(255,255,255,0.04)",
-                  border:     celFilter === f ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(255,255,255,0.07)",
-                  color:      celFilter === f ? "#C4B5FD" : "rgba(255,255,255,0.35)",
+                  background: celFilter === f ? "rgba(124,58,237,0.20)" : "rgba(0,0,0,0.04)",
+                  border:     celFilter === f ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(0,0,0,0.08)",
+                  color:      celFilter === f ? "#7C3AED" : "rgba(15,10,30,0.40)",
                 }}
               >
                 {f}
@@ -277,8 +277,8 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
                   onClick={() => onCelebrity(c.id)}
                   className="flex flex-col items-center rounded-2xl p-4 text-center transition-all duration-200"
                   style={{
-                    background: on ? "rgba(124,58,237,0.12)" : "rgba(255,255,255,0.02)",
-                    border:     on ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(255,255,255,0.06)",
+                    background: on ? "rgba(124,58,237,0.12)" : "rgba(0,0,0,0.04)",
+                    border:     on ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(0,0,0,0.08)",
                     boxShadow:  on ? "0 0 0 3px rgba(124,58,237,0.15)" : "none",
                   }}
                 >
@@ -300,8 +300,8 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
                       >✓</span>
                     )}
                   </div>
-                  <p className="mt-2 text-[12px] font-semibold text-white">{c.name}</p>
-                  <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <p className="mt-2 text-[12px] font-semibold" style={{ color: "#0F0A1E" }}>{c.name}</p>
+                  <p className="text-[11px]" style={{ color: "rgba(15,10,30,0.40)" }}>
                     From SAR {c.priceFromSar.toLocaleString("en-SA")}
                   </p>
                 </button>
@@ -317,8 +317,8 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
           className="sticky top-4 rounded-2xl p-5 space-y-4"
           style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}
         >
-          <p className="text-[13px] font-bold text-white">Licensed Commercial Request</p>
-          <p className="text-[12px] leading-relaxed" style={{ color: "rgba(255,255,255,0.50)" }}>
+          <p className="text-[13px] font-bold" style={{ color: "#0F0A1E" }}>Licensed Commercial Request</p>
+          <p className="text-[12px] leading-relaxed" style={{ color: "rgba(15,10,30,0.50)" }}>
             This is a governed identity licensing request — not an unrestricted AI studio. All campaigns are:
           </p>
           <ul className="space-y-2">
@@ -328,18 +328,18 @@ function Step1({ campaignName, onCampaignName, brand, onBrand, objective, onObje
               "Escrow-ready: payment captured before delivery",
               "Audit-trailed: every state change logged",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-2 text-[12px]" style={{ color: "rgba(255,255,255,0.60)" }}>
+              <li key={item} className="flex items-start gap-2 text-[12px]" style={{ color: "rgba(15,10,30,0.60)" }}>
                 <span style={{ color: "#8B5CF6", flexShrink: 0 }}>✓</span>
                 {item}
               </li>
             ))}
           </ul>
           <div className="rounded-xl px-3 py-3 text-[11px]"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.40)", lineHeight: 1.6 }}>
+            style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)", color: "rgba(15,10,30,0.45)", lineHeight: 1.6 }}>
             Sensitive categories (Finance, Healthcare, Regulated) require additional compliance review and may extend SLA timelines.
           </div>
           <div className="rounded-xl px-3 py-3 text-[11px]"
-            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.40)", lineHeight: 1.6 }}>
+            style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)", color: "rgba(15,10,30,0.45)", lineHeight: 1.6 }}>
             Final license is only active after approval + payment capture. No raw identity assets or model files are exported.
           </div>
         </div>
@@ -384,17 +384,17 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
   return (
     <div className="mx-auto max-w-2xl space-y-7">
       <div>
-        <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+        <h2 className="font-display text-[22px] font-bold" style={{ letterSpacing: "-0.02em", color: "#0F0A1E" }}>
           License Scope &amp; Usage
         </h2>
-        <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+        <p className="mt-1 text-[14px]" style={{ color: "rgba(15,10,30,0.45)" }}>
           Define where, how long, and under what terms the licensed content may be used.
         </p>
       </div>
 
       {/* Channels */}
       <div>
-        <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>Distribution channels</p>
+        <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>Distribution channels</p>
         <div className="flex flex-wrap gap-2">
           {ALL_CHANNELS.map((ch) => {
             const on = scope.customChannels.includes(ch);
@@ -405,9 +405,9 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
                 onClick={() => toggleChannel(ch)}
                 className="rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all duration-150"
                 style={{
-                  background: on ? "rgba(124,58,237,0.20)" : "rgba(255,255,255,0.04)",
-                  border:     on ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(255,255,255,0.08)",
-                  color:      on ? "#C4B5FD" : "rgba(255,255,255,0.40)",
+                  background: on ? "rgba(124,58,237,0.20)" : "rgba(0,0,0,0.04)",
+                  border:     on ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(0,0,0,0.09)",
+                  color:      on ? "#7C3AED" : "rgba(15,10,30,0.45)",
                 }}
               >
                 {ch}
@@ -419,7 +419,7 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
 
       {/* Territory */}
       <div>
-        <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>Territory</p>
+        <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>Territory</p>
         <div className="flex flex-wrap gap-2">
           {TERRITORIES.map((t) => (
             <button
@@ -428,9 +428,9 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
               onClick={() => onScope({ ...scope, territory: t })}
               className="rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all duration-150"
               style={{
-                background: scope.territory === t ? "rgba(124,58,237,0.20)" : "rgba(255,255,255,0.04)",
-                border:     scope.territory === t ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(255,255,255,0.08)",
-                color:      scope.territory === t ? "#C4B5FD" : "rgba(255,255,255,0.40)",
+                background: scope.territory === t ? "rgba(124,58,237,0.20)" : "rgba(0,0,0,0.04)",
+                border:     scope.territory === t ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(0,0,0,0.09)",
+                color:      scope.territory === t ? "#7C3AED" : "rgba(15,10,30,0.45)",
               }}
             >
               {t}
@@ -441,7 +441,7 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
 
       {/* Duration */}
       <div>
-        <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>License duration</p>
+        <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>License duration</p>
         <div className="flex flex-wrap gap-2">
           {DURATIONS.map((d) => (
             <button
@@ -450,9 +450,9 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
               onClick={() => onScope({ ...scope, duration: d })}
               className="rounded-full px-4 py-1.5 text-[12px] font-semibold transition-all duration-150"
               style={{
-                background: scope.duration === d ? "rgba(124,58,237,0.20)" : "rgba(255,255,255,0.04)",
-                border:     scope.duration === d ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(255,255,255,0.08)",
-                color:      scope.duration === d ? "#C4B5FD" : "rgba(255,255,255,0.40)",
+                background: scope.duration === d ? "rgba(124,58,237,0.20)" : "rgba(0,0,0,0.04)",
+                border:     scope.duration === d ? "1px solid rgba(124,58,237,0.40)" : "1px solid rgba(0,0,0,0.09)",
+                color:      scope.duration === d ? "#7C3AED" : "rgba(15,10,30,0.45)",
               }}
             >
               {d}
@@ -463,7 +463,7 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
 
       {/* Exclusivity */}
       <div>
-        <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>Exclusivity</p>
+        <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>Exclusivity</p>
         <div className="grid gap-2 sm:grid-cols-2">
           {EXCLUSIVITIES.map(({ id, label, desc }) => (
             <button
@@ -472,14 +472,14 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
               onClick={() => onScope({ ...scope, exclusivity: id })}
               className="flex flex-col items-start rounded-xl p-3 text-start transition-all duration-150"
               style={{
-                background: scope.exclusivity === id ? "rgba(124,58,237,0.12)" : "rgba(255,255,255,0.02)",
-                border:     scope.exclusivity === id ? "1px solid rgba(124,58,237,0.35)" : "1px solid rgba(255,255,255,0.06)",
+                background: scope.exclusivity === id ? "rgba(124,58,237,0.12)" : "rgba(0,0,0,0.04)",
+                border:     scope.exclusivity === id ? "1px solid rgba(124,58,237,0.35)" : "1px solid rgba(0,0,0,0.08)",
               }}
             >
-              <span className="text-[13px] font-semibold" style={{ color: scope.exclusivity === id ? "#C4B5FD" : "rgba(255,255,255,0.70)" }}>
+              <span className="text-[13px] font-semibold" style={{ color: scope.exclusivity === id ? "#7C3AED" : "rgba(15,10,30,0.65)" }}>
                 {label}
               </span>
-              <span className="mt-0.5 text-[11px]" style={{ color: "rgba(255,255,255,0.30)" }}>
+              <span className="mt-0.5 text-[11px]" style={{ color: "rgba(15,10,30,0.35)" }}>
                 {desc}
               </span>
             </button>
@@ -489,7 +489,7 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
 
       {/* SLA / Urgency */}
       <div>
-        <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>Delivery SLA</p>
+        <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>Delivery SLA</p>
         <div className="flex flex-wrap gap-2">
           {SLAS.map(({ id, label, desc }) => (
             <button
@@ -498,13 +498,13 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
               onClick={() => onScope({ ...scope, sla: id })}
               className="flex flex-col rounded-xl px-4 py-3 text-start transition-all duration-150"
               style={{
-                background: scope.sla === id ? "rgba(124,58,237,0.12)" : "rgba(255,255,255,0.02)",
-                border:     scope.sla === id ? "1px solid rgba(124,58,237,0.35)" : "1px solid rgba(255,255,255,0.06)",
+                background: scope.sla === id ? "rgba(124,58,237,0.12)" : "rgba(0,0,0,0.04)",
+                border:     scope.sla === id ? "1px solid rgba(124,58,237,0.35)" : "1px solid rgba(0,0,0,0.08)",
                 minWidth:   120,
               }}
             >
-              <span className="text-[13px] font-semibold" style={{ color: scope.sla === id ? "#C4B5FD" : "rgba(255,255,255,0.70)" }}>{label}</span>
-              <span className="mt-0.5 text-[11px]" style={{ color: "rgba(255,255,255,0.30)" }}>{desc}</span>
+              <span className="text-[13px] font-semibold" style={{ color: scope.sla === id ? "#7C3AED" : "rgba(15,10,30,0.65)" }}>{label}</span>
+              <span className="mt-0.5 text-[11px]" style={{ color: "rgba(15,10,30,0.35)" }}>{desc}</span>
             </button>
           ))}
         </div>
@@ -517,14 +517,14 @@ function Step2({ scope, onScope, celebrityId }: Step2Props) {
       >
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.40)" }}>Indicative price band (incl. VAT)</p>
-            <p className="mt-0.5 font-display text-[20px] font-bold text-white">{priceBand}</p>
+            <p className="text-[12px] font-medium" style={{ color: "rgba(15,10,30,0.45)" }}>Indicative price band (incl. VAT)</p>
+            <p className="mt-0.5 font-display text-[20px] font-bold" style={{ color: "#0F0A1E" }}>{priceBand}</p>
           </div>
-          <div className="text-right text-[11px]" style={{ color: "rgba(255,255,255,0.25)", maxWidth: 160 }}>
+          <div className="text-right text-[11px]" style={{ color: "rgba(15,10,30,0.30)", maxWidth: 160 }}>
             Range adjusts with territory, duration, exclusivity &amp; SLA.
           </div>
         </div>
-        <p className="mt-3 text-[11px]" style={{ color: "rgba(255,255,255,0.30)", lineHeight: 1.6 }}>
+        <p className="mt-3 text-[11px]" style={{ color: "rgba(15,10,30,0.35)", lineHeight: 1.6 }}>
           Final pricing and license activation occur after celebrity approval, compliance checks, and payment capture inside escrow. This figure is indicative only.
         </p>
       </div>
@@ -544,10 +544,10 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+        <h2 className="font-display text-[22px] font-bold" style={{ letterSpacing: "-0.02em", color: "#0F0A1E" }}>
           Creative Brief &amp; Assets
         </h2>
-        <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+        <p className="mt-1 text-[14px]" style={{ color: "rgba(15,10,30,0.45)" }}>
           Your brief feeds celebrity/manager review. Be specific — it reduces revision cycles.
         </p>
       </div>
@@ -558,8 +558,8 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
         style={{ background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.18)" }}
       >
         <span style={{ color: "#8B5CF6", fontSize: 16, flexShrink: 0, marginTop: 1 }}>🛡</span>
-        <div className="text-[12px]" style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
-          <strong style={{ color: "rgba(255,255,255,0.80)" }}>Validation &amp; Brand Safety: </strong>
+        <div className="text-[12px]" style={{ color: "rgba(15,10,30,0.55)", lineHeight: 1.6 }}>
+          <strong style={{ color: "rgba(15,10,30,0.70)" }}>Validation &amp; Brand Safety: </strong>
           Requests are checked against prohibited categories, celebrity restrictions, and Twinity brand-safety policies.
           Some campaigns may be escalated to compliance review. Production only starts after all checks pass.
         </div>
@@ -567,7 +567,7 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
 
       {/* Primary message */}
       <label className="block">
-        <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+        <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
           Primary message / single-minded proposition <span style={{ color: "#8B5CF6" }}>*</span>
         </span>
         <textarea
@@ -579,14 +579,14 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
           className={INPUT_CLS}
           style={{ ...inputStyle, borderRadius: 12, padding: "12px 16px", resize: "vertical" }}
         />
-        <p className="mt-1 text-end text-[11px]" style={{ color: "rgba(255,255,255,0.20)" }}>
+        <p className="mt-1 text-end text-[11px]" style={{ color: "rgba(15,10,30,0.25)" }}>
           {message.length} / 280
         </p>
       </label>
 
       {/* Script / talking points */}
       <label className="block">
-        <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+        <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
           Script / talking points
         </span>
         <textarea
@@ -601,7 +601,7 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
 
       {/* Brand guidelines */}
       <label className="block">
-        <span className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>
+        <span className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>
           Brand guidelines &amp; reference links
         </span>
         <textarea
@@ -616,7 +616,7 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
 
       {/* File upload areas */}
       <div>
-        <p className={LABEL_CLS} style={{ color: "rgba(255,255,255,0.55)" }}>Asset uploads</p>
+        <p className={LABEL_CLS} style={{ color: "rgba(15,10,30,0.55)" }}>Asset uploads</p>
         <div className="grid gap-3 sm:grid-cols-2">
           {[
             { label: "Brand logo (SVG / PNG)", hint: "Up to 20 MB" },
@@ -631,18 +631,18 @@ function Step3({ message, onMessage, script, onScript, guidelines, onGuidelines 
               type="button"
               className="flex cursor-pointer flex-col items-center justify-center rounded-xl px-3 py-7 text-center transition-all duration-150 hover:border-[rgba(124,58,237,0.35)]"
               style={{
-                background: "rgba(255,255,255,0.02)",
-                border:     "1px dashed rgba(255,255,255,0.10)",
+                background: "rgba(0,0,0,0.04)",
+                border:     "1px dashed rgba(0,0,0,0.10)",
               }}
             >
               <span className="text-[20px]" aria-hidden>📎</span>
-              <span className="mt-2 text-[12px] font-semibold" style={{ color: "rgba(255,255,255,0.60)" }}>{label}</span>
-              <span className="mt-0.5 text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>{hint}</span>
+              <span className="mt-2 text-[12px] font-semibold" style={{ color: "rgba(15,10,30,0.60)" }}>{label}</span>
+              <span className="mt-0.5 text-[11px]" style={{ color: "rgba(15,10,30,0.30)" }}>{hint}</span>
               <span className="mt-2 text-[11px] font-medium" style={{ color: "#8B5CF6" }}>Choose file</span>
             </button>
           ))}
         </div>
-        <p className="mt-3 text-[11px]" style={{ color: "rgba(255,255,255,0.25)", lineHeight: 1.5 }}>
+        <p className="mt-3 text-[11px]" style={{ color: "rgba(15,10,30,0.30)", lineHeight: 1.5 }}>
           All assets are stored in Twinity&apos;s secure signed-URL vault. No raw identity or model files are accepted or generated here.
         </p>
       </div>
@@ -666,9 +666,9 @@ interface Step4Props extends ReviewData {
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-      <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</span>
-      <span className="text-right text-[13px] font-medium text-white">{value || "—"}</span>
+    <div className="flex justify-between gap-4 py-2" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
+      <span className="text-[12px]" style={{ color: "rgba(15,10,30,0.40)" }}>{label}</span>
+      <span className="text-right text-[13px] font-medium" style={{ color: "#0F0A1E" }}>{value || "—"}</span>
     </div>
   );
 }
@@ -681,10 +681,10 @@ function Step4({ campaignName, brand, objective, category, budget, celebrityId,
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+        <h2 className="font-display text-[22px] font-bold" style={{ letterSpacing: "-0.02em", color: "#0F0A1E" }}>
           Review &amp; Submit
         </h2>
-        <p className="mt-1 text-[14px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+        <p className="mt-1 text-[14px]" style={{ color: "rgba(15,10,30,0.45)" }}>
           Confirm your campaign details before we route it to the celebrity team for review.
         </p>
       </div>
@@ -692,8 +692,8 @@ function Step4({ campaignName, brand, objective, category, budget, celebrityId,
       {/* Two-column summary */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Campaign basics + license */}
-        <div className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-          <p className="mb-3 text-[12px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "0.10em" }}>
+        <div className="rounded-2xl p-5" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)" }}>
+          <p className="mb-3 text-[12px] font-bold uppercase" style={{ color: "rgba(15,10,30,0.30)", letterSpacing: "0.10em" }}>
             Campaign
           </p>
           <SummaryRow label="Campaign name"    value={campaignName} />
@@ -703,7 +703,7 @@ function Step4({ campaignName, brand, objective, category, budget, celebrityId,
           {budget    && <SummaryRow label="Budget"    value={`SAR ${Number(budget).toLocaleString("en-SA")}`} />}
           <SummaryRow label="Preferred talent" value={cel?.name ?? "Not selected"} />
 
-          <p className="mb-3 mt-5 text-[12px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "0.10em" }}>
+          <p className="mb-3 mt-5 text-[12px] font-bold uppercase" style={{ color: "rgba(15,10,30,0.30)", letterSpacing: "0.10em" }}>
             License Scope
           </p>
           <SummaryRow label="Channels"     value={scope.customChannels.join(", ") || "None selected"} />
@@ -744,24 +744,24 @@ function Step4({ campaignName, brand, objective, category, budget, celebrityId,
             <div key={title} className="mb-4 flex gap-3">
               <span style={{ fontSize: 16, flexShrink: 0 }}>{icon}</span>
               <div>
-                <p className="text-[13px] font-semibold text-white">{title}</p>
-                <p className="mt-0.5 text-[12px]" style={{ color: "rgba(255,255,255,0.40)", lineHeight: 1.5 }}>{body}</p>
+                <p className="text-[13px] font-semibold" style={{ color: "#0F0A1E" }}>{title}</p>
+                <p className="mt-0.5 text-[12px]" style={{ color: "rgba(15,10,30,0.45)", lineHeight: 1.5 }}>{body}</p>
               </div>
             </div>
           ))}
 
           {message && (
-            <div className="mt-4 rounded-xl px-3 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <p className="text-[11px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.20)", letterSpacing: "0.08em" }}>Key message</p>
-              <p className="mt-1 text-[13px]" style={{ color: "rgba(255,255,255,0.60)" }}>
+            <div className="mt-4 rounded-xl px-3 py-3" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)" }}>
+              <p className="text-[11px] font-bold uppercase" style={{ color: "rgba(15,10,30,0.25)", letterSpacing: "0.08em" }}>Key message</p>
+              <p className="mt-1 text-[13px]" style={{ color: "rgba(15,10,30,0.60)" }}>
                 {message.slice(0, 120)}{message.length > 120 ? "…" : ""}
               </p>
             </div>
           )}
           {guidelines && (
-            <div className="mt-3 rounded-xl px-3 py-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <p className="text-[11px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.20)", letterSpacing: "0.08em" }}>Brand guidelines</p>
-              <p className="mt-1 text-[12px]" style={{ color: "rgba(255,255,255,0.50)" }}>
+            <div className="mt-3 rounded-xl px-3 py-3" style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)" }}>
+              <p className="text-[11px] font-bold uppercase" style={{ color: "rgba(15,10,30,0.25)", letterSpacing: "0.08em" }}>Brand guidelines</p>
+              <p className="mt-1 text-[12px]" style={{ color: "rgba(15,10,30,0.50)" }}>
                 {guidelines.slice(0, 80)}{guidelines.length > 80 ? "…" : ""}
               </p>
             </div>
@@ -772,7 +772,7 @@ function Step4({ campaignName, brand, objective, category, budget, celebrityId,
       {/* Confirmation checkbox */}
       <label
         className="flex cursor-pointer items-start gap-3 rounded-2xl p-4"
-        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}
+        style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.09)" }}
       >
         <input
           type="checkbox"
@@ -780,7 +780,7 @@ function Step4({ campaignName, brand, objective, category, budget, celebrityId,
           onChange={(e) => onConfirm(e.target.checked)}
           className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#7C3AED]"
         />
-        <span className="text-[13px]" style={{ color: "rgba(255,255,255,0.65)", lineHeight: 1.6 }}>
+        <span className="text-[13px]" style={{ color: "rgba(15,10,30,0.60)", lineHeight: 1.6 }}>
           I confirm this brief is accurate and I understand that final approval is subject to Twinity policy, celebrity restrictions, brand-safety rules, and license scope. Payment capture occurs inside escrow after all gates clear.
         </span>
       </label>
@@ -801,16 +801,16 @@ function SuccessState({ onClose }: { onClose: () => void }) {
       >
         ✅
       </div>
-      <h2 className="mt-6 font-display text-[24px] font-bold text-white" style={{ letterSpacing: "-0.02em" }}>
+      <h2 className="mt-6 font-display text-[24px] font-bold" style={{ letterSpacing: "-0.02em", color: "#0F0A1E" }}>
         Request Received
       </h2>
-      <p className="mt-3 max-w-md text-[15px]" style={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>
+      <p className="mt-3 max-w-md text-[15px]" style={{ color: "rgba(15,10,30,0.55)", lineHeight: 1.6 }}>
         Your custom campaign request has been received. Our team and the celebrity manager will review the license and brief. We&apos;ll notify you when it&apos;s ready for approval and payment capture.
       </p>
 
       <div
         className="mt-6 max-w-sm rounded-2xl p-5 text-start"
-        style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)" }}
       >
         {[
           { step: "1", label: "Brief review", desc: "Twinity team & celebrity manager review (1–2 days)" },
@@ -826,8 +826,8 @@ function SuccessState({ onClose }: { onClose: () => void }) {
               {step}
             </span>
             <div>
-              <p className="text-[13px] font-semibold text-white">{label}</p>
-              <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.35)" }}>{desc}</p>
+              <p className="text-[13px] font-semibold" style={{ color: "#0F0A1E" }}>{label}</p>
+              <p className="text-[12px]" style={{ color: "rgba(15,10,30,0.40)" }}>{desc}</p>
             </div>
           </div>
         ))}
@@ -925,7 +925,7 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
     <nav
       className="hidden md:flex w-[200px] shrink-0 flex-col py-4"
       aria-label="Custom campaign steps"
-      style={{ background: "rgba(10,8,18,0.60)", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+      style={{ background: "#F8F7FF", borderRight: "1px solid rgba(0,0,0,0.08)" }}
     >
       <ul className="flex flex-col gap-0.5 px-2">
         {STEPS.map(({ id, label }) => {
@@ -939,7 +939,7 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
                 disabled={id > currentStep}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start transition-all duration-200 disabled:pointer-events-none"
                 style={{
-                  background: active ? "linear-gradient(135deg, rgba(124,58,237,0.20) 0%, rgba(139,92,246,0.08) 100%)" : "transparent",
+                  background: active ? "rgba(124,58,237,0.07)" : "transparent",
                   border:     active ? "1px solid rgba(124,58,237,0.18)" : "1px solid transparent",
                 }}
               >
@@ -947,9 +947,9 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
                   className="flex shrink-0 items-center justify-center rounded-full text-[12px] font-bold"
                   style={{
                     width:      28, height: 28,
-                    background: done ? "linear-gradient(135deg, #7C3AED, #5B21B6)" : active ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.04)",
-                    border:     done ? "none" : active ? "2px solid #7C3AED" : "1px solid rgba(255,255,255,0.08)",
-                    color:      done ? "#FFFFFF" : active ? "#C4B5FD" : "rgba(255,255,255,0.20)",
+                    background: done ? "linear-gradient(135deg, #7C3AED, #5B21B6)" : active ? "rgba(124,58,237,0.15)" : "rgba(0,0,0,0.04)",
+                    border:     done ? "none" : active ? "2px solid #7C3AED" : "1px solid rgba(0,0,0,0.09)",
+                    color:      done ? "#FFFFFF" : active ? "#7C3AED" : "rgba(15,10,30,0.25)",
                     boxShadow:  done ? "0 4px 12px rgba(124,58,237,0.35)" : "none",
                   }}
                 >
@@ -959,7 +959,7 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
                   className="min-w-0 flex-1 truncate text-[13px]"
                   style={{
                     fontWeight: active ? 600 : 400,
-                    color: active ? "rgba(255,255,255,0.90)" : done ? "rgba(255,255,255,0.50)" : "rgba(255,255,255,0.30)",
+                    color: active ? "#0F0A1E" : done ? "rgba(15,10,30,0.50)" : "rgba(15,10,30,0.35)",
                   }}
                 >
                   {label}
@@ -976,10 +976,10 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
   const renderFooter = () => (
     <div
       className="flex shrink-0 items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:py-0 md:px-6"
-      style={{ background: "rgba(10,8,18,0.90)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(0,0,0,0.08)" }}
     >
       {/* Summary — desktop only */}
-      <p className="hidden md:block min-w-0 flex-1 truncate text-[13px]" style={{ color: "rgba(255,255,255,0.30)" }}>
+      <p className="hidden md:block min-w-0 flex-1 truncate text-[13px]" style={{ color: "rgba(15,10,30,0.35)" }}>
         {campaignName || "Custom Campaign"}{brand ? ` · ${brand}` : ""}{category ? ` · ${category}` : ""}
       </p>
       {/* Buttons — full-width on mobile */}
@@ -1026,15 +1026,15 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
         <div style={{
           position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 9999,
           display: "flex", alignItems: "center", gap: 12,
-          background: "#161616", border: "1px solid #2A2A2A", borderRadius: 12,
+          background: "#FFFFFF", border: "1px solid rgba(34,197,94,0.25)", borderRadius: 12,
           padding: "14px 18px", boxShadow: "0 0 24px rgba(34,197,94,0.12), 0 8px 32px rgba(0,0,0,0.6)",
         }}>
-          <CheckCircle2 size={20} color="#22C55E" style={{ flexShrink: 0 }} />
+          <CheckCircle2 size={20} color="#16A34A" style={{ flexShrink: 0 }} />
           <div>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#F0F0F0" }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#0F0A1E" }}>
               Request submitted successfully
             </p>
-            <p style={{ margin: 0, fontSize: 12, color: "#A0A0A0", marginTop: 2 }}>
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(15,10,30,0.45)", marginTop: 2 }}>
               Redirecting to your request…
             </p>
           </div>
@@ -1042,24 +1042,24 @@ export function CustomCampaignFunnelWorkspace({ onClose, sessionId }: CustomCamp
       )}
       {renderSidebar()}
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: "#0A0812" }}>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: "#FFFFFF" }}>
         {/* Mobile step indicator */}
         {!submitted && (
           <div
             className="md:hidden shrink-0 px-4 pb-2.5 pt-3"
-            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}
           >
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-[13px] font-medium text-white">
+              <span className="text-[13px] font-medium" style={{ color: "#0F0A1E" }}>
                 Step {currentStep} of {STEPS.length}
               </span>
-              <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+              <span className="text-[12px]" style={{ color: "rgba(15,10,30,0.45)" }}>
                 {STEPS.find((s) => s.id === currentStep)?.label ?? ""}
               </span>
             </div>
             <div
               className="h-[2px] overflow-hidden rounded-full"
-              style={{ background: "rgba(255,255,255,0.08)" }}
+              style={{ background: "rgba(0,0,0,0.09)" }}
             >
               <div
                 className="h-full rounded-full transition-all duration-300"
@@ -1149,20 +1149,20 @@ export function CustomCampaignFunnel({ open, onClose }: CustomCampaignFunnelProp
       />
       <div
         className="relative z-10 flex h-full w-full max-h-[100dvh] max-w-[1400px] flex-col overflow-hidden rounded-none sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl"
-        style={{ background: "#0A0812", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.70)" }}
+        style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.09)", boxShadow: "0 32px 80px rgba(0,0,0,0.18)" }}
       >
         <header
           className="flex h-14 shrink-0 items-center justify-between px-4 md:px-5"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10,8,18,0.80)" }}
+          style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", background: "rgba(255,255,255,0.97)" }}
         >
-          <h2 id="custom-campaign-title" className="font-display text-[15px] font-bold text-white">
+          <h2 id="custom-campaign-title" className="font-display text-[15px] font-bold" style={{ color: "#0F0A1E" }}>
             Custom Campaign — Enterprise
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex size-10 items-center justify-center rounded-xl text-xl transition-all duration-150 hover:bg-white/[0.06]"
-            style={{ color: "rgba(255,255,255,0.50)" }}
+            className="flex size-10 items-center justify-center rounded-xl text-xl transition-all duration-150 hover:bg-black/[0.05]"
+            style={{ color: "rgba(15,10,30,0.40)" }}
             aria-label="Close"
           >
             ×

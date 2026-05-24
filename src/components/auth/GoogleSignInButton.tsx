@@ -34,16 +34,22 @@ export function GoogleSignInButton({ onSuccess, label = 'Continue with Google' }
         type="button"
         onClick={() => triggerLogin()}
         disabled={loading}
-        className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg text-[14px] font-medium text-white transition-all duration-150 disabled:opacity-60"
+        className="flex h-10 w-full items-center justify-center gap-2.5 rounded-lg text-[14px] font-medium transition-all duration-150 disabled:opacity-60"
         style={{
-          background: 'rgba(255,255,255,0.05)',
-          border:     '1px solid rgba(255,255,255,0.10)',
+          background: '#FFFFFF',
+          border:     '1px solid rgba(0,0,0,0.12)',
+          color:      'rgba(15,10,30,0.75)',
+          boxShadow:  '0 1px 3px rgba(0,0,0,0.06)',
         }}
         onMouseEnter={(e) => {
-          if (!loading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.09)'
+          if (!loading) {
+            (e.currentTarget as HTMLButtonElement).style.background = '#F8F6FF'
+            ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(124,58,237,0.30)'
+          }
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.05)'
+          (e.currentTarget as HTMLButtonElement).style.background = '#FFFFFF'
+          ;(e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,0,0,0.12)'
         }}
       >
         {loading ? (
@@ -57,7 +63,7 @@ export function GoogleSignInButton({ onSuccess, label = 'Continue with Google' }
       </button>
 
       {error && (
-        <p className="text-center text-[12px]" style={{ color: '#FCA5A5' }}>{error}</p>
+        <p className="text-center text-[12px]" style={{ color: '#DC2626' }}>{error}</p>
       )}
     </div>
   )

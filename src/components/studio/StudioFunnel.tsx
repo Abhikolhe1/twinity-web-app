@@ -88,20 +88,20 @@ export function StudioFunnel({ open, onClose, initialService = null }: StudioFun
       />
       <div
         className="relative z-10 flex h-full w-full max-h-[100dvh] max-w-[1400px] flex-col overflow-hidden rounded-none sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl"
-        style={{ background: "#0A0812", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.70)" }}
+        style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.09)", boxShadow: "0 32px 80px rgba(0,0,0,0.18)" }}
       >
         <header
           className="flex h-14 shrink-0 items-center justify-between px-4 md:px-5"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10,8,18,0.80)" }}
+          style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", background: "rgba(255,255,255,0.97)" }}
         >
-          <h2 id="studio-funnel-title" className="font-display text-[15px] font-bold text-white">
+          <h2 id="studio-funnel-title" className="font-display text-[15px] font-bold" style={{ color: "#0F0A1E" }}>
             Twinity Studio
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex size-10 items-center justify-center rounded-xl text-xl transition-all duration-150 hover:bg-white/[0.06]"
-            style={{ color: "rgba(255,255,255,0.50)" }}
+            className="flex size-10 items-center justify-center rounded-xl text-xl transition-all duration-150 hover:bg-black/[0.05]"
+            style={{ color: "rgba(15,10,30,0.38)" }}
             aria-label="Close"
           >
             ×
@@ -111,7 +111,7 @@ export function StudioFunnel({ open, onClose, initialService = null }: StudioFun
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           <SidebarNav currentStep={currentStep} onStepClick={(s) => setCurrentStep(s)} />
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-[var(--color-bg-deep)]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
             <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-8">
               <div key={currentStep} className="funnel-step-animate">
                 {currentStep === 1 ? (

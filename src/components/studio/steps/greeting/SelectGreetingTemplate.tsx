@@ -23,17 +23,17 @@ export function SelectGreetingTemplate({ templates, loading, selectedId, onSelec
   if (loading) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
-        <Loader2 size={28} className="animate-spin text-white/40" />
+        <Loader2 size={28} className="animate-spin" style={{ color: "rgba(15,10,30,0.40)" }} />
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Select a Template</h2>
-      <p className="mt-2 text-sm text-white/50">How should the celebrity deliver the greeting?</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Select a Template</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.50)" }}>How should the celebrity deliver the greeting?</p>
       {templates.length === 0 ? (
-        <p className="mt-8 text-sm text-white/40">No templates available yet.</p>
+        <p className="mt-8 text-sm" style={{ color: "rgba(15,10,30,0.40)" }}>No templates available yet.</p>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {templates.map((t, i) => {
@@ -48,7 +48,7 @@ export function SelectGreetingTemplate({ templates, loading, selectedId, onSelec
                   "group relative aspect-video w-full overflow-hidden rounded-xl border text-start transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                   on
                     ? "border-[#7C3AED] shadow-[0_0_0_3px_rgba(124,58,237,0.2)]"
-                    : "border-white/[0.08] hover:border-white/[0.25]",
+                    : "border-black/[0.08] hover:border-black/[0.25]",
                 ].join(" ")}
               >
                 <div
@@ -78,7 +78,7 @@ export function SelectGreetingTemplate({ templates, loading, selectedId, onSelec
           })}
         </div>
       )}
-      <p className="mt-6 flex items-start gap-2 text-sm text-white/45">
+      <p className="mt-6 flex items-start gap-2 text-sm" style={{ color: "rgba(15,10,30,0.45)" }}>
         <span aria-hidden>ℹ️</span>
         <span>All templates are pre-approved and watermarked for preview only.</span>
       </p>

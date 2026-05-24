@@ -46,21 +46,22 @@ export function ConfigureCampaign({
     <div className="grid gap-10 lg:grid-cols-[1fr_minmax(280px,36%)] lg:items-start">
       <div className="min-w-0 space-y-8">
         <div>
-          <h2 className="font-display text-2xl font-bold tracking-tight text-white">Configure Your Campaign</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Configure Your Campaign</h2>
         </div>
         <section>
-          <label htmlFor="cn" className="text-sm font-medium text-white">
+          <label htmlFor="cn" className="text-sm font-medium" style={{ color: "#0F0A1E" }}>
             Campaign name
           </label>
           <input
             id="cn"
             value={campaignName}
             onChange={(e) => onCampaignNameChange(e.target.value)}
-            className="mt-2 w-full rounded-lg border border-white/[0.08] bg-[#1F1F1F] px-4 py-3 text-sm text-white outline-none transition-[border-color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] focus:border-[rgba(124,58,237,0.5)]"
+            className="mt-2 w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-sm outline-none transition-[border-color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] focus:border-[rgba(124,58,237,0.5)]"
+            style={{ color: "#0F0A1E" }}
           />
         </section>
         <section>
-          <h3 className="text-sm font-medium text-white">Platform / channel</h3>
+          <h3 className="text-sm font-medium" style={{ color: "#0F0A1E" }}>Platform / channel</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {PLATFORMS.map((p) => {
               const on = platforms.includes(p);
@@ -72,9 +73,10 @@ export function ConfigureCampaign({
                   className={[
                     "rounded-lg px-3 py-2 text-xs font-semibold transition-[background-color,border-color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                     on
-                      ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                      : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                      ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                      : "border border-black/[0.08] bg-white",
                   ].join(" ")}
+                  style={{ color: on ? "#0F0A1E" : "rgba(15,10,30,0.45)" }}
                 >
                   {p}
                 </button>
@@ -83,7 +85,7 @@ export function ConfigureCampaign({
           </div>
         </section>
         <section>
-          <h3 className="text-sm font-medium text-white">License duration</h3>
+          <h3 className="text-sm font-medium" style={{ color: "#0F0A1E" }}>License duration</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {(["1M", "3M", "6M", "1 Year"] as const).map((d) => (
               <button
@@ -93,9 +95,10 @@ export function ConfigureCampaign({
                 className={[
                   "rounded-lg px-4 py-2.5 text-sm font-semibold transition-[border-color,background-color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                   duration === d
-                    ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                    : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                    ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                    : "border border-black/[0.08] bg-white",
                 ].join(" ")}
+                style={{ color: duration === d ? "#0F0A1E" : "rgba(15,10,30,0.45)" }}
               >
                 {d}
               </button>
@@ -103,7 +106,7 @@ export function ConfigureCampaign({
           </div>
         </section>
         <section>
-          <h3 className="text-sm font-medium text-white">Territory</h3>
+          <h3 className="text-sm font-medium" style={{ color: "#0F0A1E" }}>Territory</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             {(["Saudi Arabia", "GCC", "MENA", "Global"] as const).map((t) => (
               <button
@@ -113,9 +116,10 @@ export function ConfigureCampaign({
                 className={[
                   "rounded-lg px-4 py-2.5 text-sm font-semibold transition-[border-color,background-color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                   territory === t
-                    ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                    : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                    ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                    : "border border-black/[0.08] bg-white",
                 ].join(" ")}
+                style={{ color: territory === t ? "#0F0A1E" : "rgba(15,10,30,0.45)" }}
               >
                 {t}
               </button>
@@ -123,7 +127,7 @@ export function ConfigureCampaign({
           </div>
         </section>
         <section>
-          <h3 className="text-sm font-medium text-white">Urgency</h3>
+          <h3 className="text-sm font-medium" style={{ color: "#0F0A1E" }}>Urgency</h3>
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               type="button"
@@ -131,9 +135,10 @@ export function ConfigureCampaign({
               className={[
                 "rounded-lg px-4 py-2.5 text-sm font-semibold transition-[border-color,background-color] duration-[180ms]",
                 !express
-                  ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                  : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                  ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                  : "border border-black/[0.08] bg-white",
               ].join(" ")}
+              style={{ color: !express ? "#0F0A1E" : "rgba(15,10,30,0.45)" }}
             >
               Standard (3–5 days)
             </button>
@@ -143,9 +148,10 @@ export function ConfigureCampaign({
               className={[
                 "rounded-lg px-4 py-2.5 text-sm font-semibold transition-[border-color,background-color] duration-[180ms]",
                 express
-                  ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                  : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                  ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                  : "border border-black/[0.08] bg-white",
               ].join(" ")}
+              style={{ color: express ? "#0F0A1E" : "rgba(15,10,30,0.45)" }}
             >
               Express (24hrs, + SAR 500)
             </button>
@@ -154,37 +160,37 @@ export function ConfigureCampaign({
       </div>
 
       <aside className="lg:sticky lg:top-4">
-        <div className="rounded-xl border border-white/[0.08] bg-[#1F1F1F] p-6">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Selected</p>
+        <div className="rounded-xl border border-black/[0.08] bg-white p-6">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.38)" }}>Selected</p>
           <div className="mt-4 flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={celebrityImageUrl}
               alt=""
-              className="size-12 shrink-0 rounded-lg object-cover ring-1 ring-white/[0.08]"
+              className="size-12 shrink-0 rounded-lg object-cover ring-1 ring-black/[0.08]"
             />
-            <span className="font-display text-base font-semibold text-white">{celebrityName}</span>
+            <span className="font-display text-base font-semibold" style={{ color: "#0F0A1E" }}>{celebrityName}</span>
           </div>
-          <dl className="mt-6 space-y-3 border-t border-white/[0.08] pt-6 text-sm">
+          <dl className="mt-6 space-y-3 border-t border-black/[0.08] pt-6 text-sm">
             <div className="flex justify-between gap-2">
-              <dt className="text-white/50">Template</dt>
-              <dd className="text-end font-medium text-white">{templateName}</dd>
+              <dt style={{ color: "rgba(15,10,30,0.45)" }}>Template</dt>
+              <dd className="text-end font-medium" style={{ color: "#0F0A1E" }}>{templateName}</dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-white/50">Platforms</dt>
-              <dd className="max-w-[55%] text-end text-xs text-white/80">
+              <dt style={{ color: "rgba(15,10,30,0.45)" }}>Platforms</dt>
+              <dd className="max-w-[55%] text-end text-xs" style={{ color: "rgba(15,10,30,0.55)" }}>
                 {platforms.length ? platforms.join(", ") : "—"}
               </dd>
             </div>
             <div className="flex justify-between gap-2">
-              <dt className="text-white/50">Duration</dt>
-              <dd className="text-end text-white">{DURATION_LABEL[duration] ?? duration}</dd>
+              <dt style={{ color: "rgba(15,10,30,0.45)" }}>Duration</dt>
+              <dd className="text-end" style={{ color: "#0F0A1E" }}>{DURATION_LABEL[duration] ?? duration}</dd>
             </div>
           </dl>
-          <div className="mt-6 border-t border-white/[0.08] pt-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Indicative price</p>
-            <p className="mt-1 font-display text-3xl font-bold text-white">SAR {indicativePriceSar.toLocaleString("en-SA")}</p>
-            <p className="mt-2 text-xs text-white/35">Final price confirmed after review</p>
+          <div className="mt-6 border-t border-black/[0.08] pt-6">
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.38)" }}>Indicative price</p>
+            <p className="mt-1 font-display text-3xl font-bold" style={{ color: "#0F0A1E" }}>SAR {indicativePriceSar.toLocaleString("en-SA")}</p>
+            <p className="mt-2 text-xs" style={{ color: "rgba(15,10,30,0.38)" }}>Final price confirmed after review</p>
           </div>
           <button
             type="button"
@@ -193,7 +199,7 @@ export function ConfigureCampaign({
           >
             Start Generation <span aria-hidden>🔒</span>
           </button>
-          <p className="mt-3 text-center text-xs text-white/35">Payment &amp; login required to proceed</p>
+          <p className="mt-3 text-center text-xs" style={{ color: "rgba(15,10,30,0.38)" }}>Payment &amp; login required to proceed</p>
         </div>
       </aside>
     </div>

@@ -367,7 +367,7 @@ export function ImageAdLeftPanel({
         flexDirection:   "column",
         overflow:        "hidden",
         borderInlineEnd: "1px solid var(--color-border)",
-        background:      "#0D0D0D",
+        background:      "var(--color-surface)",
       }}
       className="w-full md:w-[340px] md:min-w-[340px] lg:w-[380px] lg:min-w-[380px]"
     >
@@ -648,7 +648,7 @@ export function ImageAdLeftPanel({
           flexShrink:    0,
           borderTop:     "1px solid var(--color-border)",
           padding:       "16px 24px",
-          background:    "#0D0D0D",
+          background:    "var(--color-surface)",
           display:       "flex",
           flexDirection: "column",
           gap:           10,

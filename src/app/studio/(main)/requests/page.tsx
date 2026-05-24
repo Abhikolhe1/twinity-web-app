@@ -35,37 +35,37 @@ import { useStudioFunnel } from "@/contexts/StudioFunnelContext";
 const T = {
   /* surfaces */
   pageBg:        "transparent",
-  cardBg:        "rgba(255,255,255,0.025)",      // Studio Home exact
-  cardBgHover:   "rgba(255,255,255,0.045)",
-  tableBg:       "rgba(255,255,255,0.018)",
-  rowHoverBg:    "rgba(255,255,255,0.028)",
-  headerBg:      "rgba(0,0,0,0.28)",
+  cardBg:        "#FFFFFF",
+  cardBgHover:   "rgba(0,0,0,0.02)",
+  tableBg:       "#FFFFFF",
+  rowHoverBg:    "rgba(0,0,0,0.02)",
+  headerBg:      "rgba(0,0,0,0.03)",
 
   /* borders */
-  border:        "rgba(255,255,255,0.055)",
-  borderHover:   "rgba(255,255,255,0.10)",
-  rowDivider:    "rgba(255,255,255,0.038)",
+  border:        "rgba(0,0,0,0.08)",
+  borderHover:   "rgba(0,0,0,0.12)",
+  rowDivider:    "rgba(0,0,0,0.07)",
 
   /* text hierarchy */
-  textPrimary:   "#F4F4F5",
-  textSecondary: "rgba(255,255,255,0.55)",       // var(--tx-2)
-  textTertiary:  "rgba(255,255,255,0.32)",       // var(--tx-3)
-  textMuted:     "rgba(255,255,255,0.20)",       // var(--tx-4)
-  textLabel:     "rgba(255,255,255,0.20)",
+  textPrimary:   "#0F0A1E",
+  textSecondary: "rgba(15,10,30,0.55)",
+  textTertiary:  "rgba(15,10,30,0.38)",
+  textMuted:     "rgba(15,10,30,0.25)",
+  textLabel:     "rgba(15,10,30,0.35)",
 
   /* brand */
   violet:        "#7C3AED",
-  violetBg:      "rgba(124,58,237,0.12)",
-  violetBorder:  "rgba(124,58,237,0.35)",
+  violetBg:      "rgba(124,58,237,0.10)",
+  violetBorder:  "rgba(124,58,237,0.28)",
 
   /* semantic */
-  amber:         "#F59E0B",
+  amber:         "#D97706",
   amberBg:       "rgba(245,158,11,0.08)",
-  green:         "#22C55E",
+  green:         "#16A34A",
   greenBg:       "rgba(34,197,94,0.08)",
-  blue:          "#3B82F6",
+  blue:          "#2563EB",
   blueBg:        "rgba(59,130,246,0.08)",
-  red:           "#EF4444",
+  red:           "#DC2626",
 } as const;
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -80,10 +80,10 @@ const PENDING_ACTION = new Set<RequestStatus>([
 ]);
 
 const TYPE_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  GREETING:        { label: "Greeting",  color: "#A78BFA", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.16)" },
-  CAMPAIGN:        { label: "Campaign",  color: "#7DD3FC", bg: "rgba(59,130,246,0.08)",  border: "rgba(59,130,246,0.16)" },
-  CUSTOM_CAMPAIGN: { label: "Custom",    color: "#FCD34D", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.16)" },
-  AD_IMAGE:        { label: "Image Ad",  color: "#C4B5FD", bg: "rgba(139,92,246,0.10)", border: "rgba(139,92,246,0.22)" },
+  GREETING:        { label: "Greeting",  color: "#7C3AED", bg: "rgba(124,58,237,0.08)", border: "rgba(124,58,237,0.16)" },
+  CAMPAIGN:        { label: "Campaign",  color: "#2563EB", bg: "rgba(59,130,246,0.08)",  border: "rgba(59,130,246,0.16)" },
+  CUSTOM_CAMPAIGN: { label: "Custom",    color: "#D97706", bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.16)" },
+  AD_IMAGE:        { label: "Image Ad",  color: "#6D28D9", bg: "rgba(139,92,246,0.08)", border: "rgba(139,92,246,0.18)" },
 };
 
 /* Row left border — meaningful status signal only */
@@ -184,7 +184,7 @@ function KpiCard({ label, value, sub, Icon, delay, accent }: KpiProps) {
         transition:    "background 200ms, border-color 200ms, box-shadow 200ms",
         background:    hov ? T.cardBgHover : T.cardBg,
         border:        `1px solid ${hov ? T.borderHover : T.border}`,
-        boxShadow:     hov ? "0 4px 16px rgba(0,0,0,0.22)" : "none",
+        boxShadow:     hov ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
         animation:     `_fadeUp 220ms ease-out ${delay}ms both`,
       }}
     >
@@ -243,20 +243,20 @@ function CelebAvatar({ name }: { name: string }) {
     <div style={{ display:"flex", alignItems:"center", gap:8, minWidth:0 }}>
       <span aria-hidden style={{
         width:24, height:24, borderRadius:9999, flexShrink:0,
-        background:     "rgba(124,58,237,0.40)",
-        border:         "1px solid rgba(124,58,237,0.25)",
+        background:     "rgba(124,58,237,0.12)",
+        border:         "1px solid rgba(124,58,237,0.20)",
         display:        "inline-flex",
         alignItems:     "center",
         justifyContent: "center",
         fontSize:9, fontWeight:700,
-        color:          "rgba(255,255,255,0.85)",
+        color:          "#7C3AED",
         letterSpacing:  "0.04em",
       }}>
         {initials}
       </span>
       <span style={{
         fontSize:13, fontWeight:450,
-        color:        "rgba(255,255,255,0.78)",
+        color:        "#0F0A1E",
         overflow:     "hidden",
         textOverflow: "ellipsis",
         whiteSpace:   "nowrap",
@@ -279,7 +279,7 @@ function GateCell({ status }: { status: RequestStatus }) {
     ? T.green
     : gate >= 7 ? "#7C3AED"
     : gate >= 4 ? "#8B5CF6"
-    : "rgba(255,255,255,0.20)";
+    : "rgba(0,0,0,0.15)";
 
   return (
     <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
@@ -309,7 +309,7 @@ function GateCell({ status }: { status: RequestStatus }) {
       <div style={{
         height:       3,
         width:        56,
-        background:   "rgba(255,255,255,0.07)",
+        background:   "rgba(0,0,0,0.08)",
         borderRadius: 9999,
         overflow:     "hidden",
       }}>
@@ -452,8 +452,8 @@ function TableRow({ request, isLast }: {
                 width:           30,
                 height:          30,
                 borderRadius:    7,
-                border:          `1px solid ${hov ? "rgba(124,58,237,0.35)" : "rgba(255,255,255,0.09)"}`,
-                background:      hov ? "rgba(124,58,237,0.12)" : "rgba(255,255,255,0.04)",
+                border:          `1px solid ${hov ? "rgba(124,58,237,0.35)" : "rgba(0,0,0,0.10)"}`,
+                background:      hov ? "rgba(124,58,237,0.10)" : "rgba(0,0,0,0.04)",
                 cursor:          "pointer",
                 color:           hov ? T.violet : T.textMuted,
                 transition:      "all 150ms ease",
@@ -476,8 +476,8 @@ function TableRow({ request, isLast }: {
                 width:           30,
                 height:          30,
                 borderRadius:    7,
-                border:          `1px solid ${hov ? "rgba(34,197,94,0.35)" : "rgba(255,255,255,0.09)"}`,
-                background:      hov ? "rgba(34,197,94,0.10)" : "rgba(255,255,255,0.04)",
+                border:          `1px solid ${hov ? "rgba(34,197,94,0.35)" : "rgba(0,0,0,0.10)"}`,
+                background:      hov ? "rgba(34,197,94,0.10)" : "rgba(0,0,0,0.04)",
                 cursor:          downloading ? "wait" : "pointer",
                 color:           hov ? T.green : T.textMuted,
                 opacity:         downloading ? 0.6 : 1,
@@ -558,10 +558,10 @@ function MobileCard({ request, index }: { request: MockRequest; index: number })
             </span>
             <span style={{ fontSize:11, color:T.textMuted }}>/9 gates</span>
           </div>
-          <div style={{ height:3, width:52, background:"rgba(255,255,255,0.07)",
+          <div style={{ height:3, width:52, background:"rgba(0,0,0,0.08)",
                         borderRadius:9999, overflow:"hidden" }}>
             <div style={{ height:"100%", borderRadius:9999, width:`${pct}%`,
-                          background: done ? T.green : gate >= 7 ? "#7C3AED" : gate >= 4 ? "#8B5CF6" : "rgba(255,255,255,0.20)",
+                          background: done ? T.green : gate >= 7 ? "#7C3AED" : gate >= 4 ? "#8B5CF6" : "rgba(0,0,0,0.15)",
                           transition: "width 600ms cubic-bezier(0.16,1,0.3,1)" }} />
           </div>
         </div>
@@ -590,8 +590,8 @@ function EmptyState({ typeFilter, onNewRequest }: { typeFilter: TabId; onNewRequ
     <div style={{ display:"flex", flexDirection:"column", alignItems:"center",
                   justifyContent:"center", padding:"72px 24px", textAlign:"center" }}>
       {isAll
-        ? <InboxIcon size={34} style={{ color:"rgba(255,255,255,0.09)", marginBottom:14 }} />
-        : <SearchX   size={30} style={{ color:"rgba(255,255,255,0.09)", marginBottom:14 }} />
+        ? <InboxIcon size={34} style={{ color:"rgba(0,0,0,0.12)", marginBottom:14 }} />
+        : <SearchX   size={30} style={{ color:"rgba(0,0,0,0.12)", marginBottom:14 }} />
       }
       <p style={{ margin:"0 0 6px", fontSize:15, fontWeight:600, color:T.textPrimary, letterSpacing:"-0.01em" }}>
         {isAll ? "No requests yet" : `No ${typeLabel} requests`}
@@ -697,8 +697,8 @@ function StatusFilter({
           paddingInline: isMobile ? 14 : 12,
           borderRadius: 9999,
           border:       `1px solid ${isActive ? T.violetBorder : T.border}`,
-          background:   isActive ? T.violetBg : "rgba(255,255,255,0.022)",
-          color:        hasFilters ? "#C4B5FD" : T.textTertiary,
+          background:   isActive ? T.violetBg : "rgba(0,0,0,0.04)",
+          color:        hasFilters ? "#7C3AED" : T.textTertiary,
           fontSize:     isMobile ? 13 : 12,
           fontWeight:   500,
           cursor:       "pointer",
@@ -729,7 +729,7 @@ function StatusFilter({
             top:                  dropPos.top,
             right:                dropPos.right,
             zIndex:               1000,
-            background:           "rgba(13,11,20,0.98)",
+            background:           "#FFFFFF",
             backdropFilter:       "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
             border:               `1px solid ${T.border}`,
@@ -738,7 +738,7 @@ function StatusFilter({
             width:                232,
             maxHeight:            360,
             overflowY:            "auto",
-            boxShadow:            "0 20px 60px rgba(0,0,0,0.90),0 0 0 1px rgba(255,255,255,0.04)",
+            boxShadow:            "0 8px 32px rgba(0,0,0,0.12),0 0 0 1px rgba(0,0,0,0.06)",
             animation:            "_fadeUp 120ms ease both",
           }}>
             {STATUS_OPTIONS.map(s => {
@@ -754,7 +754,7 @@ function StatusFilter({
                   <RequestStatusBadge status={s} size="sm" />
                   {isSel && (
                     <span style={{ marginInlineStart:"auto" }}>
-                      <Check size={11} style={{ color:"#A78BFA" }} />
+                      <Check size={11} style={{ color:"#7C3AED" }} />
                     </span>
                   )}
                 </button>
@@ -788,19 +788,19 @@ function StatusFilter({
             left:          0,
             right:         0,
             zIndex:        999,
-            background:    "#12101C",
+            background:    "#FFFFFF",
             borderRadius:  "16px 16px 0 0",
             display:       "flex",
             flexDirection: "column",
             maxHeight:     "82dvh",
-            boxShadow:     "0 -8px 40px rgba(0,0,0,0.70)",
+            boxShadow:     "0 -8px 40px rgba(0,0,0,0.12)",
             animation:     "_sheetUp 260ms cubic-bezier(0.16,1,0.3,1) both",
           }}>
 
             {/* Drag handle */}
             <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px" }}>
               <div style={{ width:36, height:4, borderRadius:9999,
-                            background:"rgba(255,255,255,0.12)" }} />
+                            background:"rgba(0,0,0,0.12)" }} />
             </div>
 
             {/* Header */}
@@ -813,7 +813,7 @@ function StatusFilter({
                 {hasFilters && (
                   <span style={{
                     fontSize:10, fontWeight:700,
-                    color:          "#A78BFA",
+                    color:          "#7C3AED",
                     background:     T.violetBg,
                     border:         `1px solid ${T.violetBorder}`,
                     borderRadius:   9999,
@@ -845,7 +845,7 @@ function StatusFilter({
                   style={{
                     display:"flex", alignItems:"center", justifyContent:"center",
                     width:30, height:30, borderRadius:9999,
-                    background:"rgba(255,255,255,0.06)", border:"none",
+                    background:"rgba(0,0,0,0.06)", border:"none",
                     cursor:"pointer", color:T.textSecondary,
                   }}
                 >
@@ -889,7 +889,7 @@ function StatusFilter({
                       width:         20,
                       height:        20,
                       borderRadius:  5,
-                      border:        `1.5px solid ${isSel ? T.violet : "rgba(255,255,255,0.15)"}`,
+                      border:        `1.5px solid ${isSel ? T.violet : "rgba(0,0,0,0.20)"}`,
                       background:    isSel ? T.violet : "transparent",
                       display:       "flex",
                       alignItems:    "center",
@@ -917,7 +917,7 @@ function StatusFilter({
                   width:        "100%",
                   height:       48,
                   borderRadius: 10,
-                  background:   hasFilters ? T.violet : "rgba(255,255,255,0.06)",
+                  background:   hasFilters ? T.violet : "rgba(0,0,0,0.06)",
                   border:       "none",
                   color:        hasFilters ? "#FFFFFF" : T.textTertiary,
                   fontSize:     15,
@@ -1101,8 +1101,8 @@ export default function StudioRequestsPage() {
                   <span style={{
                     fontSize:     10,
                     fontWeight:   600,
-                    color:        isAct ? "#A78BFA" : T.textMuted,
-                    background:   isAct ? T.violetBg : "rgba(255,255,255,0.04)",
+                    color:        isAct ? "#7C3AED" : T.textMuted,
+                    background:   isAct ? T.violetBg : "rgba(0,0,0,0.05)",
                     borderRadius: 9999,
                     padding:      "1px 5px",
                     lineHeight:   1.5,
@@ -1128,7 +1128,7 @@ export default function StudioRequestsPage() {
           {loadingReqs ? (
             <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
               {[1,2,3].map(i => (
-                <div key={i} style={{ height:64, borderRadius:12, background:"rgba(255,255,255,0.025)",
+                <div key={i} style={{ height:64, borderRadius:12, background:"rgba(0,0,0,0.05)",
                                       border:`1px solid ${T.border}`, animation:"_shimmer 1.2s ease infinite" }} />
               ))}
             </div>

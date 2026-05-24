@@ -31,17 +31,17 @@ export function StudioTopbar() {
     <header
       className="sticky top-0 z-20 flex h-[60px] shrink-0 items-center gap-4 px-6"
       style={{
-        background:   "rgba(12,11,18,0.90)",
+        background:     "rgba(255,255,255,0.94)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        borderBottom:   "1px solid rgba(0,0,0,0.07)",
       }}
     >
       {/* Breadcrumb — hidden on dashboard home */}
       {!isHome && (
         <nav aria-label="Breadcrumb" className="flex shrink-0 items-center gap-2 text-[13px]">
-          <span style={{ color: "rgba(255,255,255,0.22)" }}>Pages</span>
-          <span aria-hidden style={{ color: "rgba(255,255,255,0.12)" }}>/</span>
-          <span className="font-medium text-white">{currentLabel}</span>
+          <span style={{ color: "rgba(15,10,30,0.35)" }}>Pages</span>
+          <span aria-hidden style={{ color: "rgba(15,10,30,0.20)" }}>/</span>
+          <span className="font-medium" style={{ color: "#0F0A1E" }}>{currentLabel}</span>
         </nav>
       )}
 
@@ -52,8 +52,8 @@ export function StudioTopbar() {
           style={{
             height:       36,
             borderRadius: 8,
-            background:   focused ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)",
-            border:       focused ? "1px solid rgba(124,58,237,0.45)" : "1px solid rgba(255,255,255,0.07)",
+            background:   focused ? "rgba(0,0,0,0.04)" : "rgba(0,0,0,0.03)",
+            border:       focused ? "1px solid rgba(124,58,237,0.45)" : "1px solid rgba(0,0,0,0.09)",
             boxShadow:    focused ? "0 0 0 3px rgba(124,58,237,0.10)" : "none",
             transition:   "all 180ms ease",
           }}
@@ -62,7 +62,7 @@ export function StudioTopbar() {
             size={13}
             className="pointer-events-none absolute left-3 shrink-0"
             style={{
-              color:      focused ? "rgba(167,139,250,0.70)" : "rgba(255,255,255,0.22)",
+              color:      focused ? "#7C3AED" : "rgba(15,10,30,0.28)",
               transition: "color 180ms ease",
             }}
             aria-hidden
@@ -70,7 +70,8 @@ export function StudioTopbar() {
           <input
             type="search"
             placeholder="Search celebrities, requests, licenses…"
-            className="h-full w-full bg-transparent pl-8 pr-4 text-[13px] text-white placeholder:text-[rgba(255,255,255,0.22)] focus:outline-none"
+            className="h-full w-full bg-transparent pl-8 pr-4 text-[13px] placeholder:text-[rgba(15,10,30,0.28)] focus:outline-none"
+            style={{ color: "#0F0A1E" }}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             aria-label="Search celebrities, requests, and licenses"
@@ -86,36 +87,27 @@ export function StudioTopbar() {
           type="button"
           aria-label="Notifications"
           className="relative flex items-center justify-center rounded-lg transition-all duration-150"
-          style={{
-            width:      34,
-            height:     34,
-            background: "transparent",
-            color:      "rgba(255,255,255,0.35)",
-          }}
+          style={{ width: 34, height: 34, background: "transparent", color: "rgba(15,10,30,0.38)" }}
           onMouseEnter={(e) => {
             const el = e.currentTarget;
-            el.style.background = "rgba(255,255,255,0.06)";
-            el.style.color      = "rgba(255,255,255,0.70)";
+            el.style.background = "rgba(0,0,0,0.05)";
+            el.style.color      = "rgba(15,10,30,0.70)";
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget;
             el.style.background = "transparent";
-            el.style.color      = "rgba(255,255,255,0.35)";
+            el.style.color      = "rgba(15,10,30,0.38)";
           }}
         >
           <Bell size={15} />
-          {/* Notification dot */}
           <span
             aria-hidden
             className="pointer-events-none absolute"
             style={{
-              top:          6,
-              right:        6,
-              width:        5,
-              height:       5,
+              top: 6, right: 6, width: 5, height: 5,
               borderRadius: 9999,
               background:   "#7C3AED",
-              boxShadow:    "0 0 0 1.5px #0c0b12",
+              boxShadow:    "0 0 0 1.5px #fff",
             }}
           />
         </button>
@@ -125,27 +117,22 @@ export function StudioTopbar() {
           type="button"
           aria-label="Help"
           className="flex items-center justify-center rounded-lg transition-all duration-150"
-          style={{
-            width:      34,
-            height:     34,
-            background: "transparent",
-            color:      "rgba(255,255,255,0.35)",
-          }}
+          style={{ width: 34, height: 34, background: "transparent", color: "rgba(15,10,30,0.38)" }}
           onMouseEnter={(e) => {
             const el = e.currentTarget;
-            el.style.background = "rgba(255,255,255,0.06)";
-            el.style.color      = "rgba(255,255,255,0.70)";
+            el.style.background = "rgba(0,0,0,0.05)";
+            el.style.color      = "rgba(15,10,30,0.70)";
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget;
             el.style.background = "transparent";
-            el.style.color      = "rgba(255,255,255,0.35)";
+            el.style.color      = "rgba(15,10,30,0.38)";
           }}
         >
           <HelpCircle size={15} />
         </button>
 
-        {/* Account avatar — neutral, not purple */}
+        {/* Account avatar */}
         <button
           type="button"
           aria-label="Account menu"
@@ -153,24 +140,24 @@ export function StudioTopbar() {
           onClick={logout}
           className="ms-0.5 flex shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-150"
           style={{
-            width:      32,
-            height:     32,
-            background: "rgba(255,255,255,0.08)",
-            border:     "1px solid rgba(255,255,255,0.13)",
-            color:      "rgba(255,255,255,0.65)",
+            width:         32,
+            height:        32,
+            background:    "rgba(124,58,237,0.10)",
+            border:        "1px solid rgba(124,58,237,0.18)",
+            color:         "#7C3AED",
             letterSpacing: "0.03em",
           }}
           onMouseEnter={(e) => {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.background  = "rgba(255,255,255,0.13)";
-            el.style.borderColor = "rgba(255,255,255,0.20)";
-            el.style.color       = "#FFFFFF";
+            el.style.background  = "rgba(124,58,237,0.16)";
+            el.style.borderColor = "rgba(124,58,237,0.30)";
+            el.style.color       = "#6D28D9";
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.background  = "rgba(255,255,255,0.08)";
-            el.style.borderColor = "rgba(255,255,255,0.13)";
-            el.style.color       = "rgba(255,255,255,0.65)";
+            el.style.background  = "rgba(124,58,237,0.10)";
+            el.style.borderColor = "rgba(124,58,237,0.18)";
+            el.style.color       = "#7C3AED";
           }}
         >
           {initials}

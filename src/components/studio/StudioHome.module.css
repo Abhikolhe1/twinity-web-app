@@ -8,9 +8,9 @@
 
 /* ── Semantic text-opacity scale ─────────────────────────────────────── */
 .pageRoot {
-  --tx-2: rgba(255, 255, 255, 0.55); /* secondary — labels, subtitles          */
-  --tx-3: rgba(255, 255, 255, 0.35); /* tertiary  — meta, captions, muted copy */
-  --tx-4: rgba(255, 255, 255, 0.22); /* faint     — placeholders, disabled      */
+  --tx-2: rgba(15, 10, 30, 0.55); /* secondary — labels, subtitles          */
+  --tx-3: rgba(15, 10, 30, 0.38); /* tertiary  — meta, captions, muted copy */
+  --tx-4: rgba(15, 10, 30, 0.25); /* faint     — placeholders, disabled      */
 }
 
 /* ── Celebrity card interactions ─────────────────────────────────────── */

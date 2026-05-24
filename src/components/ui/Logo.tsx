@@ -1,25 +1,58 @@
 import Image from "next/image";
 
-const WHITE_LOGO_SRC = "/logo/logo-white.png";
-
-const LOGO_WIDTH = 3396;
+const LOGO_WIDTH  = 3396;
 const LOGO_HEIGHT = 1327;
 
+type LogoProps = {
+  height?: number;
+  dark?: boolean;
+};
+
 /**
- * Twinity wordmark for dark surfaces (navbar, dark shell).
- * Uses the white @4x asset so it reads on `#0D0D0D` regardless of OS theme.
+ * Twinity wordmark.
+ * Default (dark=false): white PNG for dark surfaces.
+ * dark=true: dark SVG for light/white surfaces.
  */
-export default function Logo({ height = 32 }: { height?: number }) {
+export default function Logo({ height = 32, dark = false }: LogoProps) {
+  if (dark) {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="254 707 1492 535"
+        style={{ height, width: "auto" }}
+        aria-label="Twinity"
+        role="img"
+      >
+        <defs>
+          <linearGradient id="logo-dark-grad" x1="254.3" y1="999.6" x2="491" y2="999.6" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stopColor="#9a78fe"/>
+            <stop offset="1" stopColor="#422266"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#logo-dark-grad)" fillRule="evenodd" d="M491,826.6h-118.4v-118.4h-118.3v118.4h118.3v118.3h-118.3v65.9c0,94.7,46.7,178.8,118.3,230.6,34.6,25,74.8,42.3,118.4,49.8v-121.3c-68.3-20.7-118.4-84.3-118.4-159v-65.9h118.4v-118.3Z"/>
+        <g fill="#301b4c">
+          <path d="M679.2,1081.2c-16.3-14.1-24.5-34.1-24.5-60.1v-66h-27.1v-40.3c19,0,28.5-10.6,28.5-31.9v-30.6h45.1v30.6c0,13.4-5.6,24.1-16.7,31.9h62.8v40.3h-47.6v66c0,13.7,4,23.7,12,30,8,6.4,19.8,9.5,35.6,9.5v41.7c-29.2,0-51.9-7.1-68.2-21.2Z"/>
+          <path d="M756.1,914.9h47.9l33.3,122.9,34.7-122.9h47.2l34.7,122.9,33.3-122.9h47.9l-59,187.5h-44.4l-36.1-123.3-36.1,123.3h-44.4l-59-187.5Z"/>
+          <path d="M1056.1,852.4h45.1v40.3h-45.1v-40.3ZM1056.1,914.9h45.1v187.5h-45.1v-187.5Z"/>
+          <path d="M1146.4,914.9h39.9l2.8,21.5c14.1-18.1,34-27.1,59.7-27.1s39.3,7.2,51.2,21.5c11.9,14.4,17.9,35,17.9,61.8v109.7h-45.1v-109.7c0-14.8-2.8-25.5-8.3-31.9-5.6-6.5-14.9-9.7-28.1-9.7s-26.6,4.1-33.9,12.2c-7.3,8.1-10.9,21.1-10.9,38.9v100.3h-45.1v-187.5Z"/>
+          <path d="M1359.5,852.4h45.1v40.3h-45.1v-40.3ZM1359.5,914.9h45.1v187.5h-45.1v-187.5Z"/>
+          <path d="M1485.7,1081.2c-16.3-14.1-24.5-34.1-24.5-60.1v-66h-27.1v-40.3c19,0,28.5-10.6,28.5-31.9v-30.6h45.1v30.6c0,13.4-5.6,24.1-16.7,31.9h62.8v40.3h-47.6v66c0,13.7,4,23.7,12,30,8,6.4,19.8,9.5,35.6,9.5v41.7c-29.2,0-51.9-7.1-68.2-21.2Z"/>
+          <path d="M1630.3,1102.4l-69.4-187.5h47.9l44.8,127.4,44.8-127.4h47.9l-69.4,187.5-27.8,69.4h-47.6l28.8-69.4Z"/>
+        </g>
+      </svg>
+    );
+  }
+
   return (
     <Image
-      src={WHITE_LOGO_SRC}
+      src="/logo/logo-white.png"
       alt="Twinity"
       width={LOGO_WIDTH}
       height={LOGO_HEIGHT}
       style={{
         objectFit: "contain",
-        height: `${height}px`,
-        width: "auto",
+        height:    `${height}px`,
+        width:     "auto",
       }}
       priority
       sizes={`${Math.round((height * LOGO_WIDTH) / LOGO_HEIGHT)}px`}

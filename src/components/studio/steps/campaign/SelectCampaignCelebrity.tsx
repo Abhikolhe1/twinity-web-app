@@ -21,8 +21,8 @@ export function SelectCampaignCelebrity({ selectedId, onSelect }: SelectCampaign
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Select Talent</h2>
-      <p className="mt-2 text-sm text-white/50">Commercial bookings require manager approval and governed usage.</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Select Talent</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.50)" }}>Commercial bookings require manager approval and governed usage.</p>
       <div className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
@@ -32,15 +32,16 @@ export function SelectCampaignCelebrity({ selectedId, onSelect }: SelectCampaign
             className={[
               "rounded-md px-3 py-1.5 text-xs font-semibold transition-[border-color,background-color,color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
               filter === f
-                ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                : "border border-black/[0.08] bg-white hover:border-black/[0.14]",
             ].join(" ")}
+            style={filter === f ? { color: "#7C3AED" } : { color: "rgba(15,10,30,0.50)" }}
           >
             {f}
           </button>
         ))}
       </div>
-      <p className="mt-6 rounded-lg border border-amber-500/20 bg-amber-500/[0.06] px-4 py-3 text-xs text-amber-100/80">
+      <p className="mt-6 rounded-lg border border-amber-500/30 bg-amber-50 px-4 py-3 text-xs text-amber-700">
         Commercial approval required — talent availability and category restrictions apply before production.
       </p>
       <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -52,8 +53,8 @@ export function SelectCampaignCelebrity({ selectedId, onSelect }: SelectCampaign
               type="button"
               onClick={() => onSelect(c.id)}
               className={[
-                "flex flex-col items-center rounded-xl border bg-[#1F1F1F] p-5 text-center transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
-                on ? "border-[#7C3AED] shadow-[0_0_0_3px_rgba(124,58,237,0.2)]" : "border-white/[0.08] hover:border-white/[0.12]",
+                "flex flex-col items-center rounded-xl border bg-white p-5 text-center transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+                on ? "border-[#7C3AED] shadow-[0_0_0_3px_rgba(124,58,237,0.2)]" : "border-black/[0.08] hover:border-black/[0.14]",
               ].join(" ")}
             >
               <div className="relative">
@@ -62,7 +63,7 @@ export function SelectCampaignCelebrity({ selectedId, onSelect }: SelectCampaign
                   src={c.imageUrl}
                   alt=""
                   className={[
-                    "size-24 rounded-full object-cover ring-2 ring-offset-2 ring-offset-[#1F1F1F] transition-[box-shadow] duration-[180ms]",
+                    "size-24 rounded-full object-cover ring-2 ring-offset-2 ring-offset-white transition-[box-shadow] duration-[180ms]",
                     on ? "ring-[#7C3AED]" : "ring-transparent",
                   ].join(" ")}
                 />
@@ -72,15 +73,15 @@ export function SelectCampaignCelebrity({ selectedId, onSelect }: SelectCampaign
                   </span>
                 ) : null}
               </div>
-              <p className="mt-4 font-display text-base font-semibold text-white">{c.name}</p>
-              <span className="mt-2 rounded-md bg-white/[0.06] px-2 py-0.5 text-[11px] text-white/50 ring-1 ring-white/[0.08]">
+              <p className="mt-4 font-display text-base font-semibold" style={{ color: "#0F0A1E" }}>{c.name}</p>
+              <span className="mt-2 rounded-md bg-black/[0.06] px-2 py-0.5 text-[11px] ring-1 ring-black/[0.08]" style={{ color: "rgba(15,10,30,0.50)" }}>
                 {c.categoryTag}
               </span>
               <div className="mt-3 flex items-center justify-center gap-2">
-                <span className="size-2 rounded-full bg-[#22C55E]" aria-hidden />
-                <span className="text-xs text-white/50">Available</span>
+                <span className="size-2 rounded-full bg-[#16A34A]" aria-hidden />
+                <span className="text-xs" style={{ color: "rgba(15,10,30,0.50)" }}>Available</span>
               </div>
-              <p className="mt-2 text-sm text-white/60">From SAR {c.priceFromSar.toLocaleString("en-SA")}</p>
+              <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.55)" }}>From SAR {c.priceFromSar.toLocaleString("en-SA")}</p>
             </button>
           );
         })}

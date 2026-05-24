@@ -19,11 +19,11 @@ export function CampaignApprovalStatus({ campaignTypeId, templateId, celebrityId
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Approval</h2>
-      <p className="mt-2 text-sm text-white/50">Audit-style status — from submission to talent desk.</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Approval</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.50)" }}>Audit-style status — from submission to talent desk.</p>
       <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-[0.62]">
-          <ul className="relative space-y-0 border-s border-white/[0.08] ps-6">
+          <ul className="relative space-y-0 border-s border-black/[0.08] ps-6">
             {[
               { ok: true, t: "Submitted", d: "Request TWN-B2B-2026-00421 locked for review" },
               { ok: true, t: "Under Twinity review", d: "Account tier: Enterprise pilot" },
@@ -35,31 +35,32 @@ export function CampaignApprovalStatus({ campaignTypeId, templateId, celebrityId
               <li key={row.t} className="relative pb-8 last:pb-2">
                 <span
                   className={[
-                    "absolute -start-[25px] top-1 flex size-3 rounded-full ring-4 ring-[#141414]",
-                    row.ok ? "bg-emerald-500" : "bg-amber-400",
+                    "absolute -start-[25px] top-1 flex size-3 rounded-full ring-4 ring-white",
+                    row.ok ? "bg-[#16A34A]" : "bg-amber-400",
                   ].join(" ")}
                 />
-                <p className="font-display text-sm font-semibold text-white">{row.t}</p>
-                <p className="mt-1 text-xs text-white/45">{row.d}</p>
+                <p className="font-display text-sm font-semibold" style={{ color: "#0F0A1E" }}>{row.t}</p>
+                <p className="mt-1 text-xs" style={{ color: "rgba(15,10,30,0.50)" }}>{row.d}</p>
               </li>
             ))}
           </ul>
           <button
             type="button"
-            className="mt-6 rounded-lg border border-white/[0.12] px-4 py-2.5 text-sm font-semibold text-white/70 hover:border-white/[0.2] hover:text-white"
+            className="mt-6 rounded-lg border border-black/[0.12] px-4 py-2.5 text-sm font-semibold hover:border-black/[0.20]"
+            style={{ color: "rgba(15,10,30,0.65)" }}
           >
             Export audit trail (mock)
           </button>
         </div>
         <div className="w-full min-w-0 lg:max-w-sm lg:flex-[0.38]">
           <CampaignDraftSummaryCard campaignTypeId={campaignTypeId} templateId={templateId} celebrityId={celebrityId} />
-          <div className="mt-4 rounded-xl border border-white/[0.08] bg-[#1A1A1A] p-4 text-xs text-white/50">
-            <p className="font-semibold text-white/70">Active scope</p>
+          <div className="mt-4 rounded-xl border border-black/[0.08] bg-white p-4 text-xs" style={{ color: "rgba(15,10,30,0.50)" }}>
+            <p className="font-semibold" style={{ color: "rgba(15,10,30,0.65)" }}>Active scope</p>
             <p className="mt-2">{scope.channels.join(" · ")}</p>
             <p>
               {scope.territory} · {scope.duration}
             </p>
-            <p className="mt-2 text-white/35">
+            <p className="mt-2" style={{ color: "rgba(15,10,30,0.40)" }}>
               {ct?.title} · {tpl?.name}
             </p>
           </div>

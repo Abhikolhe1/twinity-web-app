@@ -16,24 +16,24 @@ export function GreetingOrderSummaryCard({ occasion, celebrity, template }: Gree
     : "Contact for pricing";
 
   return (
-    <div className="rounded-xl bg-[#1F1F1F] p-6 ring-1 ring-white/[0.06]">
-      <h3 className="font-display text-sm font-semibold text-white">Request Summary</h3>
+    <div className="rounded-xl bg-white p-6" style={{ boxShadow: "0 0 0 1px rgba(0,0,0,0.06)" }}>
+      <h3 className="font-display text-sm font-semibold" style={{ color: "#0F0A1E" }}>Request Summary</h3>
       <dl className="mt-5 space-y-3 text-sm">
         <div className="flex justify-between gap-3">
-          <dt className="text-white/45">Occasion</dt>
-          <dd className="text-end text-white">
-            {occasion ?? <span className="text-white/30">—</span>}
+          <dt style={{ color: "rgba(15,10,30,0.45)" }}>Occasion</dt>
+          <dd className="text-end" style={{ color: "#0F0A1E" }}>
+            {occasion ?? <span style={{ color: "rgba(15,10,30,0.30)" }}>—</span>}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-white/45">Template</dt>
-          <dd className="text-end font-medium text-white">
-            {template?.name ?? <span className="text-white/30">—</span>}
+          <dt style={{ color: "rgba(15,10,30,0.45)" }}>Template</dt>
+          <dd className="text-end font-medium" style={{ color: "#0F0A1E" }}>
+            {template?.name ?? <span style={{ color: "rgba(15,10,30,0.30)" }}>—</span>}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-white/45">Celebrity</dt>
-          <dd className="text-end text-white">
+          <dt style={{ color: "rgba(15,10,30,0.45)" }}>Celebrity</dt>
+          <dd className="text-end" style={{ color: "#0F0A1E" }}>
             {celebrity ? (
               <span className="inline-flex items-center gap-2">
                 {celebrity.thumbnail_url ? (
@@ -41,7 +41,7 @@ export function GreetingOrderSummaryCard({ occasion, celebrity, template }: Gree
                   <img
                     src={celebrity.thumbnail_url}
                     alt=""
-                    className="size-7 rounded-full object-cover ring-1 ring-white/10"
+                    className="size-7 rounded-full object-cover ring-1 ring-black/10"
                   />
                 ) : (
                   <span
@@ -54,23 +54,23 @@ export function GreetingOrderSummaryCard({ occasion, celebrity, template }: Gree
                 <span className="font-medium">{celebrity.name}</span>
               </span>
             ) : (
-              <span className="text-white/30">—</span>
+              <span style={{ color: "rgba(15,10,30,0.30)" }}>—</span>
             )}
           </dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-white/45">Format</dt>
-          <dd className="text-white">Video MP4</dd>
+          <dt style={{ color: "rgba(15,10,30,0.45)" }}>Format</dt>
+          <dd style={{ color: "#0F0A1E" }}>Video MP4</dd>
         </div>
         <div className="flex justify-between gap-3">
-          <dt className="text-white/45">Delivery</dt>
-          <dd className="text-white">1–2 Business Days</dd>
+          <dt style={{ color: "rgba(15,10,30,0.45)" }}>Delivery</dt>
+          <dd style={{ color: "#0F0A1E" }}>1–2 Business Days</dd>
         </div>
       </dl>
-      <div className="my-5 h-px bg-white/[0.08]" />
-      <p className="text-xs font-medium uppercase tracking-wide text-white/45">Indicative Price</p>
-      <p className="mt-1 font-display text-[28px] font-bold leading-none text-white">{priceLabel}</p>
-      <p className="mt-2 text-xs text-white/40">Final price confirmed after order review</p>
+      <div className="my-5 h-px bg-black/[0.08]" />
+      <p className="text-xs font-medium uppercase tracking-wide" style={{ color: "rgba(15,10,30,0.45)" }}>Indicative Price</p>
+      <p className="mt-1 font-display text-[28px] font-bold leading-none" style={{ color: "#0F0A1E" }}>{priceLabel}</p>
+      <p className="mt-2 text-xs" style={{ color: "rgba(15,10,30,0.40)" }}>Final price confirmed after order review</p>
     </div>
   );
 }
@@ -104,11 +104,11 @@ export function PreviewGreetingSample({
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Preview Sample</h2>
-      <p className="mt-2 text-sm text-white/50">Watermarked demo — your final video won&apos;t have this</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Preview Sample</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.50)" }}>Watermarked demo — your final video won&apos;t have this</p>
       <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-[0.6]">
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-white/[0.08]">
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black ring-1 ring-black/[0.08]">
             <video
               ref={videoRef}
               src="/video/sample-video.mp4"
@@ -143,7 +143,7 @@ export function PreviewGreetingSample({
               </button>
             )}
           </div>
-          <p className="mt-4 text-center text-sm text-white/60">
+          <p className="mt-4 text-center text-sm" style={{ color: "rgba(15,10,30,0.60)" }}>
             {celebrity?.name ?? "—"} · {template?.name ?? "—"} · {duration}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -155,7 +155,8 @@ export function PreviewGreetingSample({
             ].map((p) => (
               <span
                 key={p.label}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#1F1F1F] px-3 py-1.5 text-xs text-white/55 ring-1 ring-white/[0.06]"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs ring-1"
+                style={{ color: "rgba(15,10,30,0.55)", boxShadow: "0 0 0 1px rgba(0,0,0,0.06)" }}
               >
                 <span aria-hidden>{p.icon}</span>
                 {p.label}

@@ -29,7 +29,7 @@ import {
 const hPrimaryBtn = "inline-flex h-[44px] items-center justify-center rounded-xl px-5 text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px";
 const hPrimaryStyle: React.CSSProperties = { background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 8px 24px rgba(124,58,237,0.30)", border: "none" };
 const hSecondaryBtn = "inline-flex h-[44px] items-center justify-center rounded-xl px-5 text-[13px] font-semibold transition-all duration-200";
-const hSecondaryStyle: React.CSSProperties = { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.65)" };
+const hSecondaryStyle: React.CSSProperties = { background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)", color: "rgba(15,10,30,0.60)" };
 
 const SIDEBAR: { id: number; label: string; emoji: string; afterDivider?: boolean }[] = [
   { id: 1, label: "Campaign Type", emoji: "📢" },
@@ -168,15 +168,15 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
         <div style={{
           position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 9999,
           display: "flex", alignItems: "center", gap: 12,
-          background: "#161616", border: "1px solid #2A2A2A", borderRadius: 12,
-          padding: "14px 18px", boxShadow: "0 0 24px rgba(34,197,94,0.12), 0 8px 32px rgba(0,0,0,0.6)",
+          background: "#FFFFFF", border: "1px solid rgba(34,197,94,0.25)", borderRadius: 12,
+          padding: "14px 18px", boxShadow: "0 0 24px rgba(34,197,94,0.12), 0 8px 32px rgba(0,0,0,0.10)",
         }}>
-          <CheckCircle2 size={20} color="#22C55E" style={{ flexShrink: 0 }} />
+          <CheckCircle2 size={20} color="#16A34A" style={{ flexShrink: 0 }} />
           <div>
-            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#F0F0F0" }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#0F0A1E" }}>
               Request submitted successfully
             </p>
-            <p style={{ margin: 0, fontSize: 12, color: "#A0A0A0", marginTop: 2 }}>
+            <p style={{ margin: 0, fontSize: 12, color: "rgba(15,10,30,0.45)", marginTop: 2 }}>
               Redirecting to your request…
             </p>
           </div>
@@ -185,7 +185,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
       <nav
         className="hidden md:flex w-[220px] shrink-0 flex-col py-4"
         aria-label="Campaign funnel steps"
-        style={{ background: "rgba(10,8,18,0.60)", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ background: "#F8F7FF", borderRight: "1px solid rgba(0,0,0,0.08)" }}
       >
         <ul className="flex flex-col gap-0.5 px-2">
           {SIDEBAR.map((s) => {
@@ -201,9 +201,9 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                   style={{
                     width:      28,
                     height:     28,
-                    background: done ? "linear-gradient(135deg, #7C3AED, #5B21B6)" : active ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.04)",
-                    border:     done ? "none" : active ? "2px solid #7C3AED" : "1px solid rgba(255,255,255,0.08)",
-                    color:      done ? "#FFFFFF" : active ? "#C4B5FD" : "rgba(255,255,255,0.20)",
+                    background: done ? "linear-gradient(135deg, #7C3AED, #5B21B6)" : active ? "rgba(124,58,237,0.10)" : "rgba(0,0,0,0.05)",
+                    border:     done ? "none" : active ? "2px solid #7C3AED" : "1px solid rgba(0,0,0,0.10)",
+                    color:      done ? "#FFFFFF" : active ? "#7C3AED" : "rgba(15,10,30,0.25)",
                     boxShadow:  done ? "0 4px 12px rgba(124,58,237,0.35)" : "none",
                   }}
                 >
@@ -213,13 +213,13 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                   className="min-w-0 flex-1 truncate text-[13px]"
                   style={{
                     fontWeight: active ? 600 : 400,
-                    color: locked ? "rgba(255,255,255,0.18)" : active ? "rgba(255,255,255,0.90)" : done ? "rgba(255,255,255,0.50)" : "rgba(255,255,255,0.30)",
+                    color: locked ? "rgba(15,10,30,0.20)" : active ? "#0F0A1E" : done ? "rgba(15,10,30,0.45)" : "rgba(15,10,30,0.35)",
                   }}
                 >
                   {s.label}
                 </span>
                 {locked && (
-                  <span className="shrink-0 text-[10px]" style={{ color: "rgba(255,255,255,0.15)" }} aria-hidden>🔒</span>
+                  <span className="shrink-0 text-[10px]" style={{ color: "rgba(15,10,30,0.20)" }} aria-hidden>🔒</span>
                 )}
               </>
             );
@@ -227,7 +227,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
             return (
               <li key={s.id}>
                 {s.afterDivider && (
-                  <div className="my-2 px-3 text-[10px] font-bold uppercase" style={{ color: "rgba(255,255,255,0.15)", letterSpacing: "0.14em" }}>
+                  <div className="my-2 px-3 text-[10px] font-bold uppercase" style={{ color: "rgba(15,10,30,0.20)", letterSpacing: "0.14em" }}>
                     After Payment
                   </div>
                 )}
@@ -239,7 +239,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                     onClick={() => handleSidebarStep(s.id)}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start transition-all duration-200"
                     style={{
-                      background: active ? "linear-gradient(135deg, rgba(124,58,237,0.20) 0%, rgba(139,92,246,0.08) 100%)" : "transparent",
+                      background: active ? "rgba(124,58,237,0.07)" : "transparent",
                       border:     active ? "1px solid rgba(124,58,237,0.18)" : "1px solid transparent",
                     }}
                   >
@@ -252,23 +252,23 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
         </ul>
       </nav>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: "#0A0812" }}>
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: "#FFFFFF" }}>
         {/* Mobile step indicator */}
         <div
           className="md:hidden shrink-0 px-4 pb-2.5 pt-3"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}
         >
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-[13px] font-medium text-white">
+            <span className="text-[13px] font-medium" style={{ color: "#0F0A1E" }}>
               Step {currentStep} of {SIDEBAR.length}
             </span>
-            <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.40)" }}>
+            <span className="text-[12px]" style={{ color: "rgba(15,10,30,0.40)" }}>
               {SIDEBAR.find((s) => s.id === currentStep)?.label ?? ""}
             </span>
           </div>
           <div
             className="h-[2px] overflow-hidden rounded-full"
-            style={{ background: "rgba(255,255,255,0.08)" }}
+            style={{ background: "rgba(0,0,0,0.08)" }}
           >
             <div
               className="h-full rounded-full transition-all duration-300"
@@ -333,7 +333,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
 
         <div
           className="flex shrink-0 items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:py-0 md:px-6"
-          style={{ background: "rgba(10,8,18,0.90)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(0,0,0,0.08)" }}
         >
           {/* Summary — desktop only */}
           <p
@@ -416,20 +416,20 @@ export function CampaignFunnel({ open, onClose }: CampaignFunnelProps) {
       />
       <div
         className="relative z-10 flex h-full w-full max-h-[100dvh] max-w-[1400px] flex-col overflow-hidden rounded-none sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl"
-        style={{ background: "#0A0812", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.70)" }}
+        style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.09)", boxShadow: "0 32px 80px rgba(0,0,0,0.18)" }}
       >
         <header
           className="flex h-14 shrink-0 items-center justify-between px-4 md:px-5"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10,8,18,0.80)" }}
+          style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", background: "rgba(255,255,255,0.97)" }}
         >
-          <h2 id="campaign-funnel-title" className="font-display text-[15px] font-bold text-white">
+          <h2 id="campaign-funnel-title" className="font-display text-[15px] font-bold" style={{ color: "#0F0A1E" }}>
             Advertisement Campaign
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex size-10 items-center justify-center rounded-xl text-xl transition-all duration-150 hover:bg-white/[0.06]"
-            style={{ color: "rgba(255,255,255,0.50)" }}
+            className="flex size-10 items-center justify-center rounded-xl text-xl transition-all duration-150 hover:bg-black/[0.05]"
+            style={{ color: "rgba(15,10,30,0.40)" }}
             aria-label="Close"
           >
             ×

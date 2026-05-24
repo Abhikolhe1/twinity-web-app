@@ -22,17 +22,15 @@ export function StudioSidebar() {
   const creditsCtx  = useCreditsOptional();
   const { user, logout } = useUser();
 
-  /* Use context balance if available, fall back to mock constants */
   const creditBalance = creditsCtx?.balance ?? MOCK_CREDIT_BALANCE;
   const CREDITS       = creditBalance.available;
   const CREDITS_MAX   = creditBalance.total;
   const creditPct     = CREDITS_MAX > 0 ? CREDITS / CREDITS_MAX : 0;
 
-  /* Semantic credits bar color based on remaining percentage */
   const creditBarColor =
-    creditPct > 0.5  ? "rgba(139,92,246,0.70)"  :
-    creditPct > 0.2  ? "rgba(245,158,11,0.75)"  :
-                       "rgba(239,68,68,0.75)";
+    creditPct > 0.5  ? "#7C3AED"   :
+    creditPct > 0.2  ? "#F59E0B"   :
+                       "#EF4444";
 
   const displayName = user?.name ?? "Studio User";
   const initials    = displayName.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
@@ -41,25 +39,24 @@ export function StudioSidebar() {
     <aside
       className="relative z-30 flex w-full shrink-0 flex-col md:fixed md:inset-y-0 md:start-0 md:w-[240px]"
       style={{
-        background:  "#0c0b12",
-        borderRight: "1px solid rgba(255,255,255,0.05)",
+        background:  "#FFFFFF",
+        borderRight: "1px solid rgba(0,0,0,0.07)",
       }}
       aria-label="Studio navigation"
     >
       {/* ── Logo area ── */}
       <div
         className="flex h-[68px] shrink-0 items-center border-b px-5"
-        style={{ borderColor: "rgba(255,255,255,0.05)" }}
+        style={{ borderColor: "rgba(0,0,0,0.07)" }}
       >
         <Link href="/studio" className="inline-flex items-center gap-3" aria-label="Twinity Studio home">
-          <Logo height={30} />
-          {/* FIX 10: Beta badge — clearly intentional, not a ghost element */}
+          <Logo dark height={28} />
           <span
             className="text-[9px] font-semibold uppercase"
             style={{
-              background:    "rgba(124,58,237,0.15)",
-              border:        "1px solid rgba(124,58,237,0.30)",
-              color:         "#A78BFA",
+              background:    "rgba(124,58,237,0.10)",
+              border:        "1px solid rgba(124,58,237,0.22)",
+              color:         "#7C3AED",
               padding:       "2px 7px",
               borderRadius:  9999,
               letterSpacing: "0.10em",
@@ -73,7 +70,7 @@ export function StudioSidebar() {
       {/* ── Section label — desktop only ── */}
       <div
         className="hidden px-5 pb-2 pt-5 text-[10px] font-semibold uppercase md:block"
-        style={{ color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em" }}
+        style={{ color: "rgba(15,10,30,0.30)", letterSpacing: "0.12em" }}
       >
         Navigation
       </div>
@@ -97,26 +94,26 @@ export function StudioSidebar() {
                 padding:    "0 12px",
                 fontSize:   13,
                 fontWeight: active ? 600 : 400,
-                color:      active ? "#FFFFFF" : "rgba(255,255,255,0.50)",
-                background: active ? "rgba(255,255,255,0.06)" : "transparent",
+                color:      active ? "#0F0A1E" : "rgba(15,10,30,0.50)",
+                background: active ? "rgba(124,58,237,0.07)" : "transparent",
                 borderLeft: active ? "2px solid #7C3AED" : "2px solid transparent",
               }}
               onMouseEnter={(e) => {
                 if (active) return;
                 const el = e.currentTarget as HTMLAnchorElement;
-                el.style.background = "rgba(255,255,255,0.04)";
-                el.style.color      = "rgba(255,255,255,0.75)";
+                el.style.background = "rgba(0,0,0,0.04)";
+                el.style.color      = "rgba(15,10,30,0.75)";
               }}
               onMouseLeave={(e) => {
                 if (active) return;
                 const el = e.currentTarget as HTMLAnchorElement;
                 el.style.background = "transparent";
-                el.style.color      = "rgba(255,255,255,0.50)";
+                el.style.color      = "rgba(15,10,30,0.50)";
               }}
             >
               <Icon
                 size={14}
-                style={{ color: active ? "#A78BFA" : "rgba(255,255,255,0.30)", flexShrink: 0 }}
+                style={{ color: active ? "#7C3AED" : "rgba(15,10,30,0.30)", flexShrink: 0 }}
               />
               <span className="flex-1">{label}</span>
               {badge && (
@@ -126,9 +123,9 @@ export function StudioSidebar() {
                     fontWeight:    700,
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
-                    color:         "#A78BFA",
-                    background:    "rgba(124,58,237,0.15)",
-                    border:        "1px solid rgba(124,58,237,0.25)",
+                    color:         "#7C3AED",
+                    background:    "rgba(124,58,237,0.10)",
+                    border:        "1px solid rgba(124,58,237,0.20)",
                     borderRadius:  9999,
                     padding:       "1px 6px",
                     lineHeight:    1.6,
@@ -149,50 +146,48 @@ export function StudioSidebar() {
       <div
         className="mx-3 mb-3 hidden rounded-xl p-4 md:block"
         style={{
-          background: "rgba(255,255,255,0.03)",
-          border:     "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(0,0,0,0.03)",
+          border:     "1px solid rgba(0,0,0,0.08)",
         }}
       >
         <div className="flex items-center justify-between">
-          <p className="text-[12px] font-medium text-white">Credits</p>
-          <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-[12px] font-medium" style={{ color: "#0F0A1E" }}>Credits</p>
+          <p className="text-[11px]" style={{ color: "rgba(15,10,30,0.38)" }}>
             {CREDITS} / {CREDITS_MAX}
           </p>
         </div>
 
-        {/* FIX 6: Semantic fill — track 4px, track bg 0.10, fill color by percentage */}
         <div
           className="mt-3 overflow-hidden rounded-full"
-          style={{ height: 4, background: "rgba(255,255,255,0.10)" }}
+          style={{ height: 4, background: "rgba(0,0,0,0.08)" }}
         >
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{ width: `${Math.round(creditPct * 100)}%`, background: creditBarColor }}
           />
         </div>
-        <p className="mt-1.5 text-[11px]" style={{ color: "rgba(255,255,255,0.25)" }}>
+        <p className="mt-1.5 text-[11px]" style={{ color: "rgba(15,10,30,0.30)" }}>
           Available for new requests
         </p>
 
-        {/* FIX 3: "Buy Credits" button — neutral, not purple */}
         <button
           type="button"
           className="mt-3 w-full rounded-lg text-[12px] font-medium transition-all duration-150"
           style={{
             height:     32,
-            background: "rgba(255,255,255,0.06)",
-            border:     "1px solid rgba(255,255,255,0.12)",
-            color:      "rgba(255,255,255,0.65)",
+            background: "rgba(0,0,0,0.04)",
+            border:     "1px solid rgba(0,0,0,0.10)",
+            color:      "rgba(15,10,30,0.55)",
           }}
           onMouseEnter={(e) => {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.background = "rgba(255,255,255,0.09)";
-            el.style.color      = "rgba(255,255,255,0.90)";
+            el.style.background = "rgba(0,0,0,0.07)";
+            el.style.color      = "#0F0A1E";
           }}
           onMouseLeave={(e) => {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.background = "rgba(255,255,255,0.06)";
-            el.style.color      = "rgba(255,255,255,0.65)";
+            el.style.background = "rgba(0,0,0,0.04)";
+            el.style.color      = "rgba(15,10,30,0.55)";
           }}
         >
           Buy Credits
@@ -202,14 +197,14 @@ export function StudioSidebar() {
       {/* ── User row — desktop only ── */}
       <div
         className="hidden items-center gap-3 px-4 py-3.5 md:flex"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}
       >
         <div
           className="flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold"
           style={{
-            background:    "rgba(255,255,255,0.08)",
-            border:        "1px solid rgba(255,255,255,0.12)",
-            color:         "rgba(255,255,255,0.65)",
+            background:    "rgba(124,58,237,0.10)",
+            border:        "1px solid rgba(124,58,237,0.18)",
+            color:         "#7C3AED",
             letterSpacing: "0.03em",
           }}
           aria-hidden
@@ -217,10 +212,10 @@ export function StudioSidebar() {
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[12px] font-medium text-white">
+          <p className="truncate text-[12px] font-medium" style={{ color: "#0F0A1E" }}>
             {displayName}
           </p>
-          <p className="truncate text-[11px]" style={{ color: "rgba(255,255,255,0.30)" }}>
+          <p className="truncate text-[11px]" style={{ color: "rgba(15,10,30,0.38)" }}>
             {user?.email ?? ""}
           </p>
         </div>
@@ -230,9 +225,9 @@ export function StudioSidebar() {
           aria-label="Sign out"
           title="Sign out"
           className="shrink-0 rounded-md p-1.5 transition-colors duration-150"
-          style={{ color: "rgba(255,255,255,0.25)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.60)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.25)"; }}
+          style={{ color: "rgba(15,10,30,0.28)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(15,10,30,0.65)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(15,10,30,0.28)"; }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -242,13 +237,13 @@ export function StudioSidebar() {
         </button>
       </div>
 
-      {/* ── FIX 9: Mobile bottom tab bar — fixed, only on mobile ── */}
+      {/* ── Mobile bottom tab bar ── */}
       <nav
         className="fixed inset-x-0 bottom-0 z-40 flex h-[60px] items-stretch justify-around md:hidden"
         style={{
-          background:     "rgba(12,11,18,0.95)",
+          background:     "rgba(255,255,255,0.96)",
           backdropFilter: "blur(16px)",
-          borderTop:      "1px solid rgba(255,255,255,0.07)",
+          borderTop:      "1px solid rgba(0,0,0,0.08)",
         }}
         aria-label="Mobile navigation"
       >
@@ -263,7 +258,7 @@ export function StudioSidebar() {
               key={href}
               href={href}
               className="flex flex-1 flex-col items-center justify-center gap-1 transition-colors duration-150"
-              style={{ color: active ? "#8B5CF6" : "rgba(255,255,255,0.35)" }}
+              style={{ color: active ? "#7C3AED" : "rgba(15,10,30,0.38)" }}
             >
               <Icon size={20} aria-hidden />
               <span className="text-[10px] font-medium">{label}</span>

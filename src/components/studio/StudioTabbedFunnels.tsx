@@ -54,23 +54,23 @@ export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: St
       />
       <div
         className="relative z-10 flex h-full w-full max-h-[100dvh] max-w-[1400px] flex-col overflow-hidden rounded-none sm:max-h-[calc(100dvh-2rem)] sm:rounded-xl"
-        style={{ background: "#0A0812", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 32px 80px rgba(0,0,0,0.70)" }}
+        style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.09)", boxShadow: "0 32px 80px rgba(0,0,0,0.18)" }}
       >
         <header
           className="flex h-14 shrink-0 items-center justify-between gap-3 px-3 md:px-5"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(10,8,18,0.95)", backdropFilter: "blur(12px)" }}
+          style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", background: "rgba(255,255,255,0.97)", backdropFilter: "blur(12px)" }}
         >
           {/* Studio wordmark — desktop only */}
           <div className="hidden md:flex shrink-0 items-center gap-2">
             <div
               className="flex size-6 items-center justify-center rounded-lg"
-              style={{ background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 2px 8px rgba(124,58,237,0.40)" }}
+              style={{ background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 2px 8px rgba(124,58,237,0.30)" }}
               aria-hidden
             >
               <span style={{ fontSize: 11, fontWeight: 800, color: "#FFFFFF", letterSpacing: "-0.02em" }}>T</span>
             </div>
-            <span className="text-[13px] font-semibold" style={{ color: "rgba(255,255,255,0.35)" }}>Studio</span>
-            <span className="text-[18px]" style={{ color: "rgba(255,255,255,0.10)", lineHeight: 1, marginBottom: -1 }}>|</span>
+            <span className="text-[13px] font-semibold" style={{ color: "rgba(15,10,30,0.35)" }}>Studio</span>
+            <span className="text-[18px]" style={{ color: "rgba(15,10,30,0.12)", lineHeight: 1, marginBottom: -1 }}>|</span>
           </div>
 
           {/* Tab switcher */}
@@ -78,7 +78,7 @@ export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: St
             <span id="studio-tabbed-title" className="sr-only">Twinity Studio</span>
             <div
               className="inline-flex rounded-xl p-1"
-              style={{ background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.07)" }}
+              style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)" }}
             >
               {TABS.map(({ id, label, mobileLabel, Icon, badge, desc, isNew }) => {
                 const isActive = tab === id;
@@ -90,10 +90,10 @@ export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: St
                     className="flex items-center gap-1.5 rounded-[10px] px-2.5 py-1.5 transition-all duration-200 sm:px-3 md:gap-2 md:px-3.5"
                     style={{
                       background: isActive
-                        ? "linear-gradient(135deg, rgba(124,58,237,0.38) 0%, rgba(139,92,246,0.20) 100%)"
+                        ? "rgba(124,58,237,0.08)"
                         : "transparent",
-                      border:     isActive ? "1px solid rgba(124,58,237,0.35)" : "1px solid transparent",
-                      color:      isActive ? "#FFFFFF" : "rgba(255,255,255,0.48)",
+                      border:     isActive ? "1px solid rgba(124,58,237,0.25)" : "1px solid transparent",
+                      color:      isActive ? "#7C3AED" : "rgba(15,10,30,0.45)",
                       boxShadow:  "none",
                       whiteSpace: "nowrap",
                     }}
@@ -102,7 +102,7 @@ export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: St
                     <Icon
                       size={12}
                       aria-hidden
-                      style={{ flexShrink: 0, color: isActive ? "#A78BFA" : "currentColor", transition: "color 200ms" }}
+                      style={{ flexShrink: 0, color: isActive ? "#7C3AED" : "currentColor", transition: "color 200ms" }}
                     />
                     {/* Mobile label */}
                     <span className="text-[11px] font-semibold sm:hidden">{mobileLabel}</span>
@@ -113,10 +113,10 @@ export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: St
                       <span
                         className="hidden lg:inline-flex h-[18px] items-center rounded-full px-1.5 text-[9px] font-bold"
                         style={{
-                          background:    isNew ? "linear-gradient(135deg, #8B5CF6, #3D1A6E)" : "rgba(124,58,237,0.28)",
-                          color:         "#FFFFFF",
+                          background:    isNew ? "linear-gradient(135deg, #8B5CF6, #3D1A6E)" : "rgba(124,58,237,0.10)",
+                          color:         isNew ? "#FFFFFF" : "#7C3AED",
                           letterSpacing: "0.06em",
-                          border:        isNew ? "none" : "1px solid rgba(124,58,237,0.25)",
+                          border:        isNew ? "none" : "1px solid rgba(124,58,237,0.22)",
                         }}
                       >
                         {badge}
@@ -132,8 +132,8 @@ export function StudioTabbedFunnels({ open, onClose, initialTab, sessionId }: St
           <button
             type="button"
             onClick={onClose}
-            className="flex size-9 shrink-0 items-center justify-center rounded-xl text-lg transition-all duration-150 hover:bg-white/[0.06]"
-            style={{ color: "rgba(255,255,255,0.40)" }}
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl text-lg transition-all duration-150 hover:bg-black/[0.05]"
+            style={{ color: "rgba(15,10,30,0.38)" }}
             aria-label="Close"
           >
             ×

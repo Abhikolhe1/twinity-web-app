@@ -36,15 +36,15 @@ export function BottomBar({
       className="flex h-16 shrink-0 items-center justify-between gap-4 px-4 md:px-6"
       style={{
         minHeight:      "64px",
-        background:     "rgba(10,8,18,0.90)",
+        background:     "rgba(255,255,255,0.97)",
         backdropFilter: "blur(16px)",
-        borderTop:      "1px solid rgba(255,255,255,0.06)",
+        borderTop:      "1px solid rgba(0,0,0,0.08)",
       }}
     >
       {/* Summary */}
       <p
         className="min-w-0 truncate text-[13px]"
-        style={{ color: "rgba(255,255,255,0.35)" }}
+        style={{ color: "rgba(15,10,30,0.35)" }}
         title={summary}
       >
         {summary}
@@ -58,9 +58,9 @@ export function BottomBar({
           disabled={currentStep <= 1}
           className="inline-flex h-[40px] items-center justify-center rounded-xl px-4 text-[13px] font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-30"
           style={{
-            background: "rgba(255,255,255,0.05)",
-            border:     "1px solid rgba(255,255,255,0.10)",
-            color:      "rgba(255,255,255,0.65)",
+            background: "rgba(0,0,0,0.04)",
+            border:     "1px solid rgba(0,0,0,0.10)",
+            color:      "rgba(15,10,30,0.55)",
           }}
         >
           ← Back

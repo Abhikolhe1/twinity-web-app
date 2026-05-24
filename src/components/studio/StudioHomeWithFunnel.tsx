@@ -279,7 +279,6 @@ export function StudioHomeWithFunnel() {
 
   /* ─── render ─── */
   return (
-    /* FIX 4: pageRoot provides scoped CSS vars (--tx-2, --tx-3, --tx-4) */
     <div className={styles.pageRoot}>
       <StudioFunnel
         open={customOpen}
@@ -293,17 +292,15 @@ export function StudioHomeWithFunnel() {
         <section className="mb-10">
           <div className="flex flex-wrap items-start justify-between gap-6">
             <div>
-              {/* FIX 4: 0.35 → var(--tx-3) */}
               <p className="mb-1 text-[13px]" style={{ color: "var(--tx-3)" }}>
                 {greeting || "Welcome back"}, {name}
               </p>
               <h1
-                className="font-display text-[36px] font-extrabold text-white"
-                style={{ letterSpacing: "-0.04em", lineHeight: 1.05 }}
+                className="font-display text-[36px] font-extrabold"
+                style={{ color: "#0F0A1E", letterSpacing: "-0.04em", lineHeight: 1.05 }}
               >
                 {totalRequests === 0 ? "License a celebrity identity." : "Your studio."}
               </h1>
-              {/* FIX 4: 0.45 → var(--tx-2) */}
               <p className="mt-2 max-w-[480px] text-[15px]" style={{ color: "var(--tx-2)", lineHeight: 1.6 }}>
                 {totalRequests === 0
                   ? "Browse talent, select a license style, and submit your first request in under two minutes."
@@ -316,16 +313,15 @@ export function StudioHomeWithFunnel() {
                 href="#discover"
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-[13px] font-medium transition-colors duration-150"
                 style={{
-                  background: "rgba(255,255,255,0.05)",
-                  border:     "1px solid rgba(255,255,255,0.10)",
-                  color:      "rgba(255,255,255,0.70)",
+                  background: "rgba(0,0,0,0.04)",
+                  border:     "1px solid rgba(0,0,0,0.10)",
+                  color:      "rgba(15,10,30,0.55)",
                 }}
-                onMouseEnter={(e) => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "rgba(255,255,255,0.08)"; el.style.color = "#FFFFFF"; }}
-                onMouseLeave={(e) => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "rgba(255,255,255,0.05)"; el.style.color = "rgba(255,255,255,0.70)"; }}
+                onMouseEnter={(e) => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "rgba(0,0,0,0.07)"; el.style.color = "#0F0A1E"; }}
+                onMouseLeave={(e) => { const el = e.currentTarget as HTMLAnchorElement; el.style.background = "rgba(0,0,0,0.04)"; el.style.color = "rgba(15,10,30,0.55)"; }}
               >
                 Browse celebrities
               </a>
-              {/* Purple kept here — this is the PRIMARY CTA, one of max 3 purple elements */}
               <button
                 type="button"
                 onClick={() => {
@@ -333,7 +329,7 @@ export function StudioHomeWithFunnel() {
                   openTabbedFunnel(funnelTarget as Parameters<typeof openTabbedFunnel>[0]);
                 }}
                 className="inline-flex h-9 items-center gap-2 rounded-lg px-5 text-[13px] font-semibold text-white transition-opacity duration-150 hover:opacity-90"
-                style={{ background: "#7C3AED", boxShadow: "0 1px 3px rgba(0,0,0,0.40), 0 0 0 1px rgba(124,58,237,0.50)" }}
+                style={{ background: "#7C3AED", boxShadow: "0 1px 3px rgba(0,0,0,0.20), 0 0 0 1px rgba(124,58,237,0.50)" }}
               >
                 New Request
                 <ArrowRight size={14} aria-hidden />
@@ -341,33 +337,31 @@ export function StudioHomeWithFunnel() {
             </div>
           </div>
 
-          <div className="mt-8" style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+          <div className="mt-8" style={{ height: 1, background: "rgba(0,0,0,0.08)" }} />
         </section>
 
         {/* ── §2 KPI STRIP ───────────────────────────────────────────────── */}
         <section className="mb-10">
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {STATS.map(({ id, label, value, Icon, href, zeroCta, subtext }) => (
-              /* FIX 5: cursor-pointer + focus-visible ring */
               <Link
                 key={id}
                 href={href}
                 className="group flex flex-col rounded-xl p-5 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50"
-                style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}
+                style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.08)" }}
                 onMouseEnter={(e) => {
                   const el = e.currentTarget as HTMLAnchorElement;
-                  el.style.background  = "rgba(255,255,255,0.045)";
-                  el.style.borderColor = "rgba(255,255,255,0.10)";
-                  el.style.boxShadow   = "0 4px 16px rgba(0,0,0,0.22)";
+                  el.style.background  = "rgba(0,0,0,0.02)";
+                  el.style.borderColor = "rgba(0,0,0,0.12)";
+                  el.style.boxShadow   = "0 4px 16px rgba(0,0,0,0.08)";
                 }}
                 onMouseLeave={(e) => {
                   const el = e.currentTarget as HTMLAnchorElement;
-                  el.style.background  = "rgba(255,255,255,0.025)";
-                  el.style.borderColor = "rgba(255,255,255,0.06)";
+                  el.style.background  = "#FFFFFF";
+                  el.style.borderColor = "rgba(0,0,0,0.08)";
                   el.style.boxShadow   = "none";
                 }}
               >
-                {/* FIX 4: icon 0.25 → var(--tx-4); label 0.40 → var(--tx-2) */}
                 <div className="flex items-center gap-2">
                   <Icon size={13} style={{ color: "var(--tx-4)", flexShrink: 0 }} aria-hidden />
                   <span className="text-[12px] font-medium" style={{ color: "var(--tx-2)" }}>
@@ -377,20 +371,18 @@ export function StudioHomeWithFunnel() {
                 <div className="mt-3">
                   {value === 0 ? (
                     <>
-                      <p className="text-[22px] font-bold tabular-nums text-white" style={{ letterSpacing: "-0.02em", lineHeight: 1 }}>
+                      <p className="text-[22px] font-bold tabular-nums" style={{ color: "#0F0A1E", letterSpacing: "-0.02em", lineHeight: 1 }}>
                         0
                       </p>
-                      {/* FIX 4: 0.28 → var(--tx-4) */}
                       <p className="mt-1.5 text-[12px]" style={{ color: "var(--tx-4)" }}>
                         {zeroCta}
                       </p>
                     </>
                   ) : (
                     <>
-                      <p className="text-[22px] font-bold tabular-nums text-white" style={{ letterSpacing: "-0.02em", lineHeight: 1 }}>
+                      <p className="text-[22px] font-bold tabular-nums" style={{ color: "#0F0A1E", letterSpacing: "-0.02em", lineHeight: 1 }}>
                         <StatCount target={value} />
                       </p>
-                      {/* FIX 4: 0.35 → var(--tx-3) */}
                       <p className="mt-1.5 text-[12px]" style={{ color: "var(--tx-3)" }}>
                         {subtext}
                       </p>
@@ -411,12 +403,12 @@ export function StudioHomeWithFunnel() {
           >
             <div
               className="rounded-xl p-6"
-              style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)" }}
+              style={{ background: "#F8F7FF", border: "1px solid rgba(0,0,0,0.08)" }}
             >
               {/* Header row */}
               <div className="mb-6 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                  <h2 className="font-display text-[22px] font-bold" style={{ color: "#0F0A1E", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
                     Get started
                   </h2>
                   <p className="mt-1 text-[13px]" style={{ color: "var(--tx-3)" }}>
@@ -428,7 +420,7 @@ export function StudioHomeWithFunnel() {
                   onClick={() => setOnboardingOpen(false)}
                   className="mt-1 shrink-0 text-[12px] transition-colors duration-150"
                   style={{ color: "var(--tx-4)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.55)"; }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(15,10,30,0.55)"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--tx-4)"; }}
                   aria-label="Dismiss onboarding"
                 >
@@ -444,22 +436,22 @@ export function StudioHomeWithFunnel() {
                     <div
                       key={step.id}
                       className="flex flex-col gap-4 rounded-xl px-4 py-5"
-                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                      style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.08)" }}
                     >
                       {/* Top row: icon badge + step number */}
                       <div className="flex items-center justify-between">
                         <div
                           className="flex size-10 items-center justify-center rounded-xl"
-                          style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.09)" }}
+                          style={{ background: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.09)" }}
                         >
-                          <Icon size={17} style={{ color: "rgba(255,255,255,0.50)" }} aria-hidden />
+                          <Icon size={17} style={{ color: "rgba(15,10,30,0.38)" }} aria-hidden />
                         </div>
                         <span
                           className="flex size-6 items-center justify-center rounded-full text-[11px] font-bold tabular-nums"
                           style={{
-                            background: "rgba(255,255,255,0.08)",
-                            border:     "1px solid rgba(255,255,255,0.14)",
-                            color:      "rgba(255,255,255,0.45)",
+                            background: "rgba(0,0,0,0.06)",
+                            border:     "1px solid rgba(0,0,0,0.12)",
+                            color:      "rgba(15,10,30,0.38)",
                           }}
                         >
                           {step.id}
@@ -468,7 +460,7 @@ export function StudioHomeWithFunnel() {
 
                       {/* Text content */}
                       <div className="flex flex-col gap-1.5">
-                        <p className="text-[13px] font-semibold leading-snug" style={{ color: "rgba(255,255,255,0.85)" }}>
+                        <p className="text-[13px] font-semibold leading-snug" style={{ color: "#0F0A1E" }}>
                           {step.label}
                         </p>
                         <p className="text-[12px] leading-relaxed" style={{ color: "var(--tx-3)" }}>
@@ -483,19 +475,19 @@ export function StudioHomeWithFunnel() {
                           onClick={() => openFunnel("campaign")}
                           className="mt-auto inline-flex items-center gap-1.5 self-start rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-150"
                           style={{
-                            background: "rgba(255,255,255,0.05)",
-                            border:     "1px solid rgba(255,255,255,0.10)",
-                            color:      "rgba(255,255,255,0.60)",
+                            background: "rgba(0,0,0,0.04)",
+                            border:     "1px solid rgba(0,0,0,0.10)",
+                            color:      "rgba(15,10,30,0.55)",
                           }}
                           onMouseEnter={(e) => {
                             const el = e.currentTarget as HTMLButtonElement;
-                            el.style.background = "rgba(255,255,255,0.09)";
-                            el.style.color = "rgba(255,255,255,0.90)";
+                            el.style.background = "rgba(0,0,0,0.07)";
+                            el.style.color = "#0F0A1E";
                           }}
                           onMouseLeave={(e) => {
                             const el = e.currentTarget as HTMLButtonElement;
-                            el.style.background = "rgba(255,255,255,0.05)";
-                            el.style.color = "rgba(255,255,255,0.60)";
+                            el.style.background = "rgba(0,0,0,0.04)";
+                            el.style.color = "rgba(15,10,30,0.55)";
                           }}
                         >
                           Browse <ArrowRight size={11} aria-hidden />
@@ -507,19 +499,19 @@ export function StudioHomeWithFunnel() {
                           onClick={() => openFunnel(activeLic.funnel)}
                           className="mt-auto inline-flex items-center gap-1.5 self-start rounded-lg px-3 py-1.5 text-[12px] font-medium transition-all duration-150"
                           style={{
-                            background: "rgba(255,255,255,0.05)",
-                            border:     "1px solid rgba(255,255,255,0.10)",
-                            color:      "rgba(255,255,255,0.60)",
+                            background: "rgba(0,0,0,0.04)",
+                            border:     "1px solid rgba(0,0,0,0.10)",
+                            color:      "rgba(15,10,30,0.55)",
                           }}
                           onMouseEnter={(e) => {
                             const el = e.currentTarget as HTMLButtonElement;
-                            el.style.background = "rgba(255,255,255,0.09)";
-                            el.style.color = "rgba(255,255,255,0.90)";
+                            el.style.background = "rgba(0,0,0,0.07)";
+                            el.style.color = "#0F0A1E";
                           }}
                           onMouseLeave={(e) => {
                             const el = e.currentTarget as HTMLButtonElement;
-                            el.style.background = "rgba(255,255,255,0.05)";
-                            el.style.color = "rgba(255,255,255,0.60)";
+                            el.style.background = "rgba(0,0,0,0.04)";
+                            el.style.color = "rgba(15,10,30,0.55)";
                           }}
                         >
                           Start <ArrowRight size={11} aria-hidden />
@@ -542,21 +534,19 @@ export function StudioHomeWithFunnel() {
         >
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+              <h2 className="font-display text-[22px] font-bold" style={{ color: "#0F0A1E", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
                 Discover Celebrities
               </h2>
-              {/* FIX 4: 0.38 → var(--tx-3) */}
               <p className="mt-0.5 text-[15px]" style={{ color: "var(--tx-3)", lineHeight: 1.6 }}>
                 Licensed talent available for commercial campaigns
               </p>
             </div>
-            {/* FIX 4: 0.40 → var(--tx-2) */}
             <button
               type="button"
               onClick={() => openFunnel("campaign")}
               className="inline-flex items-center gap-1 text-[12px] font-medium transition-colors duration-150"
               style={{ color: "var(--tx-2)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.80)"; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#0F0A1E"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--tx-2)"; }}
             >
               View all <ArrowRight size={12} aria-hidden />
@@ -573,9 +563,8 @@ export function StudioHomeWithFunnel() {
                 className="rounded-full px-3 py-1 text-[12px] font-medium transition-all duration-150"
                 style={
                   celebFilter === f
-                    ? { background: "rgba(255,255,255,0.10)", color: "#FFFFFF", border: "1px solid rgba(255,255,255,0.18)" }
-                    /* FIX 4: 0.35 → var(--tx-3) */
-                    : { background: "transparent", color: "var(--tx-3)", border: "1px solid rgba(255,255,255,0.07)" }
+                    ? { background: "rgba(124,58,237,0.10)", color: "#7C3AED", border: "1px solid rgba(124,58,237,0.25)" }
+                    : { background: "transparent", color: "var(--tx-3)", border: "1px solid rgba(0,0,0,0.09)" }
                 }
               >
                 {f}
@@ -585,7 +574,6 @@ export function StudioHomeWithFunnel() {
 
           {/* Celebrity grid */}
           {filteredCelebs.length === 0 ? (
-            /* FIX 4: 0.25 → var(--tx-4) */
             <p className="py-6 text-center text-[13px]" style={{ color: "var(--tx-4)" }}>
               No celebrities in this category yet.
             </p>
@@ -595,7 +583,7 @@ export function StudioHomeWithFunnel() {
                 <div
                   key={c._id}
                   className={`${styles.celebCard} relative cursor-pointer overflow-hidden rounded-xl`}
-                  style={{ border: "1px solid rgba(255,255,255,0.07)", transition: "box-shadow 200ms ease, border-color 200ms ease" }}
+                  style={{ border: "1px solid rgba(0,0,0,0.10)", transition: "box-shadow 200ms ease, border-color 200ms ease" }}
                   onClick={() => openFunnel("campaign")}
                   role="button"
                   tabIndex={0}
@@ -603,18 +591,17 @@ export function StudioHomeWithFunnel() {
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openFunnel("campaign"); } }}
                   onMouseEnter={(e) => {
                     const el = e.currentTarget as HTMLDivElement;
-                    el.style.boxShadow   = "0 8px 28px rgba(0,0,0,0.40)";
-                    el.style.borderColor = "rgba(255,255,255,0.12)";
+                    el.style.boxShadow   = "0 8px 28px rgba(0,0,0,0.12)";
+                    el.style.borderColor = "rgba(0,0,0,0.15)";
                   }}
                   onMouseLeave={(e) => {
                     const el = e.currentTarget as HTMLDivElement;
                     el.style.boxShadow   = "none";
-                    el.style.borderColor = "rgba(255,255,255,0.07)";
+                    el.style.borderColor = "rgba(0,0,0,0.10)";
                   }}
                 >
                   {/* Portrait — 3:4 */}
                   <div className="relative overflow-hidden" style={{ aspectRatio: "3/4" }}>
-                    {/* Photo — covers entire portrait area */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={c.img}
@@ -654,7 +641,7 @@ export function StudioHomeWithFunnel() {
                       style={{ background: "linear-gradient(to top, rgba(9,8,15,0.96) 40%, rgba(9,8,15,0.60) 75%, transparent 100%)" }}
                     >
                       <p className="truncate text-[17px] font-semibold leading-tight text-white">{c.name}</p>
-                      <p className="mt-0.5 truncate text-[12px]" style={{ color: "var(--tx-3)" }}>{c.sub}</p>
+                      <p className="mt-0.5 truncate text-[12px]" style={{ color: "rgba(255,255,255,0.55)" }}>{c.sub}</p>
                     </div>
 
                     {/* Hover CTA */}
@@ -679,10 +666,9 @@ export function StudioHomeWithFunnel() {
           style={reveal(licenseVisible, 40)}
         >
           <div className="mb-5">
-            <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+            <h2 className="font-display text-[22px] font-bold" style={{ color: "#0F0A1E", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
               Choose a License Style
             </h2>
-            {/* FIX 4: 0.38 → var(--tx-3) */}
             <p className="mt-0.5 text-[15px]" style={{ color: "var(--tx-3)", lineHeight: 1.6 }}>
               Select a request type — this pre-fills the form when you hit &ldquo;New Request&rdquo;
             </p>
@@ -698,17 +684,17 @@ export function StudioHomeWithFunnel() {
                   onClick={() => setLicenseType(id)}
                   className="relative flex flex-col items-start rounded-xl p-5 text-start transition-all duration-150"
                   style={{
-                    background: sel ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)",
-                    border:     sel ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(255,255,255,0.06)",
+                    background: sel ? "rgba(124,58,237,0.04)" : "#FFFFFF",
+                    border:     sel ? "1px solid rgba(124,58,237,0.18)" : "1px solid rgba(0,0,0,0.08)",
                     borderLeft: sel ? "2px solid #7C3AED" : "2px solid transparent",
                   }}
                   onMouseEnter={(e) => {
                     if (sel) return;
-                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)";
+                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,0.02)";
                   }}
                   onMouseLeave={(e) => {
                     if (sel) return;
-                    (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.02)";
+                    (e.currentTarget as HTMLButtonElement).style.background = "#FFFFFF";
                   }}
                 >
                   {/* Badge — "NEW" uses gradient-brand; others use muted */}
@@ -718,7 +704,7 @@ export function StudioHomeWithFunnel() {
                       style={
                         isNew
                           ? { background: "linear-gradient(135deg, #8B5CF6 0%, #3D1A6E 100%)", color: "#FFFFFF", letterSpacing: "0.08em" }
-                          : { background: "rgba(255,255,255,0.07)", color: "var(--tx-2)", border: "1px solid rgba(255,255,255,0.08)" }
+                          : { background: "rgba(0,0,0,0.06)", color: "var(--tx-2)", border: "1px solid rgba(0,0,0,0.08)" }
                       }
                     >
                       {badge}
@@ -730,9 +716,9 @@ export function StudioHomeWithFunnel() {
                     className="flex size-9 items-center justify-center rounded-lg"
                     style={{
                       background: sel
-                        ? (isNew ? "linear-gradient(135deg, #8B5CF6 0%, #3D1A6E 100%)" : "rgba(124,58,237,0.15)")
-                        : (isNew ? "rgba(124,58,237,0.12)" : "rgba(255,255,255,0.05)"),
-                      color:      sel ? "#FFFFFF" : (isNew ? "#A78BFA" : "var(--tx-3)"),
+                        ? (isNew ? "linear-gradient(135deg, #8B5CF6 0%, #3D1A6E 100%)" : "rgba(124,58,237,0.10)")
+                        : (isNew ? "rgba(124,58,237,0.08)" : "rgba(0,0,0,0.05)"),
+                      color:      sel ? "#FFFFFF" : (isNew ? "#7C3AED" : "rgba(15,10,30,0.38)"),
                       boxShadow:  isNew && sel ? "0 0 16px rgba(139,92,246,0.30)" : "none",
                     }}
                   >
@@ -741,7 +727,7 @@ export function StudioHomeWithFunnel() {
 
                   <p
                     className="mt-3.5 text-[17px] font-semibold leading-tight"
-                    style={{ color: sel ? "#FFFFFF" : "rgba(255,255,255,0.75)" }}
+                    style={{ color: sel ? "#0F0A1E" : "rgba(15,10,30,0.75)" }}
                   >
                     {title}
                   </p>
@@ -751,7 +737,7 @@ export function StudioHomeWithFunnel() {
 
                   {/* Price from */}
                   {priceFrom && (
-                    <p className="mt-2 text-[12px]" style={{ color: sel ? "#C4B5FD" : "var(--tx-4)" }}>
+                    <p className="mt-2 text-[12px]" style={{ color: sel ? "#7C3AED" : "var(--tx-4)" }}>
                       From <span style={{ fontWeight: 600 }}>{priceFrom}</span>
                     </p>
                   )}
@@ -763,7 +749,7 @@ export function StudioHomeWithFunnel() {
                       tabIndex={-1}
                       className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-medium transition-colors duration-150 cursor-pointer"
                       style={{ color: "var(--tx-2)" }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLSpanElement).style.color = "rgba(255,255,255,0.90)"; }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLSpanElement).style.color = "#0F0A1E"; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLSpanElement).style.color = "var(--tx-2)"; }}
                       onClick={(e) => { e.stopPropagation(); openFunnel(funnel); }}
                     >
@@ -783,19 +769,18 @@ export function StudioHomeWithFunnel() {
         >
           <div
             className="overflow-hidden rounded-xl"
-            style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}
+            style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.08)" }}
           >
             <div
               className="flex items-center justify-between px-5 py-4"
-              style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+              style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}
             >
-              <h2 className="font-display text-[22px] font-bold text-white" style={{ letterSpacing: "-0.02em", lineHeight: 1.2 }}>Recent Requests</h2>
-              {/* FIX 4: 0.30 → var(--tx-3) */}
+              <h2 className="font-display text-[22px] font-bold" style={{ color: "#0F0A1E", letterSpacing: "-0.02em", lineHeight: 1.2 }}>Recent Requests</h2>
               <Link
                 href="/studio/requests"
                 className="text-[12px] font-medium transition-colors duration-150"
                 style={{ color: "var(--tx-3)" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.65)"; }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#0F0A1E"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--tx-3)"; }}
               >
                 View all →
@@ -810,25 +795,25 @@ export function StudioHomeWithFunnel() {
                     href={`/studio/requests/${job.id}`}
                     className="flex items-center justify-between px-5 py-3.5 transition-colors duration-150"
                     style={{
-                      borderBottom: idx < recentJobs.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                      borderBottom: idx < recentJobs.length - 1 ? "1px solid rgba(0,0,0,0.07)" : "none",
                       textDecoration: "none",
                     }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.03)"; }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.02)"; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <span className="text-[11px] font-mono shrink-0" style={{ color: "var(--tx-4)" }}>
                         {job.orderId}
                       </span>
-                      <span className="truncate text-[13px] text-white">{job.celebrity}</span>
+                      <span className="truncate text-[13px]" style={{ color: "#0F0A1E" }}>{job.celebrity}</span>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <span
                         className="rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize"
                         style={{
-                          background: job.status === "delivered" ? "rgba(34,197,94,0.12)" : job.status === "review" ? "rgba(59,130,246,0.12)" : "rgba(255,255,255,0.06)",
-                          color:      job.status === "delivered" ? "#4ADE80" : job.status === "review" ? "#60A5FA" : "rgba(255,255,255,0.50)",
-                          border:     "1px solid " + (job.status === "delivered" ? "rgba(34,197,94,0.20)" : job.status === "review" ? "rgba(59,130,246,0.20)" : "rgba(255,255,255,0.08)"),
+                          background: job.status === "delivered" ? "rgba(34,197,94,0.10)" : job.status === "review" ? "rgba(59,130,246,0.10)" : "rgba(0,0,0,0.05)",
+                          color:      job.status === "delivered" ? "#16A34A" : job.status === "review" ? "#2563EB" : "rgba(15,10,30,0.45)",
+                          border:     "1px solid " + (job.status === "delivered" ? "rgba(34,197,94,0.20)" : job.status === "review" ? "rgba(59,130,246,0.20)" : "rgba(0,0,0,0.08)"),
                         }}
                       >
                         {job.status.replace(/-/g, " ")}
@@ -844,12 +829,12 @@ export function StudioHomeWithFunnel() {
               <div className="flex flex-col items-center px-6 py-14 text-center">
                 <div
                   className="flex size-11 items-center justify-center rounded-xl"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+                  style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)" }}
                   aria-hidden
                 >
                   <Inbox size={20} style={{ color: "var(--tx-4)" }} />
                 </div>
-                <p className="mt-4 text-[17px] font-semibold text-white">No requests yet</p>
+                <p className="mt-4 text-[17px] font-semibold" style={{ color: "#0F0A1E" }}>No requests yet</p>
                 <p className="mt-1 max-w-[320px] text-[15px]" style={{ color: "var(--tx-2)", lineHeight: 1.6 }}>
                   Submit your first celebrity license request — it takes less than 2 minutes.
                 </p>
@@ -858,19 +843,19 @@ export function StudioHomeWithFunnel() {
                   onClick={() => openFunnel(activeLic.funnel)}
                   className="mt-5 inline-flex h-8 items-center gap-1.5 rounded-lg px-4 text-[12px] font-medium transition-all duration-150"
                   style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border:     "1px solid rgba(255,255,255,0.12)",
-                    color:      "rgba(255,255,255,0.75)",
+                    background: "rgba(0,0,0,0.04)",
+                    border:     "1px solid rgba(0,0,0,0.10)",
+                    color:      "rgba(15,10,30,0.60)",
                   }}
                   onMouseEnter={(e) => {
                     const el = e.currentTarget as HTMLButtonElement;
-                    el.style.background = "rgba(255,255,255,0.09)";
-                    el.style.color      = "#FFFFFF";
+                    el.style.background = "rgba(0,0,0,0.07)";
+                    el.style.color      = "#0F0A1E";
                   }}
                   onMouseLeave={(e) => {
                     const el = e.currentTarget as HTMLButtonElement;
-                    el.style.background = "rgba(255,255,255,0.05)";
-                    el.style.color      = "rgba(255,255,255,0.75)";
+                    el.style.background = "rgba(0,0,0,0.04)";
+                    el.style.color      = "rgba(15,10,30,0.60)";
                   }}
                 >
                   Create your first request

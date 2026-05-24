@@ -9,10 +9,10 @@ export type PreviewSampleProps = {
 export function PreviewSample({ templateName, celebrityName, durationLabel }: PreviewSampleProps) {
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Preview Sample</h2>
-      <p className="mt-2 text-sm text-white/50">Watermarked demo — your final video will not have this</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Preview Sample</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.45)" }}>Watermarked demo — your final video will not have this</p>
 
-      <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-xl border border-white/[0.08] bg-[#0D0D0D]">
+      <div className="relative mt-8 aspect-video w-full overflow-hidden rounded-xl border border-black/[0.08] bg-white">
         <div
           className="absolute inset-0 bg-gradient-to-br from-[#2d1b69] via-[#1a1035] to-[#0a0a0a]"
           aria-hidden
@@ -32,20 +32,20 @@ export function PreviewSample({ templateName, celebrityName, durationLabel }: Pr
         </button>
       </div>
 
-      <p className="mt-4 text-center text-sm font-medium text-white/70">
+      <p className="mt-4 text-center text-sm font-medium" style={{ color: "rgba(15,10,30,0.55)" }}>
         {templateName} · {celebrityName} · {durationLabel}
       </p>
 
-      <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-white/50">
+      <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs" style={{ color: "rgba(15,10,30,0.45)" }}>
         <span>Duration: {durationLabel}</span>
         <span>Platform: Multi</span>
         <span>Format: MP4</span>
         <span>Usage: Preview only</span>
       </div>
 
-      <div className="mt-8 rounded-xl border border-white/[0.08] bg-[#1F1F1F] p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#C4B5FD]">Sample notice</p>
-        <p className="mt-2 text-sm leading-relaxed text-white/50">
+      <div className="mt-8 rounded-xl border border-black/[0.08] bg-white p-5">
+        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#7C3AED" }}>Sample notice</p>
+        <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(15,10,30,0.45)" }}>
           This is a watermarked sample only. To generate your own ad without watermark, complete payment and brief
           submission.
         </p>

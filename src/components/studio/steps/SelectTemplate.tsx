@@ -21,8 +21,8 @@ export function SelectTemplate({ selectedId, onSelect }: SelectTemplateProps) {
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Select Template</h2>
-      <p className="mt-2 text-sm text-white/50">Choose how your campaign will look and feel</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Select Template</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.45)" }}>Choose how your campaign will look and feel</p>
       <div className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
@@ -32,9 +32,10 @@ export function SelectTemplate({ selectedId, onSelect }: SelectTemplateProps) {
             className={[
               "rounded-lg px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-[background-color,border-color,color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
               filter === f
-                ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:border-white/[0.12] hover:text-white/70",
+                ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                : "border border-black/[0.08] bg-white hover:border-black/[0.12]",
             ].join(" ")}
+            style={{ color: filter === f ? "#0F0A1E" : "rgba(15,10,30,0.45)" }}
           >
             {f}
           </button>
@@ -52,7 +53,7 @@ export function SelectTemplate({ selectedId, onSelect }: SelectTemplateProps) {
                 "group relative aspect-video w-full overflow-hidden rounded-xl border text-start transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                 on
                   ? "border-[#7C3AED] shadow-[0_0_0_3px_rgba(124,58,237,0.2)]"
-                  : "border-white/[0.08] hover:border-white/[0.2]",
+                  : "border-black/[0.08] hover:border-black/[0.12]",
               ].join(" ")}
             >
               <div

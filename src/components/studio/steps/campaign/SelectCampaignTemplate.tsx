@@ -25,8 +25,8 @@ export function SelectCampaignTemplate({ selectedId, onSelect }: SelectCampaignT
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Select a Template</h2>
-      <p className="mt-2 text-sm text-white/50">Licensed formats with pre-cleared structure for commercial use.</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Select a Template</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.50)" }}>Licensed formats with pre-cleared structure for commercial use.</p>
       <div className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
@@ -36,9 +36,10 @@ export function SelectCampaignTemplate({ selectedId, onSelect }: SelectCampaignT
             className={[
               "rounded-lg px-3 py-1.5 text-xs font-semibold transition-[border-color,background-color,color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
               filter === f
-                ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:border-white/[0.14] hover:text-white/75",
+                ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)]"
+                : "border border-black/[0.08] bg-white hover:border-black/[0.14]",
             ].join(" ")}
+            style={filter === f ? { color: "#7C3AED" } : { color: "rgba(15,10,30,0.50)" }}
           >
             {f}
           </button>
@@ -56,7 +57,7 @@ export function SelectCampaignTemplate({ selectedId, onSelect }: SelectCampaignT
                 "group relative aspect-video w-full overflow-hidden rounded-xl border text-start transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                 on
                   ? "border-[#7C3AED] shadow-[0_0_0_3px_rgba(124,58,237,0.2)]"
-                  : "border-white/[0.08] hover:border-white/[0.22]",
+                  : "border-black/[0.08] hover:border-black/[0.18]",
               ].join(" ")}
             >
               <div className="absolute inset-0 bg-gradient-to-br" style={{ backgroundImage: `linear-gradient(135deg, ${t.from}, ${t.to})` }} />
@@ -78,7 +79,7 @@ export function SelectCampaignTemplate({ selectedId, onSelect }: SelectCampaignT
           );
         })}
       </div>
-      <p className="mt-6 text-sm text-white/40">Templates are watermarked for preview. Final masters are delivered with license metadata.</p>
+      <p className="mt-6 text-sm" style={{ color: "rgba(15,10,30,0.45)" }}>Templates are watermarked for preview. Final masters are delivered with license metadata.</p>
     </div>
   );
 }

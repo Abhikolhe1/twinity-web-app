@@ -130,8 +130,26 @@ export default function ImageAdPage() {
         flexDirection:  "column",
         height:         "100%",
         overflow:       "hidden",
-        background:     "var(--color-bg-deep)",
-      }}
+        background:     "#FFFFFF",
+        /* Override dark CSS vars so all child components flip to light theme */
+        "--color-bg-deep":        "#FFFFFF",
+        "--color-surface":        "#FFFFFF",
+        "--color-surface-2":      "#F8F7FF",
+        "--color-surface-3":      "#F0EEFF",
+        "--color-border":         "rgba(0,0,0,0.08)",
+        "--color-border-strong":  "rgba(0,0,0,0.12)",
+        "--color-border-accent":  "rgba(124,58,237,0.25)",
+        "--color-text":           "#0F0A1E",
+        "--color-text-secondary": "rgba(15,10,30,0.55)",
+        "--color-text-muted":     "rgba(15,10,30,0.38)",
+        "--color-text-accent":    "#7C3AED",
+        "--color-accent-subtle":  "rgba(124,58,237,0.08)",
+        "--color-accent-glow":    "rgba(124,58,237,0.12)",
+        "--color-success":        "#16A34A",
+        "--color-warning":        "#D97706",
+        "--color-error":          "#DC2626",
+        "--transition":           "150ms ease",
+      } as React.CSSProperties}
     >
       {/* ── Top bar ──────────────────────────────────────────────── */}
       <header
@@ -273,7 +291,7 @@ export default function ImageAdPage() {
             border:        "1px solid rgba(239,68,68,0.30)",
             borderRadius:  12,
             padding:       "12px 20px",
-            color:         "#FCA5A5",
+            color:         "#DC2626",
             fontSize:      13,
             maxWidth:      480,
             textAlign:     "center",
@@ -309,10 +327,10 @@ export default function ImageAdPage() {
               animation:    "spin 0.9s linear infinite",
             }}
           />
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#F0F0F0", margin: 0 }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#0F0A1E", margin: 0 }}>
             Generating your image ad…
           </p>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.40)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "rgba(15,10,30,0.45)", margin: 0 }}>
             This usually takes 15–30 seconds
           </p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

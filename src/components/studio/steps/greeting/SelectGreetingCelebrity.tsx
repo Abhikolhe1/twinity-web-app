@@ -27,15 +27,15 @@ export function SelectGreetingCelebrity({ celebrities, loading, selectedId, onSe
   if (loading) {
     return (
       <div className="flex min-h-[300px] items-center justify-center">
-        <Loader2 size={28} className="animate-spin text-white/40" />
+        <Loader2 size={28} className="animate-spin" style={{ color: "rgba(15,10,30,0.40)" }} />
       </div>
     );
   }
 
   return (
     <div>
-      <h2 className="font-display text-2xl font-bold tracking-tight text-white">Choose Your Celebrity</h2>
-      <p className="mt-2 text-sm text-white/50">Pick who delivers the greeting</p>
+      <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Choose Your Celebrity</h2>
+      <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.50)" }}>Pick who delivers the greeting</p>
       {industries.length > 1 && (
         <div className="mt-6 flex flex-wrap gap-2">
           {industries.map((f) => (
@@ -46,9 +46,10 @@ export function SelectGreetingCelebrity({ celebrities, loading, selectedId, onSe
               className={[
                 "rounded-md px-3 py-1.5 text-xs font-semibold transition-[border-color,background-color,color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                 filter === f
-                  ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-white"
-                  : "border border-white/[0.08] bg-[#1F1F1F] text-white/50 hover:text-white/70",
+                  ? "border border-[#7C3AED] bg-[rgba(124,58,237,0.15)] text-[#7C3AED]"
+                  : "border border-black/[0.08] bg-white hover:text-black/70",
               ].join(" ")}
+              style={filter !== f ? { color: "rgba(15,10,30,0.50)" } : undefined}
             >
               {f}
             </button>
@@ -56,7 +57,7 @@ export function SelectGreetingCelebrity({ celebrities, loading, selectedId, onSe
         </div>
       )}
       {list.length === 0 ? (
-        <p className="mt-8 text-sm text-white/40">No celebrities available yet.</p>
+        <p className="mt-8 text-sm" style={{ color: "rgba(15,10,30,0.40)" }}>No celebrities available yet.</p>
       ) : (
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((c) => {
@@ -68,10 +69,10 @@ export function SelectGreetingCelebrity({ celebrities, loading, selectedId, onSe
                 type="button"
                 onClick={() => onSelect(c.id)}
                 className={[
-                  "flex flex-col items-center rounded-xl border bg-[#1F1F1F] p-5 text-center transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+                  "flex flex-col items-center rounded-xl border bg-white p-5 text-center transition-[border-color,box-shadow] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
                   on
                     ? "border-[#7C3AED] shadow-[0_0_0_3px_rgba(124,58,237,0.2)]"
-                    : "border-white/[0.08] hover:border-white/[0.12]",
+                    : "border-black/[0.08] hover:border-black/[0.12]",
                 ].join(" ")}
               >
                 <div className="relative">
@@ -81,14 +82,14 @@ export function SelectGreetingCelebrity({ celebrities, loading, selectedId, onSe
                       src={c.thumbnail_url}
                       alt=""
                       className={[
-                        "size-24 rounded-full object-cover ring-2 ring-offset-2 ring-offset-[#1F1F1F] transition-[box-shadow] duration-[180ms]",
+                        "size-24 rounded-full object-cover ring-2 ring-offset-2 ring-offset-white transition-[box-shadow] duration-[180ms]",
                         on ? "ring-[#7C3AED]" : "ring-transparent",
                       ].join(" ")}
                     />
                   ) : (
                     <div
                       className={[
-                        "flex size-24 items-center justify-center rounded-full text-2xl font-bold text-white ring-2 ring-offset-2 ring-offset-[#1F1F1F] transition-[box-shadow] duration-[180ms]",
+                        "flex size-24 items-center justify-center rounded-full text-2xl font-bold text-white ring-2 ring-offset-2 ring-offset-white transition-[box-shadow] duration-[180ms]",
                         on ? "ring-[#7C3AED]" : "ring-transparent",
                       ].join(" ")}
                       style={{ background: c.avatar_color || "#7C3AED" }}
@@ -102,17 +103,17 @@ export function SelectGreetingCelebrity({ celebrities, loading, selectedId, onSe
                     </span>
                   )}
                 </div>
-                <p className="mt-4 font-display text-base font-semibold text-white">{c.name}</p>
+                <p className="mt-4 font-display text-base font-semibold" style={{ color: "#0F0A1E" }}>{c.name}</p>
                 {c.industry && (
-                  <span className="mt-2 rounded-md bg-white/[0.06] px-2 py-0.5 text-[11px] text-white/50 ring-1 ring-white/[0.08]">
+                  <span className="mt-2 rounded-md bg-black/[0.05] px-2 py-0.5 text-[11px] ring-1 ring-black/[0.08]" style={{ color: "rgba(15,10,30,0.50)" }}>
                     {c.industry}
                   </span>
                 )}
                 <div className="mt-3 flex items-center justify-center gap-2">
-                  <span className="size-2 rounded-full bg-[#22C55E]" aria-hidden />
-                  <span className="text-xs text-white/50">Available</span>
+                  <span className="size-2 rounded-full bg-[#16A34A]" aria-hidden />
+                  <span className="text-xs" style={{ color: "rgba(15,10,30,0.50)" }}>Available</span>
                 </div>
-                <p className="mt-2 text-sm text-white/60">
+                <p className="mt-2 text-sm" style={{ color: "rgba(15,10,30,0.60)" }}>
                   {priceMin ? `From SAR ${priceMin.toLocaleString("en-SA")}` : "Contact for pricing"}
                 </p>
               </button>

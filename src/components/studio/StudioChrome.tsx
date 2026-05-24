@@ -5,7 +5,7 @@ import { StudioTopbar }  from "./StudioTopbar";
 
 export function StudioChrome({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-[#0A0812] md:flex-row">
+    <div className="flex min-h-screen flex-col bg-white md:flex-row">
       <StudioSidebar />
       <div className="flex min-h-0 flex-1 flex-col md:ps-[240px]">
         <StudioTopbar />

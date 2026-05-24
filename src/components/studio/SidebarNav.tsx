@@ -126,7 +126,7 @@ export function SidebarNav({ currentStep, onStepClick }: SidebarNavProps) {
     <nav
       className="flex w-[220px] shrink-0 flex-col py-4"
       aria-label="Funnel steps"
-      style={{ background: "rgba(10,8,18,0.60)", borderRight: "1px solid rgba(255,255,255,0.06)" }}
+      style={{ background: "#F8F7FF", borderRight: "1px solid rgba(0,0,0,0.08)" }}
     >
       <ul className="flex flex-col gap-0.5 px-2">
         {SIDEBAR_STEPS.map((s) => {
@@ -146,14 +146,14 @@ export function SidebarNav({ currentStep, onStepClick }: SidebarNavProps) {
                   background: isDone
                     ? "linear-gradient(135deg, #7C3AED, #5B21B6)"
                     : isActive
-                      ? "rgba(124,58,237,0.15)"
-                      : "rgba(255,255,255,0.04)",
+                      ? "rgba(124,58,237,0.10)"
+                      : "rgba(0,0,0,0.04)",
                   border: isDone
                     ? "none"
                     : isActive
                       ? "2px solid #7C3AED"
-                      : "1px solid rgba(255,255,255,0.08)",
-                  color: isDone ? "#FFFFFF" : isActive ? "#C4B5FD" : "rgba(255,255,255,0.20)",
+                      : "1px solid rgba(0,0,0,0.10)",
+                  color: isDone ? "#FFFFFF" : isActive ? "#7C3AED" : "rgba(15,10,30,0.25)",
                   boxShadow: isDone ? "0 4px 12px rgba(124,58,237,0.35)" : "none",
                 }}
               >
@@ -164,12 +164,12 @@ export function SidebarNav({ currentStep, onStepClick }: SidebarNavProps) {
                 style={{
                   fontWeight: isActive ? 600 : 400,
                   color: isLocked
-                    ? "rgba(255,255,255,0.18)"
+                    ? "rgba(15,10,30,0.25)"
                     : isActive
-                      ? "rgba(255,255,255,0.90)"
+                      ? "#0F0A1E"
                       : isDone
-                        ? "rgba(255,255,255,0.50)"
-                        : "rgba(255,255,255,0.30)",
+                        ? "rgba(15,10,30,0.50)"
+                        : "rgba(15,10,30,0.35)",
                 }}
               >
                 {s.label}
@@ -185,9 +185,7 @@ export function SidebarNav({ currentStep, onStepClick }: SidebarNavProps) {
                 onClick={() => { if (canGoBack) onStepClick(s.id); }}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start transition-all duration-200 disabled:pointer-events-none"
                 style={{
-                  background: isActive
-                    ? "linear-gradient(135deg, rgba(124,58,237,0.20) 0%, rgba(139,92,246,0.08) 100%)"
-                    : "transparent",
+                  background: isActive ? "rgba(124,58,237,0.07)" : "transparent",
                   border: isActive
                     ? "1px solid rgba(124,58,237,0.18)"
                     : "1px solid transparent",

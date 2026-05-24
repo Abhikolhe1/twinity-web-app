@@ -122,14 +122,14 @@ function NotFoundView() {
 /* ── Support card ────────────────────────────────────────────────────────── */
 function SupportCard() {
   return (
-    <div style={{ background: "#161616", border: "1px solid #2A2A2A", borderRadius: 12, padding: 20 }}>
+    <div style={{ background: "#FFFFFF", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, padding: 20 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
         <MessageCircle size={20} color="#7C3AED" style={{ flexShrink: 0, marginTop: 2 }} />
         <div style={{ flex: 1 }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: "#F0F0F0", margin: "0 0 6px" }}>
+          <p style={{ fontSize: 14, fontWeight: 700, color: "#0F0A1E", margin: "0 0 6px" }}>
             Need help?
           </p>
-          <p style={{ fontSize: 12, color: "#A0A0A0", margin: "0 0 14px", lineHeight: 1.5 }}>
+          <p style={{ fontSize: 12, color: "rgba(15,10,30,0.45)", margin: "0 0 14px", lineHeight: 1.5 }}>
             Our support team is available to assist with any questions about your request.
           </p>
           <a
@@ -137,8 +137,8 @@ function SupportCard() {
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               height: 40, width: "100%", borderRadius: 10,
-              border: "1px solid #3D3D3D", background: "transparent",
-              color: "#A0A0A0", fontSize: 13, fontWeight: 500, textDecoration: "none",
+              border: "1px solid rgba(0,0,0,0.10)", background: "transparent",
+              color: "rgba(15,10,30,0.55)", fontSize: 13, fontWeight: 500, textDecoration: "none",
             }}
           >
             Contact Support
