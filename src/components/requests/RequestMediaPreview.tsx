@@ -96,50 +96,6 @@ function MediaElement({
   );
 }
 
-/* ── Watermark overlay — full repeating diagonal pattern ─────────────────── */
-function WatermarkOverlay() {
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        position:       "absolute",
-        inset:          0,
-        pointerEvents:  "none",
-        userSelect:     "none",
-        overflow:       "hidden",
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-      }}
-    >
-      <div style={{
-        position:             "absolute",
-        inset:                "-60%",
-        display:              "grid",
-        gridTemplateColumns:  "repeat(4, 1fr)",
-        gap:                  "32px 24px",
-        transform:            "rotate(-35deg)",
-      }}>
-        {Array.from({ length: 32 }).map((_, i) => (
-          <span
-            key={i}
-            style={{
-              fontSize:      13,
-              fontWeight:    700,
-              color:         "rgba(255,255,255,0.10)",
-              whiteSpace:    "nowrap",
-              letterSpacing: "0.04em",
-              lineHeight:    2.5,
-            }}
-          >
-            WATERMARK · SAMPLE ONLY
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ── Download helper — proxies through API to avoid S3 CORS restrictions ── */
 async function downloadViaApi(referenceId: string) {
   const blob = await jobApi.getDownloadBlob(referenceId);
@@ -325,10 +281,8 @@ export function RequestMediaPreview({
     return (
       <div style={cardBase}>
         {effectivePreview ? (
-          /* Actual blurred+watermarked preview media */
           <div style={boxStyle}>
-            <MediaElement url={effectivePreview} type={mediaKind} blurred />
-            <WatermarkOverlay />
+            <MediaElement url={effectivePreview} type={mediaKind} />
           </div>
         ) : (
           /*
@@ -361,23 +315,6 @@ export function RequestMediaPreview({
           </div>
         )}
 
-        {/* Amber warning notice */}
-        <div style={{
-          margin:       "12px 16px",
-          background:   "rgba(245,158,11,0.08)",
-          border:       "1px solid rgba(245,158,11,0.20)",
-          borderRadius: 10,
-          padding:      "12px 16px",
-          display:      "flex",
-          gap:          10,
-          alignItems:   "flex-start",
-        }}>
-          <AlertTriangle size={16} color="#F59E0B" style={{ flexShrink: 0, marginTop: 1 }} />
-          <p style={{ fontSize: 12, color: "#A0A0A0", margin: 0, lineHeight: 1.5 }}>
-            Watermarked preview — not the final file. Final delivery follows after approval
-            and payment capture.
-          </p>
-        </div>
       </div>
     );
   }

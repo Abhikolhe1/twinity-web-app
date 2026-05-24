@@ -26,7 +26,7 @@ const TABS: {
   isNew?:      boolean;
 }[] = [
   { id: "greeting", label: "Personal Greeting", mobileLabel: "Greeting", Icon: Mic,       badge: "B2C",        desc: "Personalised video message" },
-  { id: "campaign", label: "Video Ad",          mobileLabel: "Video Ad", Icon: Film,      badge: "Licensed",   desc: "Celebrity commercial"        },
+  { id: "campaign", label: "Advertisement Campaign", mobileLabel: "Ad Campaign", Icon: Film, badge: "Licensed", desc: "Celebrity commercial" },
   { id: "custom",   label: "Custom Campaign",   mobileLabel: "Custom",   Icon: Building2, badge: "Enterprise", desc: "Full-scope brief"            },
 ];
 

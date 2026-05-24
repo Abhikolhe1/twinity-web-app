@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Lock } from "lucide-react";
 
 import { ApprovalStatus } from "@/components/studio/steps/greeting/ApprovalStatus";
 import { ChooseOccasion } from "@/components/studio/steps/greeting/ChooseOccasion";
 import { GreetingDelivery } from "@/components/studio/steps/greeting/GreetingDelivery";
+import { LoginAndPay } from "@/components/studio/steps/greeting/LoginAndPay";
 import { PersonalizeMessage } from "@/components/studio/steps/greeting/PersonalizeMessage";
 import { PreviewGreetingSample } from "@/components/studio/steps/greeting/PreviewGreetingSample";
 import { SelectGreetingCelebrity } from "@/components/studio/steps/greeting/SelectGreetingCelebrity";
@@ -34,11 +35,12 @@ const horizonSecondaryStyle: React.CSSProperties = {
   color:      "rgba(255,255,255,0.65)",
 };
 
-const SIDEBAR: { id: number; label: string }[] = [
+const ALL_STEPS: { id: number; label: string }[] = [
   { id: 1, label: "Choose Occasion" },
   { id: 2, label: "Select Template" },
   { id: 3, label: "Select Celebrity" },
   { id: 4, label: "Preview Sample" },
+  { id: 5, label: "Login" },
   { id: 6, label: "Personalize" },
   { id: 7, label: "Approval" },
   { id: 8, label: "Delivery" },
@@ -50,7 +52,7 @@ export type GreetingFunnelWorkspaceProps = {
 };
 
 export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWorkspaceProps) {
-  const { user } = useUser();
+  const { user, login } = useUser();
 
   const [currentStep, setCurrentStep]     = useState(1);
   const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
@@ -120,6 +122,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
 
   const selectionsComplete = Boolean(selectedPurpose && templateId && celebrityId);
 
+  const SIDEBAR = useMemo(
+    () => ALL_STEPS.filter((s) => s.id !== 5 || !user),
+    [user],
+  );
   const SIDEBAR_IDS = SIDEBAR.map((s) => s.id);
 
   const isSidebarStepLocked = (stepId: number) => stepId > currentStep;
@@ -139,7 +145,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
 
-  const openGateToPersonalize = () => setCurrentStep(6);
+  const openGateToPersonalize = () => setCurrentStep(user ? 6 : 5);
 
   const handleFinalSubmit = async () => {
     if (!selectedCelebrity || !messageBody.trim()) return;
@@ -344,6 +350,16 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 template={selectedTemplate}
               />
             )}
+            {currentStep === 5 && (
+              <LoginAndPay
+                isLoggedIn={!!user}
+                user={user}
+                occasion={selectedPurpose}
+                celebrity={selectedCelebrity}
+                template={selectedTemplate}
+                onLoginSuccess={(token, u) => { login(token, u); setCurrentStep(6); }}
+              />
+            )}
             {currentStep === 6 && (
               <PersonalizeMessage
                 recipientName={recipientName}
@@ -431,7 +447,23 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                     className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
                     style={horizonPrimaryStyle}
                   >
-                    Personalize Greeting →
+                    {user ? (
+                      "Personalize Greeting →"
+                    ) : (
+                      <><Lock size={14} aria-hidden />Login to Personalize</>
+                    )}
+                  </button>
+                )}
+
+                {currentStep === 5 && (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(6)}
+                    disabled={!user}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    style={horizonPrimaryStyle}
+                  >
+                    Continue to Personalize →
                   </button>
                 )}
 

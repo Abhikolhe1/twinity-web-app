@@ -10,7 +10,7 @@ export type SelectServiceProps = {
 export function SelectService({ selected, onSelect }: SelectServiceProps) {
   const cards: { id: FunnelServiceId; icon: string; title: string; desc: string }[] = [
     { id: "greeting", icon: "🎬", title: "Greeting Video", desc: "Personal video messages" },
-    { id: "campaign", icon: "📢", title: "Ad Campaign", desc: "Licensed brand content" },
+    { id: "campaign", icon: "📢", title: "Advertisement Campaign", desc: "Licensed brand content" },
     { id: "custom", icon: "✨", title: "Custom Request", desc: "Tailored for your needs" },
   ];
 

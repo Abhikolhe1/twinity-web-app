@@ -4,7 +4,10 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import type { ApiCelebrity, ApiTemplate, ApiUser } from "@/lib/api";
 import { authApi } from "@/lib/api";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { GreetingOrderSummaryCard } from "./PreviewGreetingSample";
+
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 export type LoginAndPayProps = {
   isLoggedIn: boolean;
@@ -35,6 +38,11 @@ export function LoginAndPay({
   const [regPassword, setRegPassword]   = useState("");
   const [regError, setRegError]         = useState("");
   const [regLoading, setRegLoading]     = useState(false);
+
+  const handleGoogleSuccess = async (accessToken: string) => {
+    const res = await authApi.googleAuth(accessToken);
+    onLoginSuccess(res.token, res.user);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,96 +116,122 @@ export function LoginAndPay({
               </div>
 
               {tab === "login" ? (
-                <form className="mt-6 space-y-4" onSubmit={handleLogin}>
-                  {loginError && (
-                    <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400 ring-1 ring-red-500/20">
-                      {loginError}
-                    </p>
+                <div className="mt-6 space-y-4">
+                  <form className="space-y-4" onSubmit={handleLogin}>
+                    {loginError && (
+                      <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400 ring-1 ring-red-500/20">
+                        {loginError}
+                      </p>
+                    )}
+                    <label className="block">
+                      <span className="text-xs font-medium text-white/50">Email</span>
+                      <input
+                        type="email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none transition-[border-color,box-shadow] duration-[180ms] focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        required
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-white/50">Password</span>
+                      <input
+                        type="password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        required
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={loginLoading}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#7C3AED] py-3 text-sm font-semibold text-white hover:bg-[#6D28D9] disabled:pointer-events-none disabled:opacity-60"
+                    >
+                      {loginLoading && <Loader2 size={16} className="animate-spin" />}
+                      Login
+                    </button>
+                  </form>
+
+                  {googleClientId && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
+                        <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.28)" }}>or</span>
+                        <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
+                      </div>
+                      <GoogleSignInButton onSuccess={handleGoogleSuccess} />
+                    </>
                   )}
-                  <label className="block">
-                    <span className="text-xs font-medium text-white/50">Email</span>
-                    <input
-                      type="email"
-                      value={loginEmail}
-                      onChange={(e) => setLoginEmail(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none transition-[border-color,box-shadow] duration-[180ms] focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      required
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs font-medium text-white/50">Password</span>
-                    <input
-                      type="password"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                      required
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    disabled={loginLoading}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#7C3AED] py-3 text-sm font-semibold text-white hover:bg-[#6D28D9] disabled:pointer-events-none disabled:opacity-60"
-                  >
-                    {loginLoading && <Loader2 size={16} className="animate-spin" />}
-                    Login
-                  </button>
-                </form>
+                </div>
               ) : (
-                <form className="mt-6 space-y-4" onSubmit={handleRegister}>
-                  {regError && (
-                    <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400 ring-1 ring-red-500/20">
-                      {regError}
-                    </p>
+                <div className="mt-6 space-y-4">
+                  <form className="space-y-4" onSubmit={handleRegister}>
+                    {regError && (
+                      <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-400 ring-1 ring-red-500/20">
+                        {regError}
+                      </p>
+                    )}
+                    <label className="block">
+                      <span className="text-xs font-medium text-white/50">Full Name</span>
+                      <input
+                        value={regName}
+                        onChange={(e) => setRegName(e.target.value)}
+                        className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+                        placeholder="Ahmed Al-Rashid"
+                        autoComplete="name"
+                        required
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-white/50">Email</span>
+                      <input
+                        type="email"
+                        value={regEmail}
+                        onChange={(e) => setRegEmail(e.target.value)}
+                        className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        required
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs font-medium text-white/50">Password</span>
+                      <input
+                        type="password"
+                        value={regPassword}
+                        onChange={(e) => setRegPassword(e.target.value)}
+                        className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+                        placeholder="Choose a strong password"
+                        autoComplete="new-password"
+                        required
+                      />
+                    </label>
+                    <button
+                      type="submit"
+                      disabled={regLoading}
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#7C3AED] py-3 text-sm font-semibold text-white hover:bg-[#6D28D9] disabled:pointer-events-none disabled:opacity-60"
+                    >
+                      {regLoading && <Loader2 size={16} className="animate-spin" />}
+                      Create Account
+                    </button>
+                  </form>
+
+                  {googleClientId && (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
+                        <span className="text-[12px]" style={{ color: "rgba(255,255,255,0.28)" }}>or</span>
+                        <div className="h-px flex-1" style={{ background: "rgba(255,255,255,0.08)" }} />
+                      </div>
+                      <GoogleSignInButton onSuccess={handleGoogleSuccess} label="Continue with Google" />
+                    </>
                   )}
-                  <label className="block">
-                    <span className="text-xs font-medium text-white/50">Full Name</span>
-                    <input
-                      value={regName}
-                      onChange={(e) => setRegName(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
-                      placeholder="Ahmed Al-Rashid"
-                      autoComplete="name"
-                      required
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs font-medium text-white/50">Email</span>
-                    <input
-                      type="email"
-                      value={regEmail}
-                      onChange={(e) => setRegEmail(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
-                      placeholder="you@example.com"
-                      autoComplete="email"
-                      required
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="text-xs font-medium text-white/50">Password</span>
-                    <input
-                      type="password"
-                      value={regPassword}
-                      onChange={(e) => setRegPassword(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-white/[0.1] bg-[#141414] px-3 py-2.5 text-sm text-white outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
-                      placeholder="Choose a strong password"
-                      autoComplete="new-password"
-                      required
-                    />
-                  </label>
-                  <button
-                    type="submit"
-                    disabled={regLoading}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#7C3AED] py-3 text-sm font-semibold text-white hover:bg-[#6D28D9] disabled:pointer-events-none disabled:opacity-60"
-                  >
-                    {regLoading && <Loader2 size={16} className="animate-spin" />}
-                    Create Account
-                  </button>
-                </form>
+                </div>
               )}
             </>
           )}

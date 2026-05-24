@@ -75,11 +75,11 @@ const LICENSE_TYPES: {
   {
     id:       "video",
     Icon:     Video,
-    title:    "Video Ad",
+    title:    "Advertisement Campaign",
     desc:     "Licensed celebrity appearance in a commercial — social, broadcast, OOH.",
     badge:    "Most Popular",
     funnel:   "campaign",
-    cta:      "New Video Ad Request",
+    cta:      "New Advertisement Campaign",
     priceFrom: "SAR 9,999",
   },
   {
@@ -107,7 +107,7 @@ const LICENSE_TYPES: {
 
 const ONBOARDING_STEPS = [
   { id: 1, Icon: Search,     label: "Browse available celebrities",   hint: "Filter by category and discover talent.",       actionLabel: "Browse",  actionIdx: 0 },
-  { id: 2, Icon: Tag,        label: "Select a license style",         hint: "Greeting, video ad, or social post.",           actionLabel: null,      actionIdx: 1 },
+  { id: 2, Icon: Tag,        label: "Select a license style",         hint: "Greeting, advertisement campaign, or social post.", actionLabel: null, actionIdx: 1 },
   { id: 3, Icon: Send,       label: "Submit your first request",      hint: "Takes less than two minutes to complete.",      actionLabel: "Start",   actionIdx: 2 },
   { id: 4, Icon: CreditCard, label: "Buy credits when you need them", hint: "Pay only for what you actually use.",           actionLabel: null,      actionIdx: 3 },
 ] as const;
