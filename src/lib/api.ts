@@ -295,6 +295,6 @@ export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
     previewUrl: job.watermarked_url ?? job.preview_url,
     finalUrl:   job.final_video_url ?? job.watermarked_url ?? job.preview_url,
     createdAt:  job.created_at,
-    mediaType:  'video',
+    mediaType:  (job.product_type === 'image_ad' || job.product_type === 'image-ad') ? 'image' : 'video',
   }
 }

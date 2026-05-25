@@ -6,6 +6,7 @@ import { CheckCircle2, Loader2, Lock } from "lucide-react";
 import { ApprovalStatus } from "@/components/studio/steps/greeting/ApprovalStatus";
 import { ChooseOccasion } from "@/components/studio/steps/greeting/ChooseOccasion";
 import { GreetingDelivery } from "@/components/studio/steps/greeting/GreetingDelivery";
+import { GreetingPayAndConfirm } from "@/components/studio/steps/greeting/GreetingPayAndConfirm";
 import { LoginAndPay } from "@/components/studio/steps/greeting/LoginAndPay";
 import { PersonalizeMessage } from "@/components/studio/steps/greeting/PersonalizeMessage";
 import { PreviewGreetingSample } from "@/components/studio/steps/greeting/PreviewGreetingSample";
@@ -42,8 +43,9 @@ const ALL_STEPS: { id: number; label: string }[] = [
   { id: 4, label: "Preview Sample" },
   { id: 5, label: "Login" },
   { id: 6, label: "Personalize" },
-  { id: 7, label: "Approval" },
-  { id: 8, label: "Delivery" },
+  { id: 7, label: "Pay & Confirm" },
+  { id: 8, label: "Approval" },
+  { id: 9, label: "Delivery" },
 ];
 
 export type GreetingFunnelWorkspaceProps = {
@@ -150,6 +152,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
 
   const openGateToPersonalize = () => setCurrentStep(user ? 6 : 5);
+  const handlePayAndConfirm = async () => { await handleFinalSubmit(); };
 
   const handleFinalSubmit = async () => {
     if (!selectedCelebrity || !messageBody.trim()) return;
@@ -189,7 +192,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
 
       setReferenceId(res.data.reference_id);
       setShowSubmitToast(true);
-      setCurrentStep(7);
+      setCurrentStep(8);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Failed to submit request");
     } finally {
@@ -380,19 +383,29 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 onFromNameChange={setFromName}
                 onLanguageChange={setLanguage}
                 onSpecialChange={setSpecial}
-                onSubmit={handleFinalSubmit}
+                onSubmit={() => setCurrentStep(7)}
               />
             )}
             {currentStep === 7 && (
+              <GreetingPayAndConfirm
+                occasion={selectedPurpose}
+                celebrity={selectedCelebrity}
+                template={selectedTemplate}
+                onConfirm={handlePayAndConfirm}
+                isSubmitting={submitting}
+                error={submitError}
+              />
+            )}
+            {currentStep === 8 && (
               <ApprovalStatus
                 referenceId={referenceId}
                 occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
-                onDelivered={() => setCurrentStep(8)}
+                onDelivered={() => setCurrentStep(9)}
               />
             )}
-            {currentStep === 8 && (
+            {currentStep === 9 && (
               <GreetingDelivery
                 referenceId={referenceId}
                 occasion={selectedPurpose}
@@ -425,7 +438,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           )}
 
           <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
-            {currentStep >= 7 ? (
+            {currentStep >= 8 ? (
               <button
                 type="button"
                 onClick={onClose}
@@ -478,15 +491,27 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 {currentStep === 6 && (
                   <button
                     type="button"
-                    onClick={handleFinalSubmit}
-                    disabled={submitting || !recipientName.trim() || !messageBody.trim()}
+                    onClick={() => setCurrentStep(7)}
+                    disabled={!recipientName.trim() || !messageBody.trim()}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    style={horizonPrimaryStyle}
+                  >
+                    Continue to Payment →
+                  </button>
+                )}
+
+                {currentStep === 7 && (
+                  <button
+                    type="button"
+                    onClick={handlePayAndConfirm}
+                    disabled={submitting}
                     className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
                     style={horizonPrimaryStyle}
                   >
                     {submitting ? (
                       <><Loader2 size={16} className="animate-spin" /> Submitting…</>
                     ) : (
-                      "Submit Request →"
+                      "Confirm & Submit →"
                     )}
                   </button>
                 )}

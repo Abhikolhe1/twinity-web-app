@@ -13,15 +13,13 @@ import { PayAndConfirm } from "@/components/studio/steps/campaign/PayAndConfirm"
 import { PreviewCampaign } from "@/components/studio/steps/campaign/PreviewCampaign";
 import { SelectCampaignCelebrity } from "@/components/studio/steps/campaign/SelectCampaignCelebrity";
 import { SelectCampaignTemplate } from "@/components/studio/steps/campaign/SelectCampaignTemplate";
-import { SelectCampaignType } from "@/components/studio/steps/campaign/SelectCampaignType";
 import { ValidationStatus } from "@/components/studio/steps/campaign/ValidationStatus";
-import type { CampaignTypeId, LicenseScope as LicenseScopeType } from "@/lib/studio/campaign-funnel-data";
+import type { LicenseScope as LicenseScopeType } from "@/lib/studio/campaign-funnel-data";
 import {
   DEFAULT_LICENSE_SCOPE,
   estimateCampaignSubtotal,
   getCampaignCelebrity,
   getCampaignTemplate,
-  getCampaignType,
   withVat,
 } from "@/lib/studio/campaign-funnel-data";
 
@@ -32,24 +30,23 @@ const hSecondaryBtn = "inline-flex h-[44px] items-center justify-center rounded-
 const hSecondaryStyle: React.CSSProperties = { background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)", color: "rgba(15,10,30,0.60)" };
 
 const SIDEBAR: { id: number; label: string; emoji: string; afterDivider?: boolean }[] = [
-  { id: 1, label: "Campaign Type", emoji: "📢" },
-  { id: 2, label: "Template", emoji: "🎬" },
-  { id: 3, label: "Celebrity", emoji: "⭐" },
-  { id: 4, label: "Preview", emoji: "👁" },
-  { id: 5, label: "Login / Company", emoji: "🔒", afterDivider: true },
-  { id: 6, label: "License Scope", emoji: "🔒" },
-  { id: 7, label: "Pay & Confirm", emoji: "🔒" },
-  { id: 8, label: "Brief & Assets", emoji: "🔒" },
-  { id: 9, label: "Validation", emoji: "🔒" },
-  { id: 10, label: "Approval", emoji: "🔒" },
-  { id: 11, label: "Delivery", emoji: "🔒" },
+  { id: 1,  label: "Template",        emoji: "🎬" },
+  { id: 2,  label: "Celebrity",       emoji: "⭐" },
+  { id: 3,  label: "Preview",         emoji: "👁" },
+  { id: 4,  label: "Login / Company", emoji: "🔒", afterDivider: true },
+  { id: 5,  label: "License Scope",   emoji: "🔒" },
+  { id: 6,  label: "Pay & Confirm",   emoji: "🔒" },
+  { id: 7,  label: "Brief & Assets",  emoji: "🔒" },
+  { id: 8,  label: "Validation",      emoji: "🔒" },
+  { id: 9,  label: "Approval",        emoji: "🔒" },
+  { id: 10, label: "Delivery",        emoji: "🔒" },
 ];
 
 function lockTitle(stepId: number, gateEntered: boolean, mockLoggedIn: boolean, licenseStepDone: boolean, hasPaid: boolean) {
-  if (stepId >= 5 && !gateEntered) return "Start campaign to unlock";
-  if (stepId >= 6 && gateEntered && !mockLoggedIn) return "Sign in to continue";
-  if (stepId >= 7 && mockLoggedIn && !licenseStepDone) return "Confirm license scope first";
-  if (stepId >= 8 && !hasPaid) return "Complete payment to unlock";
+  if (stepId >= 4 && !gateEntered) return "Start campaign to unlock";
+  if (stepId >= 5 && gateEntered && !mockLoggedIn) return "Sign in to continue";
+  if (stepId >= 6 && mockLoggedIn && !licenseStepDone) return "Confirm license scope first";
+  if (stepId >= 7 && !hasPaid) return "Complete payment to unlock";
   return "Complete payment to unlock";
 }
 
@@ -60,7 +57,6 @@ export type CampaignFunnelWorkspaceProps = {
 
 export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWorkspaceProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [campaignTypeId, setCampaignTypeId] = useState<CampaignTypeId | null>(null);
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [celebrityId, setCelebrityId] = useState<string | null>(null);
   const [gateEntered, setGateEntered] = useState(false);
@@ -77,7 +73,6 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
 
   useEffect(() => {
     setCurrentStep(1);
-    setCampaignTypeId(null);
     setTemplateId(null);
     setCelebrityId(null);
     setGateEntered(false);
@@ -92,18 +87,18 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setBriefProhibited("");
   }, [sessionId]);
 
-  const selectionsComplete = Boolean(campaignTypeId && templateId && celebrityId);
+  const selectionsComplete = Boolean(templateId && celebrityId);
 
-  const step5Unlocked = gateEntered || currentStep >= 5;
-  const step6Unlocked = step5Unlocked && (mockLoggedIn || currentStep >= 6);
-  const step7Unlocked = step6Unlocked && (licenseStepDone || currentStep >= 7);
-  const postPayUnlocked = hasPaid || currentStep >= 8;
+  const step4Unlocked = gateEntered || currentStep >= 4;
+  const step5Unlocked = step4Unlocked && (mockLoggedIn || currentStep >= 5);
+  const step6Unlocked = step5Unlocked && (licenseStepDone || currentStep >= 6);
+  const postPayUnlocked = hasPaid || currentStep >= 7;
 
   const isSidebarStepLocked = (stepId: number) => {
-    if (stepId <= 4) return false;
+    if (stepId <= 3) return false;
+    if (stepId === 4) return !step4Unlocked;
     if (stepId === 5) return !step5Unlocked;
     if (stepId === 6) return !step6Unlocked;
-    if (stepId === 7) return !step7Unlocked;
     return !postPayUnlocked;
   };
 
@@ -112,18 +107,16 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setCurrentStep(stepId);
   };
 
-  const ct = getCampaignType(campaignTypeId);
   const tpl = getCampaignTemplate(templateId);
   const cel = getCampaignCelebrity(celebrityId);
 
   const canNextEarly = useMemo(() => {
-    if (currentStep === 1) return campaignTypeId !== null;
-    if (currentStep === 2) return templateId !== null;
-    if (currentStep === 3) return celebrityId !== null;
+    if (currentStep === 1) return templateId !== null;
+    if (currentStep === 2) return celebrityId !== null;
     return true;
-  }, [currentStep, campaignTypeId, templateId, celebrityId]);
+  }, [currentStep, templateId, celebrityId]);
 
-  const subtotal = estimateCampaignSubtotal(campaignTypeId, cel?.priceFromSar ?? 0, scope);
+  const subtotal = estimateCampaignSubtotal(null, cel?.priceFromSar ?? 0, scope);
   const priced = useMemo(() => withVat(subtotal), [subtotal]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -146,17 +139,17 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
 
   const handleNext = () => {
     if (!canNextEarly) return;
-    if (currentStep < 4) setCurrentStep((s) => s + 1);
+    if (currentStep < 3) setCurrentStep((s) => s + 1);
   };
 
   const openGate = () => {
     setGateEntered(true);
-    setCurrentStep(5);
+    setCurrentStep(4);
   };
 
   const handleAuthorize = () => {
     setHasPaid(true);
-    setCurrentStep(8);
+    setCurrentStep(7);
   };
 
   const briefOk = briefObjective.trim() && briefKeyMessage.trim() && briefAudience.trim();
@@ -282,31 +275,30 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
 
             <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto p-4 md:p-8">
           <div key={currentStep} className="funnel-step-animate">
-            {currentStep === 1 ? <SelectCampaignType selected={campaignTypeId} onSelect={setCampaignTypeId} /> : null}
-            {currentStep === 2 ? <SelectCampaignTemplate selectedId={templateId} onSelect={setTemplateId} /> : null}
-            {currentStep === 3 ? <SelectCampaignCelebrity selectedId={celebrityId} onSelect={setCelebrityId} /> : null}
-            {currentStep === 4 ? (
+            {currentStep === 1 ? <SelectCampaignTemplate selectedId={templateId} onSelect={setTemplateId} /> : null}
+            {currentStep === 2 ? <SelectCampaignCelebrity selectedId={celebrityId} onSelect={setCelebrityId} /> : null}
+            {currentStep === 3 ? (
               <PreviewCampaign
-                campaignTypeId={campaignTypeId}
+                campaignTypeId={null}
                 templateId={templateId}
                 celebrityId={celebrityId}
                 onStartCampaign={openGate}
               />
             ) : null}
-            {currentStep === 5 ? <LoginCompany onMockLogin={() => setMockLoggedIn(true)} /> : null}
-            {currentStep === 6 ? (
-              <LicenseScope campaignTypeId={campaignTypeId} celebrityId={celebrityId} scope={scope} onScopeChange={setScope} />
+            {currentStep === 4 ? <LoginCompany onMockLogin={() => setMockLoggedIn(true)} /> : null}
+            {currentStep === 5 ? (
+              <LicenseScope campaignTypeId={null} celebrityId={celebrityId} scope={scope} onScopeChange={setScope} />
             ) : null}
-            {currentStep === 7 ? (
+            {currentStep === 6 ? (
               <PayAndConfirm
-                campaignTypeId={campaignTypeId}
+                campaignTypeId={null}
                 templateId={templateId}
                 celebrityId={celebrityId}
                 scope={scope}
                 onAuthorize={handleAuthorize}
               />
             ) : null}
-            {currentStep === 8 ? (
+            {currentStep === 7 ? (
               <BriefAndAssets
                 objective={briefObjective}
                 keyMessage={briefKeyMessage}
@@ -321,12 +313,12 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                 onSubmit={handleFinalSubmit}
               />
             ) : null}
-            {currentStep === 9 ? <ValidationStatus /> : null}
-            {currentStep === 10 ? (
-              <CampaignApprovalStatus campaignTypeId={campaignTypeId} templateId={templateId} celebrityId={celebrityId} scope={scope} />
+            {currentStep === 8  ? <ValidationStatus /> : null}
+            {currentStep === 9  ? (
+              <CampaignApprovalStatus campaignTypeId={null} templateId={templateId} celebrityId={celebrityId} scope={scope} />
             ) : null}
-            {currentStep === 11 ? (
-              <DeliveryLicense campaignTypeId={campaignTypeId} templateId={templateId} celebrityId={celebrityId} scope={scope} />
+            {currentStep === 10 ? (
+              <DeliveryLicense campaignTypeId={null} templateId={templateId} celebrityId={celebrityId} scope={scope} />
             ) : null}
           </div>
         </div>
@@ -338,10 +330,8 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
           {/* Summary — desktop only */}
           <p
             className="hidden md:block min-w-0 flex-1 truncate text-sm text-[var(--color-text-secondary)]"
-            title={`${ct?.title ?? "…"} · ${tpl?.name ?? "…"} · ${cel?.name ?? "…"} · SAR ${subtotal.toLocaleString("en-SA")}`}
+            title={`${tpl?.name ?? "…"} · ${cel?.name ?? "…"} · SAR ${subtotal.toLocaleString("en-SA")}`}
           >
-            <span className={campaignTypeId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>📢 {ct?.title ?? "Campaign"}</span>
-            <span className="text-[var(--color-text-muted)]"> · </span>
             <span className={templateId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>🎬 {tpl?.name ?? "Template"}</span>
             <span className="text-[var(--color-text-muted)]"> · </span>
             <span className={celebrityId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>⭐ {cel?.name ?? "Celebrity"}</span>
@@ -350,7 +340,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
           </p>
           {/* Buttons — full-width on mobile */}
           <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
-            {currentStep === 11 ? (
+            {currentStep === 10 ? (
               <button
                 type="button"
                 onClick={onClose}
@@ -371,14 +361,14 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                   <span className="md:hidden">←</span>
                   <span className="hidden md:inline">← Back</span>
                 </button>
-                {currentStep === 4  && <button type="button" onClick={openGate} disabled={!selectionsComplete} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Start Campaign</button>}
-                {currentStep === 5  && <button type="button" onClick={() => mockLoggedIn && setCurrentStep(6)} disabled={!mockLoggedIn} title={!mockLoggedIn ? "Sign in first" : undefined} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Continue →</button>}
-                {currentStep === 6  && <button type="button" onClick={() => { setLicenseStepDone(true); setCurrentStep(7); }} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Payment →</button>}
-                {currentStep === 7  && <button type="button" onClick={handleAuthorize} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Pay — SAR {priced.total.toLocaleString("en-SA", { minimumFractionDigits: 2 })}</button>}
-                {currentStep === 8  && <button type="button" onClick={() => briefOk && setCurrentStep(9)} disabled={!briefOk} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Submit Brief →</button>}
-                {currentStep === 9  && <button type="button" onClick={() => setCurrentStep(10)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Approval →</button>}
-                {currentStep === 10 && <button type="button" onClick={() => setCurrentStep(11)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Delivery →</button>}
-                {currentStep <= 3   && <button type="button" onClick={handleNext} disabled={!canNextEarly} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Next →</button>}
+                {currentStep === 3  && <button type="button" onClick={openGate} disabled={!selectionsComplete} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Start Campaign</button>}
+                {currentStep === 4  && <button type="button" onClick={() => mockLoggedIn && setCurrentStep(5)} disabled={!mockLoggedIn} title={!mockLoggedIn ? "Sign in first" : undefined} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Continue →</button>}
+                {currentStep === 5  && <button type="button" onClick={() => { setLicenseStepDone(true); setCurrentStep(6); }} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Payment →</button>}
+                {currentStep === 6  && <button type="button" onClick={handleAuthorize} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Pay — SAR {priced.total.toLocaleString("en-SA", { minimumFractionDigits: 2 })}</button>}
+                {currentStep === 7  && <button type="button" onClick={() => briefOk && setCurrentStep(8)} disabled={!briefOk} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Submit Brief →</button>}
+                {currentStep === 8  && <button type="button" onClick={() => setCurrentStep(9)}  className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Approval →</button>}
+                {currentStep === 9  && <button type="button" onClick={() => setCurrentStep(10)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Delivery →</button>}
+                {currentStep <= 2   && <button type="button" onClick={handleNext} disabled={!canNextEarly} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Next →</button>}
               </>
             )}
           </div>

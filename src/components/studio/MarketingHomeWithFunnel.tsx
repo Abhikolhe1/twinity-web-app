@@ -6,6 +6,7 @@ import { Film, Mic, Building2, Lock, ChevronRight, Shield, Clock, FileText, Spar
 import Logo from "@/components/ui/Logo";
 import { StudioTabbedFunnels } from "@/components/studio/StudioTabbedFunnels";
 import type { StudioFunnelTab } from "@/components/studio/StudioTabbedFunnels";
+import { useUser } from "@/contexts/UserContext";
 
 /* ─── Data ─────────────────────────────────────────────────────────────── */
 
@@ -115,6 +116,7 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 /* ─── Main component ────────────────────────────────────────────────────── */
 
 export function MarketingHomeWithFunnel() {
+  const { user, isLoading }           = useUser();
   const [funnelOpen, setFunnelOpen]   = useState(false);
   const [funnelTab, setFunnelTab]     = useState<StudioFunnelTab>("greeting");
   const [sessionId, setSessionId]     = useState(0);
@@ -168,24 +170,39 @@ export function MarketingHomeWithFunnel() {
             >
               EN
             </button>
-            <Link
-              href="/login"
-              className="text-[13px] font-semibold transition-all duration-150"
-              style={{
-                color: "#FFFFFF", background: "#7C3AED",
-                border: "1px solid rgba(124,58,237,0.80)", borderRadius: 8,
-                padding: "8px 16px", textDecoration: "none", whiteSpace: "nowrap",
-                boxShadow: "0 1px 3px rgba(124,58,237,0.25)",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "#6D28D9";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "#7C3AED";
-              }}
-            >
-              Sign In / Register
-            </Link>
+            {!isLoading && (
+              user ? (
+                <Link
+                  href="/studio"
+                  className="text-[13px] font-semibold transition-all duration-150"
+                  style={{
+                    color: "#FFFFFF", background: "#7C3AED",
+                    border: "1px solid rgba(124,58,237,0.80)", borderRadius: 8,
+                    padding: "8px 16px", textDecoration: "none", whiteSpace: "nowrap",
+                    boxShadow: "0 1px 3px rgba(124,58,237,0.25)",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#6D28D9"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#7C3AED"; }}
+                >
+                  Go to Studio
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-[13px] font-semibold transition-all duration-150"
+                  style={{
+                    color: "#FFFFFF", background: "#7C3AED",
+                    border: "1px solid rgba(124,58,237,0.80)", borderRadius: 8,
+                    padding: "8px 16px", textDecoration: "none", whiteSpace: "nowrap",
+                    boxShadow: "0 1px 3px rgba(124,58,237,0.25)",
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "#6D28D9"; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "#7C3AED"; }}
+                >
+                  Sign In / Register
+                </Link>
+              )
+            )}
           </div>
           </div>
         </header>
