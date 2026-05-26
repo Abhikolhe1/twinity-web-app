@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import type { ApiCelebrity } from "@/lib/api";
 
 import type {
-  CampaignTypeId,
   LicenseChannel,
   LicenseDuration,
   LicenseExclusivity,
@@ -12,47 +12,38 @@ import type {
   LicenseSla,
   LicenseTerritory,
 } from "@/lib/studio/campaign-funnel-data";
-import {
-  estimateCampaignSubtotal,
-  getCampaignCelebrity,
-  getCampaignType,
-  withVat,
-} from "@/lib/studio/campaign-funnel-data";
+import { estimateCampaignSubtotal, withVat } from "@/lib/studio/campaign-funnel-data";
 
-const CHANNELS: LicenseChannel[] = ["Instagram", "TikTok", "YouTube", "Snapchat", "Website", "TV"];
-const DURATIONS: LicenseDuration[] = ["1 week", "1 month", "3 months", "6 months", "1 year"];
+const CHANNELS:    LicenseChannel[]  = ["Instagram", "TikTok", "YouTube", "Snapchat", "Website", "TV"];
+const DURATIONS:   LicenseDuration[] = ["1 week", "1 month", "3 months", "6 months", "1 year"];
 const TERRITORIES: LicenseTerritory[] = ["Saudi Arabia", "GCC", "MENA", "Global"];
 const EXCLUSIVITY: { id: LicenseExclusivity; label: string }[] = [
-  { id: "none", label: "None" },
-  { id: "category", label: "Category" },
-  { id: "brand", label: "Brand" },
+  { id: "none",      label: "None"      },
+  { id: "category",  label: "Category"  },
+  { id: "brand",     label: "Brand"     },
   { id: "territory", label: "Territory" },
 ];
 const SLA: { id: LicenseSla; label: string }[] = [
   { id: "standard", label: "Standard" },
   { id: "priority", label: "Priority" },
-  { id: "urgent", label: "Urgent" },
+  { id: "urgent",   label: "Urgent"   },
 ];
 
 export type LicenseScopeProps = {
-  campaignTypeId: CampaignTypeId | null;
-  celebrityId: string | null;
-  scope: LicenseScope;
-  onScopeChange: (s: LicenseScope) => void;
+  campaignTypeId: null;
+  celebrity:      ApiCelebrity | null;
+  scope:          LicenseScope;
+  onScopeChange:  (s: LicenseScope) => void;
 };
 
-function pill(
-  active: boolean,
-  onClick: () => void,
-  children: ReactNode,
-  className = "",
-) {
+function pill(active: boolean, onClick: () => void, children: ReactNode, className = "") {
   return (
     <button
+      key={String(children)}
       type="button"
       onClick={onClick}
       className={[
-        "rounded-lg border px-3 py-2 text-xs font-semibold transition-[border-color,background-color,color] duration-[180ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+        "rounded-lg border px-3 py-2 text-xs font-semibold transition-[border-color,background-color,color] duration-[180ms]",
         active ? "border-[#7C3AED] bg-[rgba(124,58,237,0.12)]" : "border-black/[0.08] bg-white hover:border-black/[0.14]",
         className,
       ].join(" ")}
@@ -63,13 +54,13 @@ function pill(
   );
 }
 
-export function LicenseScope({ campaignTypeId, celebrityId, scope, onScopeChange }: LicenseScopeProps) {
-  const cel = getCampaignCelebrity(celebrityId);
-  const sub = estimateCampaignSubtotal(campaignTypeId, cel?.priceFromSar ?? 0, scope);
-  const priced = useMemo(() => withVat(sub), [sub]);
+export function LicenseScope({ celebrity, scope, onScopeChange }: LicenseScopeProps) {
+  const priceMin = celebrity?.price_range?.["video-ad"]?.min ?? 0;
+  const sub      = estimateCampaignSubtotal(null, priceMin, scope);
+  const priced   = useMemo(() => withVat(sub), [sub]);
 
   const toggleChannel = (ch: LicenseChannel) => {
-    const has = scope.channels.includes(ch);
+    const has  = scope.channels.includes(ch);
     const next = has ? scope.channels.filter((c) => c !== ch) : [...scope.channels, ch];
     if (next.length === 0) return;
     onScopeChange({ ...scope, channels: next });
@@ -90,25 +81,19 @@ export function LicenseScope({ campaignTypeId, celebrityId, scope, onScopeChange
           <section className="rounded-xl border border-black/[0.08] bg-white p-5">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.45)" }}>Duration</h3>
             <div className="mt-4 flex flex-wrap gap-2">
-              {DURATIONS.map((d) =>
-                pill(scope.duration === d, () => onScopeChange({ ...scope, duration: d }), d),
-              )}
+              {DURATIONS.map((d) => pill(scope.duration === d, () => onScopeChange({ ...scope, duration: d }), d))}
             </div>
           </section>
           <section className="rounded-xl border border-black/[0.08] bg-white p-5">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.45)" }}>Territory</h3>
             <div className="mt-4 flex flex-wrap gap-2">
-              {TERRITORIES.map((t) =>
-                pill(scope.territory === t, () => onScopeChange({ ...scope, territory: t }), t),
-              )}
+              {TERRITORIES.map((t) => pill(scope.territory === t, () => onScopeChange({ ...scope, territory: t }), t))}
             </div>
           </section>
           <section className="rounded-xl border border-black/[0.08] bg-white p-5">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.45)" }}>Exclusivity</h3>
             <div className="mt-4 flex flex-wrap gap-2">
-              {EXCLUSIVITY.map((e) =>
-                pill(scope.exclusivity === e.id, () => onScopeChange({ ...scope, exclusivity: e.id }), e.label),
-              )}
+              {EXCLUSIVITY.map((e) => pill(scope.exclusivity === e.id, () => onScopeChange({ ...scope, exclusivity: e.id }), e.label))}
             </div>
           </section>
           <section className="rounded-xl border border-black/[0.08] bg-white p-5">
@@ -138,11 +123,9 @@ export function LicenseScope({ campaignTypeId, celebrityId, scope, onScopeChange
               SAR {priced.total.toLocaleString("en-SA", { minimumFractionDigits: 2 })}
             </p>
             <ul className="mt-4 space-y-1.5 text-[11px]" style={{ color: "rgba(15,10,30,0.45)" }}>
-              <li>• {getCampaignType(campaignTypeId)?.title ?? "Campaign"}</li>
+              {celebrity && <li>• {celebrity.name}</li>}
               <li>• {scope.channels.join(", ")}</li>
-              <li>
-                • {scope.duration} · {scope.territory}
-              </li>
+              <li>• {scope.duration} · {scope.territory}</li>
             </ul>
           </div>
         </div>

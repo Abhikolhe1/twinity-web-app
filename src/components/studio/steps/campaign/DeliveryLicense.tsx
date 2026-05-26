@@ -1,21 +1,16 @@
 "use client";
 
 import Logo from "@/components/ui/Logo";
-import type { CampaignTypeId, LicenseScope } from "@/lib/studio/campaign-funnel-data";
-import { getCampaignCelebrity, getCampaignTemplate, getCampaignType } from "@/lib/studio/campaign-funnel-data";
+import type { ApiCelebrity, ApiTemplate } from "@/lib/api";
+import type { LicenseScope } from "@/lib/studio/campaign-funnel-data";
 
 export type DeliveryLicenseProps = {
-  campaignTypeId: CampaignTypeId | null;
-  templateId: string | null;
-  celebrityId: string | null;
-  scope: LicenseScope;
+  template:  ApiTemplate | null;
+  celebrity: ApiCelebrity | null;
+  scope:     LicenseScope;
 };
 
-export function DeliveryLicense({ campaignTypeId, templateId, celebrityId, scope }: DeliveryLicenseProps) {
-  const cel = getCampaignCelebrity(celebrityId);
-  const tpl = getCampaignTemplate(templateId);
-  const ct = getCampaignType(campaignTypeId);
-
+export function DeliveryLicense({ template, celebrity, scope }: DeliveryLicenseProps) {
   return (
     <div>
       <h2 className="font-display text-2xl font-bold tracking-tight" style={{ color: "#0F0A1E" }}>Delivery</h2>
@@ -32,10 +27,10 @@ export function DeliveryLicense({ campaignTypeId, templateId, celebrityId, scope
             </button>
           </div>
           <p className="mt-4 text-center text-sm" style={{ color: "rgba(15,10,30,0.55)" }}>
-            Final master · {cel?.name ?? "Talent"} · {tpl?.name ?? "Template"}
+            Final master · {celebrity?.name ?? "Talent"} · {template?.name ?? "Template"}
           </p>
           <button type="button" className="mt-6 w-full rounded-lg bg-[#7C3AED] py-3 text-sm font-semibold text-white hover:bg-[#6D28D9]">
-            ⬇ Download approved video
+            Download approved video
           </button>
         </div>
         <div className="w-full min-w-0 lg:max-w-md lg:flex-[0.42]">
@@ -62,16 +57,18 @@ export function DeliveryLicense({ campaignTypeId, templateId, celebrityId, scope
                 <dt className="text-[rgba(15,10,30,0.45)]">Exclusivity</dt>
                 <dd className="text-end capitalize">{scope.exclusivity}</dd>
               </div>
-              <div className="flex justify-between gap-2">
-                <dt className="text-[rgba(15,10,30,0.45)]">Campaign</dt>
-                <dd className="text-end" style={{ color: "#0F0A1E" }}>{ct?.title ?? "—"}</dd>
-              </div>
+              {template && (
+                <div className="flex justify-between gap-2">
+                  <dt className="text-[rgba(15,10,30,0.45)]">Template</dt>
+                  <dd className="text-end" style={{ color: "#0F0A1E" }}>{template.name}</dd>
+                </div>
+              )}
             </dl>
             <button
               type="button"
               className="mt-6 w-full rounded-lg border border-black/[0.12] py-2.5 text-sm font-semibold hover:bg-black/[0.04]" style={{ color: "rgba(15,10,30,0.80)" }}
             >
-              📄 Download License Certificate
+              Download License Certificate
             </button>
             <p className="mt-6 text-center text-xs font-medium uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.40)" }}>
               Compliant. Licensed. Delivered.

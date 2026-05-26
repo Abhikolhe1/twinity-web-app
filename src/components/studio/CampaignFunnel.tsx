@@ -14,69 +14,93 @@ import { PreviewCampaign } from "@/components/studio/steps/campaign/PreviewCampa
 import { SelectCampaignCelebrity } from "@/components/studio/steps/campaign/SelectCampaignCelebrity";
 import { SelectCampaignTemplate } from "@/components/studio/steps/campaign/SelectCampaignTemplate";
 import { ValidationStatus } from "@/components/studio/steps/campaign/ValidationStatus";
+import { useUser } from "@/contexts/UserContext";
+import type { ApiCelebrity, ApiTemplate } from "@/lib/api";
+import { celebrityApi, jobApi, templateApi } from "@/lib/api";
 import type { LicenseScope as LicenseScopeType } from "@/lib/studio/campaign-funnel-data";
 import {
   DEFAULT_LICENSE_SCOPE,
   estimateCampaignSubtotal,
-  getCampaignCelebrity,
-  getCampaignTemplate,
   withVat,
 } from "@/lib/studio/campaign-funnel-data";
 
-/* Horizon button styles */
-const hPrimaryBtn = "inline-flex h-[44px] items-center justify-center rounded-xl px-5 text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px";
-const hPrimaryStyle: React.CSSProperties = { background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 8px 24px rgba(124,58,237,0.30)", border: "none" };
-const hSecondaryBtn = "inline-flex h-[44px] items-center justify-center rounded-xl px-5 text-[13px] font-semibold transition-all duration-200";
+const hPrimaryStyle: React.CSSProperties  = { background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 8px 24px rgba(124,58,237,0.30)", border: "none" };
 const hSecondaryStyle: React.CSSProperties = { background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)", color: "rgba(15,10,30,0.60)" };
 
-const SIDEBAR: { id: number; label: string; emoji: string; afterDivider?: boolean }[] = [
-  { id: 1,  label: "Template",        emoji: "🎬" },
-  { id: 2,  label: "Celebrity",       emoji: "⭐" },
-  { id: 3,  label: "Preview",         emoji: "👁" },
-  { id: 4,  label: "Login / Company", emoji: "🔒", afterDivider: true },
-  { id: 5,  label: "License Scope",   emoji: "🔒" },
-  { id: 6,  label: "Pay & Confirm",   emoji: "🔒" },
-  { id: 7,  label: "Brief & Assets",  emoji: "🔒" },
-  { id: 8,  label: "Validation",      emoji: "🔒" },
-  { id: 9,  label: "Approval",        emoji: "🔒" },
-  { id: 10, label: "Delivery",        emoji: "🔒" },
+const SIDEBAR: { id: number; label: string; afterDivider?: boolean }[] = [
+  { id: 1,  label: "Template"        },
+  { id: 2,  label: "Celebrity"       },
+  { id: 3,  label: "Preview"         },
+  { id: 4,  label: "Login / Company", afterDivider: true },
+  { id: 5,  label: "License Scope"   },
+  { id: 6,  label: "Pay & Confirm"   },
+  { id: 7,  label: "Brief & Assets"  },
+  { id: 8,  label: "Validation"      },
+  { id: 9,  label: "Approval"        },
+  { id: 10, label: "Delivery"        },
 ];
 
-function lockTitle(stepId: number, gateEntered: boolean, mockLoggedIn: boolean, licenseStepDone: boolean, hasPaid: boolean) {
-  if (stepId >= 4 && !gateEntered) return "Start campaign to unlock";
-  if (stepId >= 5 && gateEntered && !mockLoggedIn) return "Sign in to continue";
-  if (stepId >= 6 && mockLoggedIn && !licenseStepDone) return "Confirm license scope first";
-  if (stepId >= 7 && !hasPaid) return "Complete payment to unlock";
+function lockTitle(stepId: number, gateEntered: boolean, loggedIn: boolean, licenseStepDone: boolean, hasPaid: boolean) {
+  if (stepId >= 4 && !gateEntered)   return "Start campaign to unlock";
+  if (stepId >= 5 && !loggedIn)      return "Sign in to continue";
+  if (stepId >= 6 && !licenseStepDone) return "Confirm license scope first";
+  if (stepId >= 7 && !hasPaid)       return "Complete payment to unlock";
   return "Complete payment to unlock";
 }
 
 export type CampaignFunnelWorkspaceProps = {
-  onClose: () => void;
+  onClose:   () => void;
   sessionId: number;
 };
 
 export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWorkspaceProps) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [templateId, setTemplateId] = useState<string | null>(null);
-  const [celebrityId, setCelebrityId] = useState<string | null>(null);
-  const [gateEntered, setGateEntered] = useState(false);
-  const [mockLoggedIn, setMockLoggedIn] = useState(false);
-  const [licenseStepDone, setLicenseStepDone] = useState(false);
-  const [hasPaid, setHasPaid] = useState(false);
-  const [scope, setScope] = useState<LicenseScopeType>(DEFAULT_LICENSE_SCOPE);
+  const { user } = useUser();
+  const router   = useRouter();
 
-  const [briefObjective, setBriefObjective] = useState("");
+  // ── API data ──────────────────────────────────────────────
+  const [templates,         setTemplates]         = useState<ApiTemplate[]>([]);
+  const [celebrities,       setCelebrities]       = useState<ApiCelebrity[]>([]);
+  const [templatesLoading,  setTemplatesLoading]  = useState(true);
+  const [celebsLoading,     setCelebsLoading]     = useState(true);
+
+  useEffect(() => {
+    templateApi.list("video-ad")
+      .then((res) => setTemplates(res.data))
+      .catch(() => {})
+      .finally(() => setTemplatesLoading(false));
+    celebrityApi.list()
+      .then((res) => setCelebrities(res.data))
+      .catch(() => {})
+      .finally(() => setCelebsLoading(false));
+  }, []);
+
+  // ── Funnel state ──────────────────────────────────────────
+  const [currentStep,     setCurrentStep]     = useState(1);
+  const [templateId,      setTemplateId]      = useState<string | null>(null);
+  const [celebrityId,     setCelebrityId]     = useState<string | null>(null);
+  const [gateEntered,     setGateEntered]     = useState(false);
+  const [loggedIn,        setLoggedIn]        = useState(false);
+  const [licenseStepDone, setLicenseStepDone] = useState(false);
+  const [hasPaid,         setHasPaid]         = useState(false);
+  const [scope,           setScope]           = useState<LicenseScopeType>(DEFAULT_LICENSE_SCOPE);
+
+  const [briefObjective,  setBriefObjective]  = useState("");
   const [briefKeyMessage, setBriefKeyMessage] = useState("");
-  const [briefCta, setBriefCta] = useState("");
-  const [briefAudience, setBriefAudience] = useState("");
+  const [briefCta,        setBriefCta]        = useState("");
+  const [briefAudience,   setBriefAudience]   = useState("");
   const [briefProhibited, setBriefProhibited] = useState("");
 
+  const [submitting,  setSubmitting]  = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [showToast,   setShowToast]   = useState(false);
+
+  // Reset funnel when a new session starts
   useEffect(() => {
     setCurrentStep(1);
     setTemplateId(null);
     setCelebrityId(null);
     setGateEntered(false);
-    setMockLoggedIn(false);
+    setLoggedIn(false);
     setLicenseStepDone(false);
     setHasPaid(false);
     setScope(DEFAULT_LICENSE_SCOPE);
@@ -85,30 +109,34 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setBriefCta("");
     setBriefAudience("");
     setBriefProhibited("");
+    setSubmitting(false);
+    setSubmitError("");
+    setShowToast(false);
   }, [sessionId]);
+
+  // Sync login state from auth context
+  useEffect(() => {
+    if (user) setLoggedIn(true);
+  }, [user]);
+
+  // ── Derived data ──────────────────────────────────────────
+  const tpl = useMemo(() => templates.find((t) => t.id === templateId) ?? null, [templates, templateId]);
+  const cel = useMemo(() => celebrities.find((c) => c.id === celebrityId) ?? null, [celebrities, celebrityId]);
 
   const selectionsComplete = Boolean(templateId && celebrityId);
 
-  const step4Unlocked = gateEntered || currentStep >= 4;
-  const step5Unlocked = step4Unlocked && (mockLoggedIn || currentStep >= 5);
-  const step6Unlocked = step5Unlocked && (licenseStepDone || currentStep >= 6);
+  const step4Unlocked  = gateEntered || currentStep >= 4;
+  const step5Unlocked  = step4Unlocked && (loggedIn || currentStep >= 5);
+  const step6Unlocked  = step5Unlocked && (licenseStepDone || currentStep >= 6);
   const postPayUnlocked = hasPaid || currentStep >= 7;
 
   const isSidebarStepLocked = (stepId: number) => {
-    if (stepId <= 3) return false;
+    if (stepId <= 3)  return false;
     if (stepId === 4) return !step4Unlocked;
     if (stepId === 5) return !step5Unlocked;
     if (stepId === 6) return !step6Unlocked;
     return !postPayUnlocked;
   };
-
-  const handleSidebarStep = (stepId: number) => {
-    if (isSidebarStepLocked(stepId)) return;
-    setCurrentStep(stepId);
-  };
-
-  const tpl = getCampaignTemplate(templateId);
-  const cel = getCampaignCelebrity(celebrityId);
 
   const canNextEarly = useMemo(() => {
     if (currentStep === 1) return templateId !== null;
@@ -116,21 +144,17 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     return true;
   }, [currentStep, templateId, celebrityId]);
 
-  const subtotal = estimateCampaignSubtotal(null, cel?.priceFromSar ?? 0, scope);
-  const priced = useMemo(() => withVat(subtotal), [subtotal]);
+  const subtotal = estimateCampaignSubtotal(null, cel?.price_range?.["video-ad"]?.min ?? 0, scope);
+  const priced   = useMemo(() => withVat(subtotal), [subtotal]);
+  const briefOk  = briefObjective.trim() && briefKeyMessage.trim() && briefAudience.trim();
 
+  // ── Navigation ────────────────────────────────────────────
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
 
-  const router = useRouter();
-  const [showSubmitToast, setShowSubmitToast] = useState(false);
-
-  const handleFinalSubmit = () => {
-    setShowSubmitToast(true);
-    const newId = `ord-${Date.now().toString(36)}`;
-    setTimeout(() => {
-      router.push(`/studio/requests/${newId}`);
-    }, 1500);
+  const handleSidebarStep = (stepId: number) => {
+    if (isSidebarStepLocked(stepId)) return;
+    setCurrentStep(stepId);
   };
 
   const handleBack = () => {
@@ -144,7 +168,12 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
 
   const openGate = () => {
     setGateEntered(true);
-    setCurrentStep(4);
+    setCurrentStep(loggedIn ? 5 : 4);
+  };
+
+  const handleLogin = () => {
+    setLoggedIn(true);
+    setCurrentStep(5);
   };
 
   const handleAuthorize = () => {
@@ -152,12 +181,35 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setCurrentStep(7);
   };
 
-  const briefOk = briefObjective.trim() && briefKeyMessage.trim() && briefAudience.trim();
+  // ── Job submission ────────────────────────────────────────
+  const handleFinalSubmit = async () => {
+    if (!templateId || !celebrityId || submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const script = [briefKeyMessage, briefCta].filter(Boolean).join(". ") || briefObjective;
+      const res = await jobApi.create({
+        celebrityId,
+        productType: "video-ad",
+        purpose:     briefObjective || tpl?.purpose || "Advertisement Campaign",
+        script:      script || "Advertisement Campaign",
+        templateId:  templateId,
+        channels:    scope.channels,
+      });
+      setShowToast(true);
+      setTimeout(() => {
+        router.push(`/studio/requests/${res.data.reference_id}`);
+      }, 1500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Submission failed";
+      setSubmitError(msg);
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-      {/* Submit success toast */}
-      {showSubmitToast && (
+      {showToast && (
         <div style={{
           position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 9999,
           display: "flex", alignItems: "center", gap: 12,
@@ -175,6 +227,8 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
           </div>
         </div>
       )}
+
+      {/* Sidebar */}
       <nav
         className="hidden md:flex w-[220px] shrink-0 flex-col py-4"
         aria-label="Campaign funnel steps"
@@ -182,18 +236,17 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
       >
         <ul className="flex flex-col gap-0.5 px-2">
           {SIDEBAR.map((s) => {
-            const locked = isSidebarStepLocked(s.id);
-            const active = !locked && s.id === currentStep;
-            const done   = !locked && s.id < currentStep;
-            const tip    = lockTitle(s.id, gateEntered, mockLoggedIn, licenseStepDone, hasPaid);
+            const locked  = isSidebarStepLocked(s.id);
+            const active  = !locked && s.id === currentStep;
+            const done    = !locked && s.id < currentStep;
+            const tip     = lockTitle(s.id, gateEntered, loggedIn, licenseStepDone, hasPaid);
 
             const rowContent = (
               <>
                 <span
                   className="flex shrink-0 items-center justify-center rounded-full text-[12px] font-bold transition-all duration-200"
                   style={{
-                    width:      28,
-                    height:     28,
+                    width:      28, height:     28,
                     background: done ? "linear-gradient(135deg, #7C3AED, #5B21B6)" : active ? "rgba(124,58,237,0.10)" : "rgba(0,0,0,0.05)",
                     border:     done ? "none" : active ? "2px solid #7C3AED" : "1px solid rgba(0,0,0,0.10)",
                     color:      done ? "#FFFFFF" : active ? "#7C3AED" : "rgba(15,10,30,0.25)",
@@ -245,12 +298,10 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
         </ul>
       </nav>
 
+      {/* Main content */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: "#FFFFFF" }}>
         {/* Mobile step indicator */}
-        <div
-          className="md:hidden shrink-0 px-4 pb-2.5 pt-3"
-          style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}
-        >
+        <div className="md:hidden shrink-0 px-4 pb-2.5 pt-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
           <div className="mb-1.5 flex items-center justify-between">
             <span className="text-[13px] font-medium" style={{ color: "#0F0A1E" }}>
               Step {currentStep} of {SIDEBAR.length}
@@ -259,46 +310,52 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
               {SIDEBAR.find((s) => s.id === currentStep)?.label ?? ""}
             </span>
           </div>
-          <div
-            className="h-[2px] overflow-hidden rounded-full"
-            style={{ background: "rgba(0,0,0,0.08)" }}
-          >
+          <div className="h-[2px] overflow-hidden rounded-full" style={{ background: "rgba(0,0,0,0.08)" }}>
             <div
               className="h-full rounded-full transition-all duration-300"
-              style={{
-                width: `${Math.round((currentStep / SIDEBAR.length) * 100)}%`,
-                background: "#7C3AED",
-              }}
+              style={{ width: `${Math.round((currentStep / SIDEBAR.length) * 100)}%`, background: "#7C3AED" }}
             />
           </div>
         </div>
 
-            <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto p-4 md:p-8">
+        <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto p-4 md:p-8">
           <div key={currentStep} className="funnel-step-animate">
-            {currentStep === 1 ? <SelectCampaignTemplate selectedId={templateId} onSelect={setTemplateId} /> : null}
-            {currentStep === 2 ? <SelectCampaignCelebrity selectedId={celebrityId} onSelect={setCelebrityId} /> : null}
-            {currentStep === 3 ? (
+            {currentStep === 1  && (
+              <SelectCampaignTemplate
+                selectedId={templateId}
+                onSelect={setTemplateId}
+                templates={templates}
+                loading={templatesLoading}
+              />
+            )}
+            {currentStep === 2  && (
+              <SelectCampaignCelebrity
+                selectedId={celebrityId}
+                onSelect={setCelebrityId}
+                celebrities={celebrities}
+                loading={celebsLoading}
+              />
+            )}
+            {currentStep === 3  && (
               <PreviewCampaign
                 campaignTypeId={null}
                 templateId={templateId}
                 celebrityId={celebrityId}
+                template={tpl}
+                celebrity={cel}
                 onStartCampaign={openGate}
               />
-            ) : null}
-            {currentStep === 4 ? <LoginCompany onMockLogin={() => setMockLoggedIn(true)} /> : null}
-            {currentStep === 5 ? (
-              <LicenseScope campaignTypeId={null} celebrityId={celebrityId} scope={scope} onScopeChange={setScope} />
-            ) : null}
-            {currentStep === 6 ? (
-              <PayAndConfirm
-                campaignTypeId={null}
-                templateId={templateId}
-                celebrityId={celebrityId}
-                scope={scope}
-                onAuthorize={handleAuthorize}
-              />
-            ) : null}
-            {currentStep === 7 ? (
+            )}
+            {currentStep === 4  && (
+              <LoginCompany currentUser={user} onLogin={handleLogin} />
+            )}
+            {currentStep === 5  && (
+              <LicenseScope campaignTypeId={null} celebrity={cel} scope={scope} onScopeChange={setScope} />
+            )}
+            {currentStep === 6  && (
+              <PayAndConfirm template={tpl} celebrity={cel} scope={scope} onAuthorize={handleAuthorize} />
+            )}
+            {currentStep === 7  && (
               <BriefAndAssets
                 objective={briefObjective}
                 keyMessage={briefKeyMessage}
@@ -312,33 +369,41 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                 onProhibitedChange={setBriefProhibited}
                 onSubmit={handleFinalSubmit}
               />
-            ) : null}
-            {currentStep === 8  ? <ValidationStatus /> : null}
-            {currentStep === 9  ? (
-              <CampaignApprovalStatus campaignTypeId={null} templateId={templateId} celebrityId={celebrityId} scope={scope} />
-            ) : null}
-            {currentStep === 10 ? (
-              <DeliveryLicense campaignTypeId={null} templateId={templateId} celebrityId={celebrityId} scope={scope} />
-            ) : null}
+            )}
+            {currentStep === 8  && <ValidationStatus />}
+            {currentStep === 9  && (
+              <CampaignApprovalStatus template={tpl} celebrity={cel} scope={scope} />
+            )}
+            {currentStep === 10 && (
+              <DeliveryLicense template={tpl} celebrity={cel} scope={scope} />
+            )}
           </div>
+          {submitError && (
+            <p className="mt-4 rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-600 ring-1 ring-red-500/20">
+              {submitError}
+            </p>
+          )}
         </div>
 
+        {/* Footer bar */}
         <div
           className="flex shrink-0 items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:py-0 md:px-6"
           style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(0,0,0,0.08)" }}
         >
-          {/* Summary — desktop only */}
           <p
             className="hidden md:block min-w-0 flex-1 truncate text-sm text-[var(--color-text-secondary)]"
             title={`${tpl?.name ?? "…"} · ${cel?.name ?? "…"} · SAR ${subtotal.toLocaleString("en-SA")}`}
           >
-            <span className={templateId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>🎬 {tpl?.name ?? "Template"}</span>
+            <span className={templateId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>
+              {tpl?.name ?? "Template"}
+            </span>
             <span className="text-[var(--color-text-muted)]"> · </span>
-            <span className={celebrityId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>⭐ {cel?.name ?? "Celebrity"}</span>
+            <span className={celebrityId ? "text-[var(--color-text)]" : "text-[var(--color-text-muted)]"}>
+              {cel?.name ?? "Celebrity"}
+            </span>
             <span className="text-[var(--color-text-muted)]"> · </span>
             <span className="text-[var(--color-text)]">SAR {subtotal.toLocaleString("en-SA")}+</span>
           </p>
-          {/* Buttons — full-width on mobile */}
           <div className="flex w-full items-center gap-2 md:w-auto md:shrink-0">
             {currentStep === 10 ? (
               <button
@@ -361,14 +426,14 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                   <span className="md:hidden">←</span>
                   <span className="hidden md:inline">← Back</span>
                 </button>
-                {currentStep === 3  && <button type="button" onClick={openGate} disabled={!selectionsComplete} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Start Campaign</button>}
-                {currentStep === 4  && <button type="button" onClick={() => mockLoggedIn && setCurrentStep(5)} disabled={!mockLoggedIn} title={!mockLoggedIn ? "Sign in first" : undefined} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Continue →</button>}
-                {currentStep === 5  && <button type="button" onClick={() => { setLicenseStepDone(true); setCurrentStep(6); }} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Payment →</button>}
-                {currentStep === 6  && <button type="button" onClick={handleAuthorize} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Pay — SAR {priced.total.toLocaleString("en-SA", { minimumFractionDigits: 2 })}</button>}
-                {currentStep === 7  && <button type="button" onClick={() => briefOk && setCurrentStep(8)} disabled={!briefOk} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Submit Brief →</button>}
-                {currentStep === 8  && <button type="button" onClick={() => setCurrentStep(9)}  className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Approval →</button>}
-                {currentStep === 9  && <button type="button" onClick={() => setCurrentStep(10)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Delivery →</button>}
-                {currentStep <= 2   && <button type="button" onClick={handleNext} disabled={!canNextEarly} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Next →</button>}
+                {currentStep === 3 && <button type="button" onClick={openGate} disabled={!selectionsComplete} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Start Campaign</button>}
+                {currentStep === 4 && <button type="button" onClick={() => loggedIn && setCurrentStep(5)} disabled={!loggedIn} title={!loggedIn ? "Sign in first" : undefined} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Continue →</button>}
+                {currentStep === 5 && <button type="button" onClick={() => { setLicenseStepDone(true); setCurrentStep(6); }} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Payment →</button>}
+                {currentStep === 6 && <button type="button" onClick={handleAuthorize} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Pay — SAR {priced.total.toLocaleString("en-SA", { minimumFractionDigits: 2 })}</button>}
+                {currentStep === 7 && <button type="button" onClick={handleFinalSubmit} disabled={!briefOk || submitting} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>{submitting ? "Submitting…" : "Submit Brief →"}</button>}
+                {currentStep === 8 && <button type="button" onClick={() => setCurrentStep(9)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Approval →</button>}
+                {currentStep === 9 && <button type="button" onClick={() => setCurrentStep(10)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Delivery →</button>}
+                {currentStep <= 2 && <button type="button" onClick={handleNext} disabled={!canNextEarly} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Next →</button>}
               </>
             )}
           </div>
@@ -379,7 +444,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
 }
 
 export type CampaignFunnelProps = {
-  open: boolean;
+  open:    boolean;
   onClose: () => void;
 };
 

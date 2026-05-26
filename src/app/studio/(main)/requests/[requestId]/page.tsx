@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-import { useParams } from "next/navigation";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { ChevronRight, MessageCircle, RotateCw, XCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -169,12 +169,15 @@ function Breadcrumbs({ orderId }: { orderId: string }) {
 /* ── Page component ──────────────────────────────────────────────────────── */
 export default function RequestDetailPage() {
   const params    = useParams();
+  const router    = useRouter();
   const requestId = params.requestId as string;
 
   const [request,  setRequest]  = useState<MockRequest | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  const mediaPreviewRef = useRef<HTMLDivElement>(null);
 
   const loadJob = useCallback(() => {
     setLoading(true);
@@ -190,7 +193,24 @@ export default function RequestDetailPage() {
 
   useEffect(() => { loadJob(); }, [loadJob]);
 
-  if (loading)            return <PageSkeleton />;
+  const handleBannerAction = useCallback(() => {
+    switch (request?.status) {
+      case "VALIDATION_FAILED":
+        router.push("/studio");
+        break;
+      case "PREVIEW_REVIEW":
+      case "EDIT_REQUESTED":
+        mediaPreviewRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        break;
+      case "PENDING_PAYMENT":
+        router.push("/studio/checkout");
+        break;
+      default:
+        break;
+    }
+  }, [request?.status, router]);
+
+  if (loading)              return <PageSkeleton />;
   if (notFound || !request) return <NotFoundView />;
 
   const gateStatuses = computeGateStatuses(request.status, request.type);
@@ -242,6 +262,7 @@ export default function RequestDetailPage() {
           status={request.status}
           editFeedback={request.editFeedback}
           validationReason={request.validationReason}
+          onAction={handleBannerAction}
         />
       </div>
 
@@ -259,6 +280,7 @@ export default function RequestDetailPage() {
       <div style={{ display: "grid", gap: 24 }} className="grid-cols-1 md:grid-cols-[3fr_2fr]">
         {/* Left: media + regen studio + timeline */}
         <div style={{ display: "flex", flexDirection: "column", gap: 24, minWidth: 0 }}>
+          <div ref={mediaPreviewRef}>
           <RequestMediaPreview
             status={request.status}
             previewUrl={request.previewUrl}
@@ -274,6 +296,7 @@ export default function RequestDetailPage() {
             clientName={request.clientName}
             referenceId={request.orderId}
           />
+          </div>
 
           {(request.type === "GREETING" || request.type === "AD_IMAGE") &&
             (["DELIVERED", "APPROVED", "PREVIEW_REVIEW"] as const).includes(

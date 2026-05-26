@@ -64,7 +64,7 @@ export function BriefAndAssets({
             value={objective}
             onChange={(e) => onObjectiveChange(e.target.value)}
             rows={2}
-            className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+            className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm text-[#0F0A1E] outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20 placeholder:text-black/30"
             placeholder="e.g. Drive qualified installs for v2 launch in KSA"
           />
         </label>
@@ -74,7 +74,7 @@ export function BriefAndAssets({
             value={keyMessage}
             onChange={(e) => onKeyMessageChange(e.target.value)}
             rows={3}
-            className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+            className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm text-[#0F0A1E] outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20 placeholder:text-black/30"
           />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -83,7 +83,7 @@ export function BriefAndAssets({
             <input
               value={cta}
               onChange={(e) => onCtaChange(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+              className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm text-[#0F0A1E] outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20 placeholder:text-black/30"
               placeholder="Install · Shop · Sign up"
             />
           </label>
@@ -92,7 +92,7 @@ export function BriefAndAssets({
             <input
               value={audience}
               onChange={(e) => onAudienceChange(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+              className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm text-[#0F0A1E] outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20 placeholder:text-black/30"
               placeholder="Women 25–40, Riyadh, AR-first"
             />
           </label>
@@ -103,7 +103,7 @@ export function BriefAndAssets({
             value={prohibited}
             onChange={(e) => onProhibitedChange(e.target.value)}
             rows={2}
-            className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+            className="mt-2 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm text-[#0F0A1E] outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20 placeholder:text-black/30"
             placeholder="No competitor names, no alcohol adjacency, …"
           />
         </label>

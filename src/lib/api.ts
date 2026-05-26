@@ -292,9 +292,10 @@ export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
       total:    Math.round(job.estimated_price * 1.15),
       status:   'paid',
     },
-    previewUrl: job.watermarked_url ?? job.preview_url,
-    finalUrl:   job.final_video_url ?? job.watermarked_url ?? job.preview_url,
-    createdAt:  job.created_at,
-    mediaType:  (job.product_type === 'image_ad' || job.product_type === 'image-ad') ? 'image' : 'video',
+    previewUrl:       job.watermarked_url ?? job.preview_url,
+    finalUrl:         job.final_video_url ?? job.watermarked_url ?? job.preview_url,
+    createdAt:        job.created_at,
+    mediaType:        (job.product_type === 'image_ad' || job.product_type === 'image-ad') ? 'image' : 'video',
+    validationReason: job.error_message ?? undefined,
   }
 }

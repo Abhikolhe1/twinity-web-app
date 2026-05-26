@@ -2,32 +2,23 @@
 
 import { useState } from "react";
 
-import type { CampaignTypeId, LicenseScope } from "@/lib/studio/campaign-funnel-data";
-import {
-  estimateCampaignSubtotal,
-  getCampaignCelebrity,
-  getCampaignTemplate,
-  getCampaignType,
-  withVat,
-} from "@/lib/studio/campaign-funnel-data";
+import type { ApiCelebrity, ApiTemplate } from "@/lib/api";
+import type { LicenseScope } from "@/lib/studio/campaign-funnel-data";
+import { estimateCampaignSubtotal, withVat } from "@/lib/studio/campaign-funnel-data";
 
 import { CampaignDraftSummaryCard } from "./PreviewCampaign";
 
 export type PayAndConfirmProps = {
-  campaignTypeId: CampaignTypeId | null;
-  templateId: string | null;
-  celebrityId: string | null;
-  scope: LicenseScope;
+  template:    ApiTemplate | null;
+  celebrity:   ApiCelebrity | null;
+  scope:       LicenseScope;
   onAuthorize: () => void;
 };
 
-export function PayAndConfirm({ campaignTypeId, templateId, celebrityId, scope, onAuthorize }: PayAndConfirmProps) {
+export function PayAndConfirm({ template, celebrity, scope, onAuthorize }: PayAndConfirmProps) {
   const [method, setMethod] = useState<"visa" | "apple" | "mada">("visa");
-  const cel = getCampaignCelebrity(celebrityId);
-  const sub = estimateCampaignSubtotal(campaignTypeId, cel?.priceFromSar ?? 0, scope);
+  const sub    = estimateCampaignSubtotal(null, celebrity?.price_range?.["video-ad"]?.min ?? 0, scope);
   const priced = withVat(sub);
-  const ct = getCampaignType(campaignTypeId);
-  const tpl = getCampaignTemplate(templateId);
 
   return (
     <div>
@@ -92,7 +83,7 @@ export function PayAndConfirm({ campaignTypeId, templateId, celebrityId, scope, 
           </button>
         </div>
         <div className="w-full min-w-0 lg:max-w-sm">
-          <CampaignDraftSummaryCard campaignTypeId={campaignTypeId} templateId={templateId} celebrityId={celebrityId} />
+          <CampaignDraftSummaryCard template={template} celebrity={celebrity} />
           <div className="mt-4 rounded-xl border border-black/[0.08] bg-white p-4 text-xs" style={{ color: "rgba(15,10,30,0.50)" }}>
             <p className="font-semibold" style={{ color: "rgba(15,10,30,0.60)" }}>Scope snapshot</p>
             <ul className="mt-2 space-y-1">
@@ -104,9 +95,11 @@ export function PayAndConfirm({ campaignTypeId, templateId, celebrityId, scope, 
                 Exclusivity: {scope.exclusivity} · SLA: {scope.sla}
               </li>
             </ul>
-            <p className="mt-3 text-[11px]" style={{ color: "rgba(15,10,30,0.40)" }}>
-              {ct?.title} · {tpl?.name}
-            </p>
+            {template && (
+              <p className="mt-3 text-[11px]" style={{ color: "rgba(15,10,30,0.40)" }}>
+                {template.name}
+              </p>
+            )}
           </div>
         </div>
       </div>
