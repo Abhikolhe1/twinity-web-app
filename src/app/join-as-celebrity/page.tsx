@@ -83,9 +83,9 @@ export default function JoinAsCelebrityPage() {
               </div>
 
               <h1 className="mt-6 max-w-[620px] text-[clamp(32px,4.2vw,56px)] font-extrabold leading-[0.98] tracking-[-0.04em] text-[#211A37]">
-                JOIN TWINITY
+                Join Twinity
                 <br />
-                AS A CELEBRITY
+                As A Celebrity
                 <br />
                 PARTNER
               </h1>
