@@ -5,6 +5,9 @@ const PUBLIC_PATHS = new Set([
   '/login',
   '/register',
   '/forgot-password',
+  '/join-as-celebrity',
+  '/join-as-celebrity/apply',
+  '/join-as-celebrity/sign-in',
   '/terms',
   '/privacy',
 ])

@@ -5,6 +5,7 @@
  */
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
+export const ADMIN_PORTAL_URL = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001'
 
 // ── Token management ───────────────────────────────────────
 export function getToken(): string | null {
@@ -231,6 +232,19 @@ export const settingsApi = {
 export const leadApi = {
   contactForm: (body: { name: string; email: string; company?: string; message: string; productType?: string; purpose?: string }) =>
     api<{ success: boolean; message: string }>('/leads/contact', { method: 'POST', body: JSON.stringify(body) }),
+}
+
+export const celebrityOnboardingApi = {
+  submit: (body: {
+    name: string
+    email: string
+    phone?: string
+    region?: string
+    nationality: string
+    industry: string
+    languages?: string[]
+    bio?: string
+  }) => api<{ success: boolean; message: string }>('/celebrity-onboarding', { method: 'POST', body: JSON.stringify(body) }),
 }
 
 // ── Image Ad (Video Ad) ────────────────────────────────────

@@ -7,6 +7,7 @@ import Logo from "@/components/ui/Logo";
 import { StudioTabbedFunnels } from "@/components/studio/StudioTabbedFunnels";
 import type { StudioFunnelTab } from "@/components/studio/StudioTabbedFunnels";
 import { useUser } from "@/contexts/UserContext";
+import { ADMIN_PORTAL_URL } from "@/lib/api";
 
 /* ─── Data ─────────────────────────────────────────────────────────────── */
 
@@ -973,15 +974,34 @@ export function MarketingHomeWithFunnel() {
         </section>
 
         {/* ════════ BOTTOM TAGLINE ════════ */}
-        <div
-          className="py-5 text-center text-[11px] tracking-[0.10em]"
+        <footer
+          className="px-6 py-5 md:px-11"
           style={{
             color: "rgba(15,10,30,0.25)",
             borderTop: "1px solid rgba(0,0,0,0.06)",
           }}
         >
-          Twinity ensures every piece of content is licensed, approved, and delivered securely.
-        </div>
+          <div className="mx-auto flex max-w-[1200px] flex-col gap-3 text-center md:flex-row md:items-center md:justify-between md:text-left">
+            <p className="text-[11px] tracking-[0.10em]">
+              Twinity ensures every piece of content is licensed, approved, and delivered securely.
+            </p>
+            <div className="flex items-center justify-center gap-4 text-[12px] md:justify-end">
+              <Link
+                href="/join-as-celebrity"
+                className="font-semibold"
+                style={{ color: "#7C3AED", textDecoration: "none", fontSize: 14 }}
+              >
+                Join as Celebrity
+              </Link>
+              <a
+                href={`${ADMIN_PORTAL_URL}/celebrity-login`}
+                style={{ color: "rgba(15,10,30,0.52)", textDecoration: "none", fontSize: 13 }}
+              >
+                Celebrity Sign In
+              </a>
+            </div>
+          </div>
+        </footer>
       </div>
     </>
   );
