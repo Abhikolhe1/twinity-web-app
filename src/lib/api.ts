@@ -155,6 +155,12 @@ export const authApi = {
 
   setPassword: (password: string) =>
     api<{ success: boolean; message: string }>('/auth/set-password', { method: 'POST', body: JSON.stringify({ password }) }),
+
+  sendOtp: (email: string, type: string) =>
+    api<{ success: boolean; message: string }>('/otp/send', { method: 'POST', body: JSON.stringify({ email, type }) }),
+
+  verifyOtp: (email: string, code: string, type: string) =>
+    api<{ success: boolean; message: string }>('/otp/verify', { method: 'POST', body: JSON.stringify({ email, code, type }) }),
 }
 
 // ── Celebrities ────────────────────────────────────────────

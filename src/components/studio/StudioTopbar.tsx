@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, HelpCircle, Search } from "lucide-react";
+import { Bell, HelpCircle, Search, LogOut, User } from "lucide-react";
 
 import { useUser } from "@/contexts/UserContext";
 
@@ -19,7 +19,9 @@ const PAGE_LABELS: Record<string, string> = {
 export function StudioTopbar() {
   const pathname = usePathname();
   const { user, logout } = useUser();
-  const [focused, setFocused] = useState(false);
+  const [focused, setFocused]   = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const displayName = user?.name ?? "Studio User";
   const initials    = displayName.split(/\s+/).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
@@ -132,36 +134,52 @@ export function StudioTopbar() {
           <HelpCircle size={15} />
         </button>
 
-        {/* Account avatar */}
-        <button
-          type="button"
-          aria-label="Account menu"
-          title={`${displayName} — click to sign out`}
-          onClick={logout}
-          className="ms-0.5 flex shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-150"
-          style={{
-            width:         32,
-            height:        32,
-            background:    "rgba(124,58,237,0.10)",
-            border:        "1px solid rgba(124,58,237,0.18)",
-            color:         "#7C3AED",
-            letterSpacing: "0.03em",
-          }}
-          onMouseEnter={(e) => {
-            const el = e.currentTarget as HTMLButtonElement;
-            el.style.background  = "rgba(124,58,237,0.16)";
-            el.style.borderColor = "rgba(124,58,237,0.30)";
-            el.style.color       = "#6D28D9";
-          }}
-          onMouseLeave={(e) => {
-            const el = e.currentTarget as HTMLButtonElement;
-            el.style.background  = "rgba(124,58,237,0.10)";
-            el.style.borderColor = "rgba(124,58,237,0.18)";
-            el.style.color       = "#7C3AED";
-          }}
-        >
-          {initials}
-        </button>
+        {/* Account avatar + dropdown */}
+        <div className="relative ms-0.5" ref={menuRef}>
+          <button
+            type="button"
+            aria-label="Account menu"
+            onClick={() => setMenuOpen(v => !v)}
+            className="flex shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-all duration-150"
+            style={{
+              width:         32,
+              height:        32,
+              background:    menuOpen ? "rgba(124,58,237,0.16)" : "rgba(124,58,237,0.10)",
+              border:        "1px solid rgba(124,58,237,0.18)",
+              color:         "#7C3AED",
+              letterSpacing: "0.03em",
+            }}
+          >
+            {initials}
+          </button>
+
+          {menuOpen && (
+            <>
+              {/* Click-outside overlay */}
+              <div className="fixed inset-0 z-30" onClick={() => setMenuOpen(false)} />
+              <div
+                className="absolute right-0 top-9 z-40 w-48 rounded-xl overflow-hidden"
+                style={{ background: '#fff', border: '1px solid rgba(0,0,0,0.09)', boxShadow: '0 8px 24px rgba(0,0,0,0.10)' }}
+              >
+                <div className="px-4 py-3 border-b border-black/6">
+                  <p className="text-[13px] font-semibold truncate" style={{ color: '#0F0A1E' }}>{displayName}</p>
+                  <p className="text-[11px] truncate mt-0.5" style={{ color: 'rgba(15,10,30,0.40)' }}>{user?.email}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setMenuOpen(false); logout() }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-medium text-left transition-colors"
+                  style={{ color: '#DC2626' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(239,68,68,0.06)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+                >
+                  <LogOut size={13} />
+                  Sign out
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );
