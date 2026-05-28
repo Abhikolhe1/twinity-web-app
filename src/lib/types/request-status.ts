@@ -7,6 +7,7 @@ export const RequestStatus = {
   PAYMENT_AUTHORIZED: "payment_authorized",
   PENDING_VALIDATION: "pending_validation",
   VALIDATION_FAILED: "validation_failed",
+  PROCESSING_FAILED: "processing_failed",
   PENDING_COMPLIANCE: "pending_compliance",
   COMPLIANCE_CLEARED: "compliance_cleared",
   PENDING_APPROVAL: "pending_approval",

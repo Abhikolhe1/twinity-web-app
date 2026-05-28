@@ -17,6 +17,7 @@ import { computeGateStatuses }  from "@/lib/request-statuses";
 import { MOCK_CREDIT_BALANCE }  from "@/lib/credits";
 import type { MockRequest }     from "@/lib/studio/mock-requests";
 import { jobApi, mapApiJobToRequest, type ApiVideoJob } from "@/lib/api";
+import { formatValidationReason, storeImageAdResumeDraft } from "@/lib/request-recovery";
 
 /* ── Status → timeline event mapping ────────────────────────────────────── */
 const STATUS_TIMELINE: Record<string, { eventType: TimelineEventType; actor: TimelineActor; label: string }> = {
@@ -24,22 +25,51 @@ const STATUS_TIMELINE: Record<string, { eventType: TimelineEventType; actor: Tim
   "in-progress": { eventType: "PROVIDER_JOB",      actor: "SYSTEM", label: "Production started" },
   review:        { eventType: "PREVIEW_READY",      actor: "SYSTEM", label: "Preview ready for review" },
   delivered:     { eventType: "DELIVERED",          actor: "SYSTEM", label: "Content delivered" },
-  failed:        { eventType: "VALIDATION_FAILED",  actor: "SYSTEM", label: "Processing failed" },
+  failed:        { eventType: "PROCESSING_FAILED",  actor: "SYSTEM", label: "Processing failed" },
   cancelled:     { eventType: "CANCELLED",          actor: "CLIENT", label: "Request cancelled" },
 };
+
+function hasReviewableMedia(job: Pick<ApiVideoJob, "preview_url" | "watermarked_url" | "final_video_url">) {
+  return Boolean(job.preview_url || job.watermarked_url || job.final_video_url);
+}
+
+function isValidationFailure(job: Pick<ApiVideoJob, "error_message" | "validation_result">) {
+  const blockedWords = Array.isArray((job.validation_result as Record<string, unknown> | undefined)?.blockedWords)
+    ? ((job.validation_result as Record<string, unknown>).blockedWords as unknown[])
+    : [];
+  if (blockedWords.length > 0) return true;
+
+  const error = String(job.error_message || "").toLowerCase();
+  if (!error) return false;
+  return (
+    error.includes("validation") ||
+    error.includes("prohibited") ||
+    error.includes("restricted content") ||
+    error.includes("blocked")
+  );
+}
 
 function buildTimeline(job: ApiVideoJob): TimelineEvent[] {
   const history = job.status_history ?? [];
 
   if (history.length > 0) {
-    return history.map((entry) => {
-      const mapping = STATUS_TIMELINE[entry.status] ?? STATUS_TIMELINE.pending;
+    return history.map((entry, index) => {
+      const failedMapping = isValidationFailure(job)
+        ? { eventType: "VALIDATION_FAILED" as TimelineEventType, actor: "SYSTEM" as TimelineActor, label: "Validation failed" }
+        : { eventType: "PROCESSING_FAILED" as TimelineEventType, actor: "SYSTEM" as TimelineActor, label: "Processing failed" };
+      const mapping = entry.status === "review" && !hasReviewableMedia(job)
+        ? { eventType: "PROVIDER_JOB" as TimelineEventType, actor: "SYSTEM" as TimelineActor, label: "Preview processing" }
+        : entry.status === "failed"
+          ? failedMapping
+        : (STATUS_TIMELINE[entry.status] ?? STATUS_TIMELINE.pending);
       return {
-        id:          `${job.id}-${entry.status}`,
+        id:          `${job.id}-${entry.status}-${entry.timestamp}-${index}`,
         eventType:   mapping.eventType,
         actor:       mapping.actor,
         label:       mapping.label,
-        description: entry.note ?? (entry.status === "failed" ? job.error_message : undefined),
+        description: entry.status === "failed"
+          ? formatValidationReason(entry.note ?? job.error_message)
+          : entry.note,
         timestamp:   entry.timestamp,
       };
     });
@@ -196,6 +226,12 @@ export default function RequestDetailPage() {
   const handleBannerAction = useCallback(() => {
     switch (request?.status) {
       case "VALIDATION_FAILED":
+      case "PROCESSING_FAILED":
+        if (request.type === "AD_IMAGE" && request.resumeDraft) {
+          storeImageAdResumeDraft(request.resumeDraft);
+          router.push("/studio/image-ad?resume=1");
+          break;
+        }
         router.push("/studio");
         break;
       case "PREVIEW_REVIEW":
@@ -208,7 +244,7 @@ export default function RequestDetailPage() {
       default:
         break;
     }
-  }, [request?.status, router]);
+  }, [request?.resumeDraft, request?.status, request?.type, router]);
 
   if (loading)              return <PageSkeleton />;
   if (notFound || !request) return <NotFoundView />;

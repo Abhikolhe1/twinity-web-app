@@ -159,6 +159,16 @@ function getBannerConfig(
         ctaLabel:   "Review & Resubmit",
         ctaVariant: "error-ghost",
       };
+    case "PROCESSING_FAILED":
+      return {
+        color:      "error",
+        Icon:       AlertTriangle,
+        title:      "Production could not be completed",
+        body:       validationReason ??
+          "Your request passed submission, but production stopped before a preview was prepared. Review the latest details and submit again.",
+        ctaLabel:   "Review & Resubmit",
+        ctaVariant: "error-ghost",
+      };
     case "EDIT_REQUESTED":
       return {
         color:      "warning",

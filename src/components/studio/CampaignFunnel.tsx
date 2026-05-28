@@ -188,6 +188,24 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setSubmitError("");
     try {
       const script = [briefKeyMessage, briefCta].filter(Boolean).join(". ") || briefObjective;
+      const validation = await jobApi.validateSubmission({
+        celebrityId,
+        productType: "video-ad",
+        purpose: briefObjective || tpl?.purpose || "Advertisement Campaign",
+        script: script || "Advertisement Campaign",
+        templateId,
+        channels: scope.channels,
+        duration: scope.duration,
+        territory: scope.territory,
+        exclusivity: scope.exclusivity,
+        estimatedPrice: priced.subtotal,
+        briefObjective,
+        briefAudience,
+      });
+      if (!validation.data.valid) {
+        throw new Error(validation.data.errors[0]?.message || "Please review the campaign brief before submitting.");
+      }
+
       const res = await jobApi.create({
         celebrityId,
         productType: "video-ad",

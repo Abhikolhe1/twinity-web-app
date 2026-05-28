@@ -3,6 +3,9 @@
  * Connects the customer-facing app to twinity-api (Node.js backend).
  * Falls back gracefully to mock data when the API is unavailable (dev mode).
  */
+import type { MockRequest } from '@/lib/studio/mock-requests'
+import type { RequestStatus } from '@/lib/request-statuses'
+import { buildImageAdResumeDraft, formatValidationReason } from '@/lib/request-recovery'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 export const ADMIN_PORTAL_URL = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001'
@@ -65,10 +68,66 @@ export interface ApiVideoJob {
   id: string; reference_id: string; status: string; product_type: string; purpose: string
   script: string; processed_script?: string; estimated_price: number; currency: string; download_enabled: boolean
   preview_url?: string; watermarked_url?: string; final_video_url?: string
-  error_message?: string
+  error_message?: string; celebrity_id?: string; aspect_ratio?: string; channels?: string[]; duration?: string; scene_notes?: string
+  approval_path?: string
+  submission_context?: Record<string, unknown>
+  validation_result?: Record<string, unknown>
   celebrity?: { name: string; name_ar: string; initials: string; avatar_color: string; thumbnail_url?: string }
   created_at: string
   status_history?: { status: string; timestamp: string; note?: string }[]
+}
+
+function hasMediaUrls(job: Pick<ApiVideoJob, 'preview_url' | 'watermarked_url' | 'final_video_url'>): boolean {
+  return Boolean(job.preview_url || job.watermarked_url || job.final_video_url)
+}
+
+function isValidationFailure(job: Pick<ApiVideoJob, 'error_message' | 'validation_result'>): boolean {
+  const blockedWords = Array.isArray((job.validation_result as Record<string, unknown> | undefined)?.blockedWords)
+    ? ((job.validation_result as Record<string, unknown>).blockedWords as unknown[])
+    : []
+  if (blockedWords.length > 0) return true
+
+  const error = String(job.error_message || '').toLowerCase()
+  if (!error) return false
+  return (
+    error.includes('validation')
+    || error.includes('prohibited')
+    || error.includes('restricted content')
+    || error.includes('blocked')
+  )
+}
+
+export interface SubmissionValidationIssue {
+  field: string
+  code: string
+  message: string
+}
+
+export interface SubmissionValidationResult {
+  valid: boolean
+  errors: SubmissionValidationIssue[]
+  warnings: string[]
+  approvalPath: 'fast_track' | 'full_review'
+  businessVerificationRequired: boolean
+  businessVerificationPassed: boolean
+  slaHours: number
+  pricingSnapshot: {
+    subtotal: number
+    vat: number
+    total: number
+    currency: string
+  }
+  normalized: {
+    productType: 'greeting' | 'video-ad' | 'image-ad'
+    purpose: string
+    script: string
+    channels: string[]
+    templateId?: string
+    duration?: string
+    territory?: string
+    exclusivity?: boolean
+    aspectRatio?: string
+  }
 }
 
 // ── Auth ───────────────────────────────────────────────────
@@ -111,6 +170,23 @@ export const celebrityApi = {
 
 // ── Video Jobs ─────────────────────────────────────────────
 export const jobApi = {
+  validateSubmission: (body: {
+    celebrityId: string
+    productType: string
+    purpose: string
+    script: string
+    templateId?: string
+    channels?: string[]
+    duration?: string
+    territory?: string
+    exclusivity?: boolean | string
+    estimatedPrice?: number
+    aspectRatio?: string
+    briefObjective?: string
+    briefAudience?: string
+    resumeReferenceId?: string | null
+  }) => api<{ success: boolean; data: SubmissionValidationResult }>('/jobs/validate-submission', { method: 'POST', body: JSON.stringify(body) }),
+
   create: (body: {
     celebrityId: string; productType: string; purpose: string; script: string
     templateId?: string; tone?: string; duration?: string; aspectRatio?: string; resolution?: string; channels?: string[]
@@ -264,19 +340,34 @@ export const imageAdApi = {
       '/image-ads/generate',
       { method: 'POST', body: JSON.stringify(body) },
     ),
+  retry: (referenceId: string, body: {
+    celebrityId:    string
+    prompt:         string
+    style?:         string
+    aspectRatio?:   string
+    channels?:      string[]
+    duration?:      string
+    territory?:     string
+    exclusivity?:   boolean
+    estimatedPrice?: number
+  }) =>
+    api<{ success: boolean; referenceId: string; message: string }>(
+      `/image-ads/${referenceId}/retry`,
+      { method: 'POST', body: JSON.stringify(body) },
+    ),
 }
 
 // ── Job → UI request mapper ────────────────────────────────
-import type { MockRequest } from '@/lib/studio/mock-requests'
-import type { RequestStatus } from '@/lib/request-statuses'
-
-function apiStatusToUIStatus(status: string): RequestStatus {
+function apiStatusToUIStatus(
+  status: string,
+  job?: Pick<ApiVideoJob, 'preview_url' | 'watermarked_url' | 'final_video_url' | 'error_message' | 'validation_result'>,
+): RequestStatus {
   switch (status) {
     case 'pending':     return 'PENDING_VALIDATION'
     case 'in-progress': return 'PROVIDER_PROCESSING'
-    case 'review':      return 'PREVIEW_REVIEW'
+    case 'review':      return job && !hasMediaUrls(job) ? 'PROVIDER_PROCESSING' : 'PREVIEW_REVIEW'
     case 'delivered':   return 'DELIVERED'
-    case 'failed':      return 'VALIDATION_FAILED'
+    case 'failed':      return job && isValidationFailure(job) ? 'VALIDATION_FAILED' : 'PROCESSING_FAILED'
     case 'cancelled':   return 'CANCELLED'
     default:            return 'PENDING_VALIDATION'
   }
@@ -290,10 +381,13 @@ function apiProductTypeToUIType(productType: string): MockRequest['type'] {
 }
 
 export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
+  const isImageAd = job.product_type === 'image_ad' || job.product_type === 'image-ad'
+  const resumeDraft = isImageAd ? buildImageAdResumeDraft(job) : null
+
   return {
     requestId: job.reference_id,
     orderId:   job.reference_id,
-    status:    apiStatusToUIStatus(job.status),
+    status:    apiStatusToUIStatus(job.status, job),
     type:      apiProductTypeToUIType(job.product_type),
     celebrity: {
       name:      job.celebrity?.name ?? 'Celebrity',
@@ -306,10 +400,24 @@ export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
       total:    Math.round(job.estimated_price * 1.15),
       status:   'paid',
     },
+    licenseScope: resumeDraft ? {
+      channels: resumeDraft.channels,
+      territory: resumeDraft.territory ?? 'To be confirmed',
+      duration: resumeDraft.duration ?? 'To be confirmed',
+      exclusivity: resumeDraft.exclusivity ? 'Exclusive' : 'Non-exclusive',
+      deliverableType: 'Licensed image asset',
+    } : undefined,
+    adImageBrief: resumeDraft ? {
+      prompt: resumeDraft.prompt,
+      style: 'Image Ad',
+      aspectRatio: resumeDraft.aspectRatio,
+      usageDeclaration: resumeDraft.channels.length > 0 ? resumeDraft.channels.join(', ') : 'Usage channels to be confirmed',
+    } : undefined,
     previewUrl:       job.watermarked_url ?? job.preview_url,
     finalUrl:         job.final_video_url ?? job.watermarked_url ?? job.preview_url,
     createdAt:        job.created_at,
-    mediaType:        (job.product_type === 'image_ad' || job.product_type === 'image-ad') ? 'image' : 'video',
-    validationReason: job.error_message ?? undefined,
+    mediaType:        isImageAd ? 'image' : 'video',
+    validationReason: formatValidationReason(job.error_message),
+    resumeDraft:      resumeDraft ?? undefined,
   }
 }

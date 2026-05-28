@@ -8,6 +8,7 @@
 
 import type { RequestStatus } from "@/lib/request-statuses";
 import type { TimelineEvent } from "@/components/requests/RequestTimeline";
+import type { ImageAdResumeDraft } from "@/lib/request-recovery";
 
 export type MockRequest = {
   requestId: string;
@@ -47,6 +48,7 @@ export type MockRequest = {
   clientName?: string;
   editFeedback?: string;
   validationReason?: string;
+  resumeDraft?: ImageAdResumeDraft;
 };
 
 const NOW = Date.now();

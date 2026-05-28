@@ -10,6 +10,7 @@ export type TimelineEventType =
   | "PAYMENT_CAPTURED"
   | "VALIDATION_PASSED"
   | "VALIDATION_FAILED"
+  | "PROCESSING_FAILED"
   | "COMPLIANCE_REVIEW"
   | "APPROVAL_DECISION"
   | "EDIT_REQUESTED"
@@ -74,6 +75,7 @@ const EVENT_DOT_COLOR: Record<TimelineEventType, string> = {
   PAYMENT_CAPTURED:          "#7C3AED",
   VALIDATION_PASSED:         "#3B82F6",
   VALIDATION_FAILED:         "#EF4444",
+  PROCESSING_FAILED:         "#EF4444",
   COMPLIANCE_REVIEW:         "#F59E0B",
   APPROVAL_DECISION:         "#22C55E",
   EDIT_REQUESTED:            "#F59E0B",

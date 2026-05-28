@@ -296,6 +296,7 @@ interface ImageAdLeftPanelProps {
   hint:                string | null;
   onSubmit:            () => void;
   isSubmitting:        boolean;
+  promptTextareaRef?:  React.RefObject<HTMLTextAreaElement | null>;
 }
 
 /* ── Component ─────────────────────────────────────────────────────── */
@@ -325,6 +326,7 @@ export function ImageAdLeftPanel({
   hint,
   onSubmit,
   isSubmitting,
+  promptTextareaRef,
 }: ImageAdLeftPanelProps) {
 
   const [activeChips, setActiveChips] = useState<Set<string>>(new Set());
@@ -375,13 +377,13 @@ export function ImageAdLeftPanel({
       <div style={{ flex: 1, overflowY: "auto" }}>
 
         {/* ── 01 CELEBRITY ─────────────────────────────── */}
-        <div style={S}>
+        <div id="image-ad-celebrity-section" style={S}>
           <SectionHeader step={1} title="Celebrity" />
           <CelebrityPicker selected={celebrity} onSelect={onSelectCelebrity} />
         </div>
 
         {/* ── 02 PROMPT ────────────────────────────────── */}
-        <div style={S}>
+        <div id="image-ad-prompt-section" style={S}>
           <SectionHeader
             step={2}
             title="Prompt"
@@ -394,6 +396,7 @@ export function ImageAdLeftPanel({
           />
 
           <textarea
+            ref={promptTextareaRef}
             value={prompt}
             onChange={(e) => onPromptChange(e.target.value.slice(0, MAX_PROMPT))}
             placeholder="Describe the scene, mood, and how the celebrity appears in the ad…"
@@ -462,7 +465,7 @@ export function ImageAdLeftPanel({
         </div>
 
         {/* ── 03 STYLE & FORMAT ────────────────────────── */}
-        <div style={S}>
+        <div id="image-ad-style-section" style={S}>
           <SectionHeader step={3} title="Style &amp; Format" />
 
           {/* Visual style pills */}
@@ -560,7 +563,7 @@ export function ImageAdLeftPanel({
         </div>
 
         {/* ── 04 CHANNELS & LICENSE ────────────────────── */}
-        <div style={S}>
+        <div id="image-ad-license-section" style={S}>
           <SectionHeader step={4} title="License &amp; Channels" />
 
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -594,7 +597,7 @@ export function ImageAdLeftPanel({
         </div>
 
         {/* ── 05 REFERENCES (accordion) ─────────────────── */}
-        <div style={{ ...S, borderBottom: "none" }}>
+        <div id="image-ad-references-section" style={{ ...S, borderBottom: "none" }}>
           <button
             type="button"
             onClick={() => setRefsOpen((v) => !v)}

@@ -76,7 +76,7 @@ const ACTIVE_EXCLUDED = new Set<RequestStatus>([
   "DELIVERED","REJECTED","CANCELLED","REFUNDED","DRAFT",
 ]);
 const PENDING_ACTION = new Set<RequestStatus>([
-  "PENDING_PAYMENT","VALIDATION_FAILED","EDIT_REQUESTED","PREVIEW_REVIEW",
+  "PENDING_PAYMENT","VALIDATION_FAILED","PROCESSING_FAILED","EDIT_REQUESTED","PREVIEW_REVIEW",
 ]);
 
 const TYPE_META: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -92,6 +92,7 @@ const ROW_ACCENT: Partial<Record<RequestStatus, { border: string; tint: string }
   PENDING_PAYMENT:   { border: T.amber,  tint: "rgba(245,158,11,0.015)"  },
   EDIT_REQUESTED:    { border: T.amber,  tint: "rgba(245,158,11,0.015)"  },
   VALIDATION_FAILED: { border: T.red,    tint: "rgba(239,68,68,0.015)"   },
+  PROCESSING_FAILED: { border: T.red,    tint: "rgba(239,68,68,0.015)"   },
   DELIVERED:         { border: T.green,  tint: "rgba(34,197,94,0.015)"   },
   APPROVED:          { border: T.green,  tint: "rgba(34,197,94,0.015)"   },
 };

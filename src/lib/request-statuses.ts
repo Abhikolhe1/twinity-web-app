@@ -153,6 +153,13 @@ export const REQUEST_STATUS_MAP = {
     color:       "error" as const,
     icon:        "AlertTriangle",
   },
+  PROCESSING_FAILED: {
+    label:       "Processing Failed",
+    description: "Production stopped before a preview could be prepared.",
+    gate:        6,
+    color:       "error" as const,
+    icon:        "Cpu",
+  },
   PENDING_COMPLIANCE: {
     label:       "Compliance Review",
     description: "Your request has been escalated for compliance review.",
@@ -268,7 +275,7 @@ export function computeGateStatuses(
       result[g] = "skipped";
     } else if (g === 6 && requestType === "CUSTOM_CAMPAIGN") {
       result[g] = "skipped";
-    } else if (status === "VALIDATION_FAILED" && g === currentGate) {
+    } else if ((status === "VALIDATION_FAILED" || status === "PROCESSING_FAILED") && g === currentGate) {
       result[g] = "blocked";
     } else if (status === "REJECTED" && g === currentGate) {
       result[g] = "blocked";

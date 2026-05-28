@@ -160,6 +160,19 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     setSubmitError("");
 
     try {
+      const validation = await jobApi.validateSubmission({
+        celebrityId: selectedCelebrity.id,
+        productType: "greeting",
+        purpose: selectedPurpose ?? "Custom Greeting",
+        script: messageBody,
+        templateId: selectedTemplate?.id,
+        duration: selectedTemplate?.duration,
+        estimatedPrice: greetingPriceMin,
+      });
+      if (!validation.data.valid) {
+        throw new Error(validation.data.errors[0]?.message || "Please review your request before submitting.");
+      }
+
       let voiceAudioUrl: string | undefined;
       try {
         const voiceRes = await jobApi.previewVoice({

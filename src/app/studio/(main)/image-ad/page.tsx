@@ -24,7 +24,7 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
@@ -32,7 +32,12 @@ import { ImageAdLeftPanel }  from "@/components/studio/image-ad/ImageAdLeftPanel
 import { ImageAdRightPanel } from "@/components/studio/image-ad/ImageAdRightPanel";
 import { ImageAdSuccess }    from "@/components/studio/image-ad/ImageAdSuccess";
 
-import { imageAdApi } from "@/lib/api";
+import { imageAdApi, jobApi } from "@/lib/api";
+import {
+  clearImageAdResumeDraft,
+  readImageAdResumeDraft,
+  type ImageAdResumeDraft,
+} from "@/lib/request-recovery";
 
 import {
   calcAdImagePrice,
@@ -48,6 +53,7 @@ import type { FunnelCelebrity } from "@/lib/studio/studio-funnel-data";
 
 export default function ImageAdPage() {
   const router = useRouter();
+  const promptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   /* ── Form state ─────────────────────────────────────────────────── */
   const [celebrity,    setCelebrity]    = useState<FunnelCelebrity | null>(null);
@@ -63,6 +69,39 @@ export default function ImageAdPage() {
   const [submitted,    setSubmitted]    = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [resumeDraft, setResumeDraft] = useState<ImageAdResumeDraft | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("resume") !== "1") return;
+
+    const draft = readImageAdResumeDraft();
+    if (!draft) return;
+
+    setResumeDraft(draft);
+    setCelebrity(draft.celebrity);
+    setPrompt(draft.prompt);
+    setStyle(draft.style ?? null);
+    setRatio((draft.aspectRatio as AspectRatio) ?? null);
+    setChannels(draft.channels as UsageChannel[]);
+    setDuration((draft.duration as Duration) ?? "12 months");
+    setTerritory((draft.territory as Territory) ?? "GCC");
+    setExclusivity(Boolean(draft.exclusivity));
+    setAcknowledged(true);
+    setGenerateError(null);
+
+    window.setTimeout(() => {
+      document.getElementById("image-ad-prompt-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      promptTextareaRef.current?.focus();
+    }, 120);
+  }, []);
+
+  function continueEditing() {
+    document.getElementById("image-ad-prompt-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => promptTextareaRef.current?.focus(), 180);
+  }
 
   /* ── Derived ────────────────────────────────────────────────────── */
   const pricing: AdPricingResult = useMemo(
@@ -81,7 +120,7 @@ export default function ImageAdPage() {
   const canGenerate =
     !!celebrity &&
     prompt.trim().length >= 10 &&
-    !!style &&
+    (!!style || !!resumeDraft) &&
     !!ratio &&
     channels.length > 0 &&
     acknowledged;
@@ -102,7 +141,7 @@ export default function ImageAdPage() {
     setIsSubmitting(true);
     setGenerateError(null);
     try {
-      await imageAdApi.generate({
+      const payload = {
         celebrityId:    celebrity.id,
         prompt:         prompt.trim(),
         style:          style ?? undefined,
@@ -112,7 +151,27 @@ export default function ImageAdPage() {
         territory,
         exclusivity,
         estimatedPrice: pricing?.total ?? 0,
+      };
+
+      const validation = await jobApi.validateSubmission({
+        ...payload,
+        productType: "image-ad",
+        purpose: "Image ad generation",
+        script: payload.prompt,
+        resumeReferenceId: resumeDraft?.requestId ?? null,
       });
+      if (!validation.data.valid) {
+        throw new Error(validation.data.errors[0]?.message || "Please review the image ad brief before submitting.");
+      }
+
+      if (resumeDraft?.requestId) {
+        await imageAdApi.retry(resumeDraft.requestId, payload);
+      } else {
+        await imageAdApi.generate(payload);
+      }
+
+      clearImageAdResumeDraft();
+      setResumeDraft(null);
       setSubmitted(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something went wrong. Please try again.";
@@ -231,6 +290,51 @@ export default function ImageAdPage() {
         )}
       </header>
 
+      {resumeDraft && (
+        <div
+          style={{
+            margin: "16px 24px 0",
+            padding: "14px 18px",
+            borderRadius: 14,
+            border: "1px solid rgba(239,68,68,0.18)",
+            background: "rgba(239,68,68,0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#991B1B" }}>
+              You&apos;re reviewing request #{resumeDraft.orderId}
+            </p>
+            <p style={{ margin: "4px 0 0", fontSize: 12, lineHeight: 1.6, color: "rgba(15,10,30,0.65)" }}>
+              We restored the last submitted brief so you can continue from the validation-failed section.
+              {resumeDraft.validationReason ? ` Last issue: ${resumeDraft.validationReason}` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={continueEditing}
+            style={{
+              height: 38,
+              paddingInline: 16,
+              borderRadius: 10,
+              border: "1px solid rgba(239,68,68,0.22)",
+              background: "#FFFFFF",
+              color: "#B91C1C",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Continue Editing
+          </button>
+        </div>
+      )}
+
       {/* ── Two-panel body ───────────────────────────────────────── */}
       <div
         style={{
@@ -266,6 +370,7 @@ export default function ImageAdPage() {
           hint={hint}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          promptTextareaRef={promptTextareaRef}
         />
 
         <ImageAdRightPanel
