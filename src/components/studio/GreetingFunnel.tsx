@@ -185,7 +185,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
         if (msg === "Authentication required" || msg === "Session expired" || msg === "Account is not active") {
           throw voiceErr;
         }
-        // Non-auth error (e.g. ElevenLabs not configured) — proceed without audio
+        throw new Error("Voice preview could not be generated. Please try again before submitting your greeting request.");
       }
 
       const res = await jobApi.create({
