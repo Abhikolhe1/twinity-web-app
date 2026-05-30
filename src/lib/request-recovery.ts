@@ -1,6 +1,9 @@
 import type { FunnelCelebrity } from "@/lib/studio/studio-funnel-data";
 
 export const IMAGE_AD_RESUME_STORAGE_KEY = "twinity_image_ad_resume";
+export const GREETING_RESUME_STORAGE_KEY = "twinity_greeting_resume";
+export const CAMPAIGN_RESUME_STORAGE_KEY = "twinity_campaign_resume";
+export const STUDIO_RESUME_TARGET_STORAGE_KEY = "twinity_resume_target";
 
 export type ImageAdResumeDraft = {
   requestId: string;
@@ -17,19 +20,54 @@ export type ImageAdResumeDraft = {
   validationReason?: string;
 };
 
+export type GreetingResumeDraft = {
+  requestId: string;
+  orderId: string;
+  celebrityId: string;
+  purpose: string;
+  templateId?: string;
+  message: string;
+  recipientName?: string;
+  fromName?: string;
+  special?: string;
+  validationReason?: string;
+};
+
+export type CampaignResumeDraft = {
+  requestId: string;
+  orderId: string;
+  celebrityId: string;
+  templateId: string;
+  objective: string;
+  keyMessage: string;
+  audience: string;
+  channels: string[];
+  duration: string;
+  territory: string;
+  exclusivity: string;
+  validationReason?: string;
+};
+
 type RawImageAdJob = {
   reference_id: string;
   celebrity_id?: string;
+  product_type: string;
+  purpose?: string;
   script?: string;
   aspect_ratio?: string;
   channels?: string[];
+  duration?: string;
+  territory?: string;
+  exclusivity?: boolean | string;
   scene_notes?: string;
   estimated_price?: number;
   error_message?: string;
+  template_id?: string;
   celebrity?: {
     name?: string;
     thumbnail_url?: string;
   };
+  submission_context?: Record<string, unknown>;
 };
 
 function cleanWhitespace(value: string): string {
@@ -65,6 +103,16 @@ function extractScope(sceneNotes?: string): {
       exclusivityValue === "true" ? true :
       exclusivityValue === "false" ? false :
       undefined,
+  };
+}
+
+function parseGreetingSceneNotes(notes?: string): { recipient?: string; from?: string; special?: string } {
+  if (!notes) return {};
+  const parts = notes.split("|").map(p => p.trim());
+  return {
+    recipient: parts.find(p => p.startsWith("Recipient:"))?.replace("Recipient:", "").trim(),
+    from:      parts.find(p => p.startsWith("From:"))?.replace("From:", "").trim(),
+    special:   parts.find(p => p.startsWith("Notes:"))?.replace("Notes:", "").trim(),
   };
 }
 
@@ -126,25 +174,110 @@ export function buildImageAdResumeDraft(job: RawImageAdJob): ImageAdResumeDraft 
   };
 }
 
+export function buildGreetingResumeDraft(job: RawImageAdJob): GreetingResumeDraft | null {
+  if (!job.celebrity_id || !job.script?.trim()) return null;
+  const notes = parseGreetingSceneNotes(job.scene_notes);
+  return {
+    requestId: job.reference_id,
+    orderId: job.reference_id,
+    celebrityId: job.celebrity_id,
+    purpose: job.purpose || "Greeting",
+    templateId: job.template_id,
+    message: job.script,
+    recipientName: notes.recipient,
+    fromName: notes.from,
+    special: notes.special,
+    validationReason: formatValidationReason(job.error_message),
+  };
+}
+
+export function buildCampaignResumeDraft(job: RawImageAdJob): CampaignResumeDraft | null {
+  if (!job.celebrity_id || !job.template_id) return null;
+  const ctx = job.submission_context || {};
+  const scope = extractScope(job.scene_notes);
+  return {
+    requestId: job.reference_id,
+    orderId: job.reference_id,
+    celebrityId: job.celebrity_id,
+    templateId: job.template_id,
+    objective: (ctx.briefObjective as string) || job.purpose || "",
+    keyMessage: job.script || "",
+    audience: (ctx.briefAudience as string) || "",
+    channels: Array.isArray(job.channels) ? job.channels : [],
+    duration: (ctx.duration as string) || job.duration || scope.duration || "12 months",
+    territory: (ctx.territory as string) || job.territory || scope.territory || "Saudi Arabia",
+    exclusivity: typeof ctx.exclusivity === "string"
+      ? ctx.exclusivity
+      : typeof job.exclusivity === "string"
+        ? job.exclusivity
+        : typeof job.exclusivity === "boolean"
+          ? (job.exclusivity ? "exclusive" : "none")
+          : typeof scope.exclusivity === "boolean"
+            ? (scope.exclusivity ? "exclusive" : "none")
+            : "none",
+    validationReason: formatValidationReason(job.error_message),
+  };
+}
+
 export function storeImageAdResumeDraft(draft: ImageAdResumeDraft): void {
   if (typeof window === "undefined") return;
   window.sessionStorage.setItem(IMAGE_AD_RESUME_STORAGE_KEY, JSON.stringify(draft));
 }
 
+export function storeGreetingResumeDraft(draft: GreetingResumeDraft): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(GREETING_RESUME_STORAGE_KEY, JSON.stringify(draft));
+}
+
+export function storeCampaignResumeDraft(draft: CampaignResumeDraft): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(CAMPAIGN_RESUME_STORAGE_KEY, JSON.stringify(draft));
+}
+
 export function readImageAdResumeDraft(): ImageAdResumeDraft | null {
   if (typeof window === "undefined") return null;
-
   const raw = window.sessionStorage.getItem(IMAGE_AD_RESUME_STORAGE_KEY);
-  if (!raw) return null;
+  return raw ? JSON.parse(raw) : null;
+}
 
-  try {
-    return JSON.parse(raw) as ImageAdResumeDraft;
-  } catch {
-    return null;
-  }
+export function readGreetingResumeDraft(): GreetingResumeDraft | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(GREETING_RESUME_STORAGE_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+export function readCampaignResumeDraft(): CampaignResumeDraft | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(CAMPAIGN_RESUME_STORAGE_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
+export function markStudioResumeTarget(tab: "greeting" | "campaign" | "custom"): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(STUDIO_RESUME_TARGET_STORAGE_KEY, tab);
+}
+
+export function readStudioResumeTarget(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.sessionStorage.getItem(STUDIO_RESUME_TARGET_STORAGE_KEY);
 }
 
 export function clearImageAdResumeDraft(): void {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(IMAGE_AD_RESUME_STORAGE_KEY);
+}
+
+export function clearGreetingResumeDraft(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(GREETING_RESUME_STORAGE_KEY);
+}
+
+export function clearCampaignResumeDraft(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(CAMPAIGN_RESUME_STORAGE_KEY);
+}
+
+export function clearStudioResumeTarget(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(STUDIO_RESUME_TARGET_STORAGE_KEY);
 }

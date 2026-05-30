@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronRight, MessageCircle, RotateCw, XCircle } from "lucide-react";
+import { ChevronRight, Loader2, MessageCircle, RotateCw, XCircle } from "lucide-react";
 import Link from "next/link";
 
 import { RequestActionBanner }  from "@/components/requests/RequestActionBanner";
@@ -18,7 +18,13 @@ import { computeGateStatuses }  from "@/lib/request-statuses";
 import { MOCK_CREDIT_BALANCE }  from "@/lib/credits";
 import type { MockRequest }     from "@/lib/studio/mock-requests";
 import { jobApi, mapApiJobToRequest, type ApiVideoJob } from "@/lib/api";
-import { formatValidationReason, storeImageAdResumeDraft } from "@/lib/request-recovery";
+import {
+  formatValidationReason,
+  storeImageAdResumeDraft,
+  storeGreetingResumeDraft,
+  storeCampaignResumeDraft,
+  markStudioResumeTarget,
+} from "@/lib/request-recovery";
 
 /* ── Status → timeline event mapping ────────────────────────────────────── */
 const STATUS_TIMELINE: Record<string, { eventType: TimelineEventType; actor: TimelineActor; label: string }> = {
@@ -180,6 +186,83 @@ function SupportCard() {
   );
 }
 
+function RefundRequestModal({
+  orderId,
+  loading,
+  error,
+  onClose,
+  onSubmit,
+}: {
+  orderId: string
+  loading: boolean
+  error: string
+  onClose: () => void
+  onSubmit: (reason: string) => void
+}) {
+  const [reason, setReason] = useState("")
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-lg rounded-2xl border border-black/10 bg-white shadow-2xl">
+          <div className="flex items-center justify-between border-b border-black/8 px-6 py-4">
+            <div>
+              <h2 className="text-base font-bold text-[#0F0A1E]">Request Refund</h2>
+              <p className="mt-1 text-xs text-[rgba(15,10,30,0.45)]">Request #{orderId}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[rgba(15,10,30,0.45)] transition hover:bg-black/5 hover:text-[#0F0A1E]"
+            >
+              <XCircle size={16} />
+            </button>
+          </div>
+
+          <div className="px-6 py-5">
+            <p className="mb-3 text-sm text-[rgba(15,10,30,0.65)]">
+              Tell us why you don&apos;t want to continue with this failed request.
+            </p>
+            <textarea
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              rows={5}
+              placeholder="Add a short reason for the refund request..."
+              className="w-full rounded-xl border border-black/10 px-4 py-3 text-sm text-[#0F0A1E] outline-none transition focus:border-[#7C3AED] resize-none"
+            />
+            {error && (
+              <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                {error}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 border-t border-black/8 px-6 py-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-black/10 px-4 py-2 text-sm font-medium text-[rgba(15,10,30,0.60)] transition hover:bg-black/5"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={loading || reason.trim().length < 8}
+              onClick={() => onSubmit(reason)}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg,#9a78fe,#422266)' }}
+            >
+              {loading && <Loader2 size={14} className="animate-spin" />}
+              Submit Refund Request
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 /* ── Breadcrumbs ─────────────────────────────────────────────────────────── */
 function Breadcrumbs({ orderId }: { orderId: string }) {
   return (
@@ -207,6 +290,9 @@ export default function RequestDetailPage() {
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading,  setLoading]  = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [refundModalOpen, setRefundModalOpen] = useState(false)
+  const [refundBusy, setRefundBusy] = useState(false)
+  const [refundError, setRefundError] = useState('')
 
   const mediaPreviewRef = useRef<HTMLDivElement>(null);
 
@@ -224,13 +310,46 @@ export default function RequestDetailPage() {
 
   useEffect(() => { loadJob(); }, [loadJob]);
 
+  const handleSubmitRefund = useCallback(async (reason: string) => {
+    if (!request) return
+    setRefundBusy(true)
+    setRefundError('')
+    try {
+      await jobApi.requestRefund(request.requestId ?? requestId, reason.trim())
+      setRefundModalOpen(false)
+      loadJob()
+    } catch (err) {
+      setRefundError(err instanceof Error ? err.message : 'Refund request failed')
+    } finally {
+      setRefundBusy(false)
+    }
+  }, [loadJob, request, requestId])
+
   const handleBannerAction = useCallback(() => {
     switch (request?.status) {
       case "VALIDATION_FAILED":
       case "PROCESSING_FAILED":
         if (request.type === "AD_IMAGE" && request.resumeDraft) {
-          storeImageAdResumeDraft(request.resumeDraft);
+          storeImageAdResumeDraft(request.resumeDraft as any);
           router.push("/studio/image-ad?resume=1");
+          break;
+        }
+        if (request.type === "GREETING" && request.resumeDraft) {
+          storeGreetingResumeDraft(request.resumeDraft as any);
+          markStudioResumeTarget("greeting");
+          router.push("/studio?resume=1&tab=greeting");
+          break;
+        }
+        if (request.type === "CAMPAIGN" && request.resumeDraft) {
+          storeCampaignResumeDraft(request.resumeDraft as any);
+          markStudioResumeTarget("campaign");
+          router.push("/studio?resume=1&tab=campaign");
+          break;
+        }
+        if (request.type === "CUSTOM_CAMPAIGN" && request.resumeDraft) {
+          storeCampaignResumeDraft(request.resumeDraft as any);
+          markStudioResumeTarget("custom");
+          router.push("/studio?resume=1&tab=custom");
           break;
         }
         router.push("/studio");
@@ -246,6 +365,7 @@ export default function RequestDetailPage() {
         break;
     }
   }, [request?.resumeDraft, request?.status, request?.type, router]);
+
 
   if (loading)              return <PageSkeleton />;
   if (notFound || !request) return <NotFoundView />;
@@ -302,6 +422,32 @@ export default function RequestDetailPage() {
           onAction={handleBannerAction}
         />
       </div>
+
+      {(request.status === "VALIDATION_FAILED" || request.status === "PROCESSING_FAILED") && (
+        <div style={{ marginBottom: 24, display: "flex", flexWrap: "wrap", gap: 12 }}>
+          <button
+            type="button"
+            onClick={() => {
+              setRefundError('')
+              setRefundModalOpen(true)
+            }}
+            disabled={Boolean(request.refund) || refundBusy}
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition disabled:opacity-60"
+            style={{
+              borderColor: request.refund ? 'rgba(34,197,94,0.22)' : 'rgba(239,68,68,0.24)',
+              background: request.refund ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.06)',
+              color: request.refund ? '#15803D' : '#B91C1C',
+            }}
+          >
+            {request.refund ? `Refund ${request.refund.status}` : 'Request Refund'}
+          </button>
+          {request.refund && (
+            <p style={{ margin: 0, alignSelf: "center", fontSize: 13, color: "rgba(15,10,30,0.55)" }}>
+              Requested on {new Date(request.refund.requestedAt).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Gate stepper */}
       <div style={{ marginBottom: 24 }}>
@@ -377,6 +523,20 @@ export default function RequestDetailPage() {
           <SupportCard />
         </div>
       </div>
+
+      {refundModalOpen && request && (
+        <RefundRequestModal
+          orderId={request.orderId}
+          loading={refundBusy}
+          error={refundError}
+          onClose={() => {
+            if (refundBusy) return
+            setRefundModalOpen(false)
+            setRefundError('')
+          }}
+          onSubmit={handleSubmitRefund}
+        />
+      )}
     </div>
   );
 }

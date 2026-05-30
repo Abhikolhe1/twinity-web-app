@@ -8,7 +8,7 @@
 
 import type { RequestStatus } from "@/lib/request-statuses";
 import type { TimelineEvent } from "@/components/requests/RequestTimeline";
-import type { ImageAdResumeDraft } from "@/lib/request-recovery";
+import type { CampaignResumeDraft, GreetingResumeDraft, ImageAdResumeDraft } from "@/lib/request-recovery";
 
 export type MockRequest = {
   requestId: string;
@@ -49,7 +49,17 @@ export type MockRequest = {
   clientName?: string;
   editFeedback?: string;
   validationReason?: string;
-  resumeDraft?: ImageAdResumeDraft;
+  resumeDraft?: ImageAdResumeDraft | GreetingResumeDraft | CampaignResumeDraft;
+  refund?: {
+    id: string;
+    status: string;
+    reason: string;
+    requestedAt: string;
+    requestedAmount?: number | null;
+    approvedAmount?: number | null;
+    currency?: string;
+    adminNote?: string | null;
+  };
 };
 
 const NOW = Date.now();

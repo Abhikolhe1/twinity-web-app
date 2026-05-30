@@ -5,7 +5,12 @@
  */
 import type { MockRequest } from '@/lib/studio/mock-requests'
 import type { RequestStatus } from '@/lib/request-statuses'
-import { buildImageAdResumeDraft, formatValidationReason } from '@/lib/request-recovery'
+import {
+  buildImageAdResumeDraft,
+  buildGreetingResumeDraft,
+  buildCampaignResumeDraft,
+  formatValidationReason,
+} from '@/lib/request-recovery'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 export const ADMIN_PORTAL_URL = process.env.NEXT_PUBLIC_ADMIN_URL || 'http://localhost:3001'
@@ -64,8 +69,21 @@ export interface ApiCelebrity {
   price_range: { greeting: {min:number;max:number}; 'video-ad': {min:number;max:number} }
   total_orders: number
 }
+export interface ApiRefundSummary {
+  id: string
+  status: string
+  reason: string
+  requested_amount?: number | null
+  approved_amount?: number | null
+  currency?: string
+  admin_note?: string | null
+  requested_at: string
+  decision_at?: string | null
+  processed_at?: string | null
+}
 export interface ApiVideoJob {
   id: string; reference_id: string; status: string; product_type: string; purpose: string
+  template_id?: string
   script: string; processed_script?: string; estimated_price: number; currency: string; download_enabled: boolean
   preview_url?: string; watermarked_url?: string; final_video_url?: string
   error_message?: string; celebrity_id?: string; aspect_ratio?: string; channels?: string[]; duration?: string; scene_notes?: string
@@ -76,6 +94,7 @@ export interface ApiVideoJob {
   created_at: string
   status_history?: { status: string; timestamp: string; note?: string }[]
   client_preview_approved_at?: string | null
+  refund_requests?: ApiRefundSummary[]
 }
 
 function hasMediaUrls(job: Pick<ApiVideoJob, 'preview_url' | 'watermarked_url' | 'final_video_url'>): boolean {
@@ -202,6 +221,7 @@ export const jobApi = {
     voiceChangeEnabled?: boolean; voiceChangeSourceUrl?: string
     voiceAudioUrl?: string
     audioDuration?: number
+    resumeReferenceId?: string | null
   }) => api<{ success: boolean; data: ApiVideoJob }>('/jobs', { method: 'POST', body: JSON.stringify(body) }),
 
   myJobs: (status?: string, page = 1, limit = 12) => {
@@ -217,6 +237,12 @@ export const jobApi = {
 
   cancelJob: (referenceId: string) =>
     api<{ success: boolean; data: ApiVideoJob }>(`/jobs/my/${referenceId}/cancel`, { method: 'POST' }),
+
+  requestRefund: (referenceId: string, reason: string) =>
+    api<{ success: boolean; data: ApiRefundSummary; message: string }>(`/jobs/my/${referenceId}/refund`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    }),
 
   getJob: (referenceId: string) =>
     api<{ success: boolean; data: ApiVideoJob }>(`/jobs/my/${referenceId}`),
@@ -428,7 +454,17 @@ function apiProductTypeToUIType(productType: string): MockRequest['type'] {
 
 export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
   const isImageAd = job.product_type === 'image_ad' || job.product_type === 'image-ad'
-  const resumeDraft = isImageAd ? buildImageAdResumeDraft(job) : null
+  const isGreeting = job.product_type === 'greeting'
+  const isCampaign = job.product_type === 'video-ad' || job.product_type === 'custom'
+
+  let resumeDraft = null
+  if (isImageAd) {
+    resumeDraft = buildImageAdResumeDraft(job as any)
+  } else if (isGreeting) {
+    resumeDraft = buildGreetingResumeDraft(job as any)
+  } else if (isCampaign) {
+    resumeDraft = buildCampaignResumeDraft(job as any)
+  }
 
   return {
     requestId: job.reference_id,
@@ -446,18 +482,18 @@ export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
       total:    Math.round(job.estimated_price * 1.15),
       status:   'paid',
     },
-    licenseScope: resumeDraft ? {
-      channels: resumeDraft.channels,
-      territory: resumeDraft.territory ?? 'To be confirmed',
-      duration: resumeDraft.duration ?? 'To be confirmed',
-      exclusivity: resumeDraft.exclusivity ? 'Exclusive' : 'Non-exclusive',
-      deliverableType: 'Licensed image asset',
+    licenseScope: (isImageAd || isCampaign) && resumeDraft ? {
+      channels: (resumeDraft as any).channels ?? [],
+      territory: (resumeDraft as any).territory ?? 'To be confirmed',
+      duration: (resumeDraft as any).duration ?? 'To be confirmed',
+      exclusivity: (resumeDraft as any).exclusivity ? 'Exclusive' : 'Non-exclusive',
+      deliverableType: isImageAd ? 'Licensed image asset' : 'Licensed commercial video',
     } : undefined,
-    adImageBrief: resumeDraft ? {
-      prompt: resumeDraft.prompt,
+    adImageBrief: isImageAd && resumeDraft ? {
+      prompt: (resumeDraft as any).prompt,
       style: 'Image Ad',
-      aspectRatio: resumeDraft.aspectRatio,
-      usageDeclaration: resumeDraft.channels.length > 0 ? resumeDraft.channels.join(', ') : 'Usage channels to be confirmed',
+      aspectRatio: (resumeDraft as any).aspectRatio,
+      usageDeclaration: (resumeDraft as any).channels?.length > 0 ? (resumeDraft as any).channels.join(', ') : 'Usage channels to be confirmed',
     } : undefined,
     previewUrl:        job.watermarked_url ?? job.preview_url,
     finalUrl:          job.final_video_url ?? job.watermarked_url ?? job.preview_url,
@@ -466,5 +502,17 @@ export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
     mediaType:         isImageAd ? 'image' : 'video',
     validationReason: formatValidationReason(job.error_message),
     resumeDraft:      resumeDraft ?? undefined,
+    refund: job.refund_requests?.[0]
+      ? {
+          id: job.refund_requests[0].id,
+          status: job.refund_requests[0].status,
+          reason: job.refund_requests[0].reason,
+          requestedAt: job.refund_requests[0].requested_at,
+          requestedAmount: job.refund_requests[0].requested_amount,
+          approvedAmount: job.refund_requests[0].approved_amount,
+          currency: job.refund_requests[0].currency,
+          adminNote: job.refund_requests[0].admin_note,
+        }
+      : undefined,
   }
 }

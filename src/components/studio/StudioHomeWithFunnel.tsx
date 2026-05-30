@@ -217,6 +217,19 @@ export function StudioHomeWithFunnel() {
   const activeLic     = LICENSE_TYPES.find((l) => l.id === licenseType)!;
   const totalRequests = Object.values(stats).reduce((a, b) => a + b, 0);
 
+  /* Automatically open funnel if resume=1 is present */
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("resume") === "1") {
+        const tab = params.get("tab");
+        if (tab === "greeting") openTabbedFunnel("greeting");
+        else if (tab === "campaign") openTabbedFunnel("campaign");
+        else if (tab === "custom") openTabbedFunnel("custom");
+      }
+    }
+  }, [openTabbedFunnel]);
+
   /* KPI strip — derived from API stats */
   const STATS = [
     {

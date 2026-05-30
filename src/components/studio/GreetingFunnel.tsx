@@ -22,6 +22,12 @@ import {
 } from "@/lib/api";
 import { useUser } from "@/contexts/UserContext";
 
+import {
+  readGreetingResumeDraft,
+  clearGreetingResumeDraft,
+  type GreetingResumeDraft,
+} from "@/lib/request-recovery";
+
 const horizonPrimaryBtn =
   "inline-flex h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px";
 const horizonPrimaryStyle: React.CSSProperties = {
@@ -76,6 +82,8 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   const [submitError, setSubmitError]         = useState("");
   const [showSubmitToast, setShowSubmitToast] = useState(false);
 
+  const [resumeDraft, setResumeDraft] = useState<GreetingResumeDraft | null>(null);
+
   useEffect(() => {
     setCurrentStep(1);
     setSelectedPurpose(null);
@@ -91,11 +99,31 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     setShowSubmitToast(false);
     setAllTemplates([]);
     setLoadingInit(true);
+    setResumeDraft(null);
 
     Promise.all([templateApi.list("greeting"), celebrityApi.list()])
       .then(([tplRes, celebsRes]) => {
         setAllTemplates(tplRes.data);
         setCelebrities(celebsRes.data);
+
+        // Check for resume draft
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get("resume") === "1") {
+            const draft = readGreetingResumeDraft();
+            if (draft) {
+              setResumeDraft(draft);
+              setCelebrityId(draft.celebrityId);
+              setTemplateId(draft.templateId ?? null);
+              setSelectedPurpose(draft.purpose);
+              setRecipientName(draft.recipientName ?? "");
+              setFromName(draft.fromName ?? "");
+              setMessageBody(draft.message);
+              setSpecial(draft.special ?? "");
+              setCurrentStep(6); // Jump to Personalize
+            }
+          }
+        }
       })
       .catch(() => {})
       .finally(() => setLoadingInit(false));
@@ -168,6 +196,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
         templateId: selectedTemplate?.id,
         duration: selectedTemplate?.duration,
         estimatedPrice: greetingPriceMin,
+        resumeReferenceId: resumeDraft?.requestId ?? null,
       });
       if (!validation.data.valid) {
         throw new Error(validation.data.errors[0]?.message || "Please review your request before submitting.");
@@ -201,8 +230,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           special       ? `Notes: ${special}` : "",
         ].filter(Boolean).join(" | ") || undefined,
         voiceAudioUrl,
+        resumeReferenceId: resumeDraft?.requestId ?? null,
       });
 
+      clearGreetingResumeDraft();
       setReferenceId(res.data.reference_id);
       setShowSubmitToast(true);
       setCurrentStep(8);
@@ -407,6 +438,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 onConfirm={handlePayAndConfirm}
                 isSubmitting={submitting}
                 error={submitError}
+                isAlreadyPaid={!!resumeDraft}
               />
             )}
             {currentStep === 8 && (
@@ -509,7 +541,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                     className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
                     style={horizonPrimaryStyle}
                   >
-                    Continue to Payment →
+                    {resumeDraft ? "Confirm Resubmission →" : "Continue to Payment →"}
                   </button>
                 )}
 

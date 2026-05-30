@@ -24,6 +24,12 @@ import {
   withVat,
 } from "@/lib/studio/campaign-funnel-data";
 
+import {
+  readCampaignResumeDraft,
+  clearCampaignResumeDraft,
+  type CampaignResumeDraft,
+} from "@/lib/request-recovery";
+
 const hPrimaryStyle: React.CSSProperties  = { background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 8px 24px rgba(124,58,237,0.30)", border: "none" };
 const hSecondaryStyle: React.CSSProperties = { background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)", color: "rgba(15,10,30,0.60)" };
 
@@ -94,6 +100,8 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
   const [submitError, setSubmitError] = useState("");
   const [showToast,   setShowToast]   = useState(false);
 
+  const [resumeDraft, setResumeDraft] = useState<CampaignResumeDraft | null>(null);
+
   // Reset funnel when a new session starts
   useEffect(() => {
     setCurrentStep(1);
@@ -112,6 +120,35 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setSubmitting(false);
     setSubmitError("");
     setShowToast(false);
+    setResumeDraft(null);
+
+    // Check for resume draft
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("resume") === "1") {
+        const draft = readCampaignResumeDraft();
+        if (draft) {
+          setResumeDraft(draft);
+          setCelebrityId(draft.celebrityId);
+          setTemplateId(draft.templateId);
+          setBriefObjective(draft.objective);
+          setBriefKeyMessage(draft.keyMessage);
+          setBriefAudience(draft.audience);
+          setScope({
+            ...DEFAULT_LICENSE_SCOPE,
+            channels: (draft.channels as any) ?? ["Instagram", "TikTok"],
+            duration: draft.duration as any,
+            territory: draft.territory as any,
+            exclusivity: draft.exclusivity as any,
+          });
+          setGateEntered(true);
+          setLoggedIn(true);
+          setLicenseStepDone(true);
+          setHasPaid(true);
+          setCurrentStep(7); // Jump to Brief
+        }
+      }
+    }
   }, [sessionId]);
 
   // Sync login state from auth context
@@ -201,6 +238,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
         estimatedPrice: priced.subtotal,
         briefObjective,
         briefAudience,
+        resumeReferenceId: resumeDraft?.requestId ?? null,
       });
       if (!validation.data.valid) {
         throw new Error(validation.data.errors[0]?.message || "Please review the campaign brief before submitting.");
@@ -211,9 +249,11 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
         productType: "video-ad",
         purpose:     briefObjective || tpl?.purpose || "Advertisement Campaign",
         script:      script || "Advertisement Campaign",
-        templateId:  templateId,
+        templateId:  templateId ?? undefined,
         channels:    scope.channels,
+        resumeReferenceId: resumeDraft?.requestId ?? null,
       });
+      clearCampaignResumeDraft();
       setShowToast(true);
       setTimeout(() => {
         router.push(`/studio/requests/${res.data.reference_id}`);
@@ -371,7 +411,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
               <LicenseScope campaignTypeId={null} celebrity={cel} scope={scope} onScopeChange={setScope} />
             )}
             {currentStep === 6  && (
-              <PayAndConfirm template={tpl} celebrity={cel} scope={scope} onAuthorize={handleAuthorize} />
+              <PayAndConfirm template={tpl} celebrity={cel} scope={scope} onAuthorize={handleAuthorize} isAlreadyPaid={!!resumeDraft} />
             )}
             {currentStep === 7  && (
               <BriefAndAssets
