@@ -12,6 +12,7 @@ import { RequestMediaPreview }  from "@/components/requests/RequestMediaPreview"
 import { RequestStatusBadge }   from "@/components/requests/RequestStatusBadge";
 import { RequestTimeline }      from "@/components/requests/RequestTimeline";
 import { RegenerationStudio }   from "@/components/requests/RegenerationStudio";
+import { PreviewReviewPanel }   from "@/components/requests/PreviewReviewPanel";
 import type { TimelineEvent, TimelineEventType, TimelineActor } from "@/components/requests/RequestTimeline";
 import { computeGateStatuses }  from "@/lib/request-statuses";
 import { MOCK_CREDIT_BALANCE }  from "@/lib/credits";
@@ -333,6 +334,16 @@ export default function RequestDetailPage() {
             referenceId={request.orderId}
           />
           </div>
+
+          {request.status === "PREVIEW_REVIEW" && (
+            <PreviewReviewPanel
+              referenceId={requestId}
+              isPreviewApproved={request.isPreviewApproved}
+              onApproved={loadJob}
+              onRevisionSubmitted={loadJob}
+              onEscalated={loadJob}
+            />
+          )}
 
           {(request.type === "GREETING" || request.type === "AD_IMAGE") &&
             (["DELIVERED", "APPROVED", "PREVIEW_REVIEW"] as const).includes(

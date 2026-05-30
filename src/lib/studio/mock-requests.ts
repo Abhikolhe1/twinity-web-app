@@ -41,6 +41,7 @@ export type MockRequest = {
   finalUrl?: string;
   previewImageUrl?: string | null;
   finalImageUrl?: string | null;
+  isPreviewApproved?: boolean;
   mediaType?: "video" | "image" | "audio";
   licenseId?: string;
   licenseExpiry?: string;

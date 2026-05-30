@@ -75,6 +75,7 @@ export interface ApiVideoJob {
   celebrity?: { name: string; name_ar: string; initials: string; avatar_color: string; thumbnail_url?: string }
   created_at: string
   status_history?: { status: string; timestamp: string; note?: string }[]
+  client_preview_approved_at?: string | null
 }
 
 function hasMediaUrls(job: Pick<ApiVideoJob, 'preview_url' | 'watermarked_url' | 'final_video_url'>): boolean {
@@ -257,6 +258,45 @@ export const jobApi = {
 
   uploadAsset: (dataUrl: string) =>
     api<{ success: boolean; url: string }>('/jobs/upload-asset', { method: 'POST', body: JSON.stringify({ dataUrl }) }),
+
+  // TWIN-50: Preview & Revision
+  approvePreview: (referenceId: string) =>
+    api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/approve-preview`, { method: 'POST' }),
+
+  requestRevision: (referenceId: string, reason: string) =>
+    api<{
+      success: boolean; message: string
+      classification?: 'minor' | 'material'
+      revision?: ApiRevision
+      attemptNumber?: number
+      limitReached?: boolean
+    }>(`/jobs/my/${referenceId}/request-revision`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+  escalateToSupport: (referenceId: string, reason?: string) =>
+    api<{ success: boolean; message: string }>(`/jobs/my/${referenceId}/escalate-to-support`, { method: 'POST', body: JSON.stringify({ reason }) }),
+
+  getRevisions: (referenceId: string) =>
+    api<{
+      success: boolean
+      data: ApiRevision[]
+      meta: { revisionCount: number; revisionLimit: number; revisionsRemaining: number; isEscalatedToSupport: boolean }
+    }>(`/jobs/my/${referenceId}/revisions`),
+}
+
+export interface ApiRevision {
+  id: string
+  video_job_id: string
+  attempt_number: number
+  type: 'minor' | 'material' | 'escalation'
+  reason: string
+  classification?: 'minor' | 'material' | 'escalation'
+  classification_note?: string
+  status: 'pending' | 'approved' | 'rejected' | 'escalated'
+  submitted_by_user_id: string
+  provider_job_id?: string
+  escalation_note?: string
+  created_at: string
+  updated_at: string
 }
 
 // ── Templates ──────────────────────────────────────────────
@@ -419,10 +459,11 @@ export function mapApiJobToRequest(job: ApiVideoJob): MockRequest {
       aspectRatio: resumeDraft.aspectRatio,
       usageDeclaration: resumeDraft.channels.length > 0 ? resumeDraft.channels.join(', ') : 'Usage channels to be confirmed',
     } : undefined,
-    previewUrl:       job.watermarked_url ?? job.preview_url,
-    finalUrl:         job.final_video_url ?? job.watermarked_url ?? job.preview_url,
-    createdAt:        job.created_at,
-    mediaType:        isImageAd ? 'image' : 'video',
+    previewUrl:        job.watermarked_url ?? job.preview_url,
+    finalUrl:          job.final_video_url ?? job.watermarked_url ?? job.preview_url,
+    isPreviewApproved: Boolean(job.client_preview_approved_at),
+    createdAt:         job.created_at,
+    mediaType:         isImageAd ? 'image' : 'video',
     validationReason: formatValidationReason(job.error_message),
     resumeDraft:      resumeDraft ?? undefined,
   }
