@@ -61,6 +61,8 @@ export interface ApiUser {
   auth_provider: 'email' | 'google'
   has_email_password: boolean
   account_type: 'individual' | 'influencer' | 'agency'
+  phone?: string
+  company?: string
 }
 export interface ApiCelebrity {
   id: string; name: string; name_ar: string; slug: string; industry: string
@@ -158,13 +160,13 @@ export const authApi = {
   login: (body: { email: string; password: string }) =>
     api<{ success: boolean; token: string; user: ApiUser }>('/auth/login', { method: 'POST', body: JSON.stringify(body) }),
 
-  googleAuth: (accessToken: string) =>
-    api<{ success: boolean; token: string; user: ApiUser }>('/auth/google', { method: 'POST', body: JSON.stringify({ accessToken }) }),
+  googleAuth: (accessToken: string, accountType?: string) =>
+    api<{ success: boolean; token: string; user: ApiUser }>('/auth/google', { method: 'POST', body: JSON.stringify({ accessToken, accountType }) }),
 
   getMe: () =>
     api<{ success: boolean; user: ApiUser }>('/auth/me'),
 
-  updateProfile: (body: { name?: string; avatar_url?: string }) =>
+  updateProfile: (body: { name?: string; avatar_url?: string; phone?: string; company?: string; accountType?: string }) =>
     api<{ success: boolean; user: ApiUser }>('/auth/profile', { method: 'PUT', body: JSON.stringify(body) }),
 
   forgotPassword: (email: string) =>

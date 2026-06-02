@@ -7,7 +7,7 @@ import {
   FileText, Clock, CheckCircle, Zap,
   Video, Mic, Image as ImageIcon, Sparkles,
   ArrowRight, Inbox,
-  Search, Tag, Send, CreditCard,
+  Search, Tag, Send, CreditCard, ShieldAlert,
 } from "lucide-react";
 
 import { StudioFunnel }        from "@/components/studio/StudioFunnel";
@@ -300,6 +300,33 @@ export function StudioHomeWithFunnel() {
       />
 
       <div className="mx-auto max-w-[1200px] px-6 py-8 md:px-8 md:py-10">
+
+        {user?.account_type === 'agency' && (!user.company || !user.phone) && (
+          <div 
+            className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] p-5 shadow-sm"
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                <ShieldAlert size={20} />
+              </div>
+              <div>
+                <h4 className="text-[14.5px] font-bold" style={{ color: '#92400E' }}>
+                  Business Profile Incomplete
+                </h4>
+                <p className="mt-0.5 text-xs" style={{ color: '#B45309', lineHeight: 1.5 }}>
+                  Please complete your organization details (Company name, CR number, and Phone) in settings to enable fast-track campaign validation and secure payments.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/studio/settings"
+              className="inline-flex h-9 shrink-0 items-center justify-center rounded-lg bg-amber-600 px-4 text-xs font-semibold text-white hover:bg-amber-700 transition-colors"
+              style={{ boxShadow: '0 1px 2px rgba(217,119,6,0.2)' }}
+            >
+              Complete Profile
+            </Link>
+          </div>
+        )}
 
         {/* ── §1 COMMAND AREA ────────────────────────────────────────────── */}
         <section className="mb-10">

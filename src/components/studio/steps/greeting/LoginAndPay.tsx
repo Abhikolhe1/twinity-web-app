@@ -39,8 +39,8 @@ export function LoginAndPay({
   const [regError, setRegError]         = useState("");
   const [regLoading, setRegLoading]     = useState(false);
 
-  const handleGoogleSuccess = async (accessToken: string) => {
-    const res = await authApi.googleAuth(accessToken);
+  const handleGoogleSuccess = async (accessToken: string, accountType: string) => {
+    const res = await authApi.googleAuth(accessToken, accountType);
     onLoginSuccess(res.token, res.user);
   };
 

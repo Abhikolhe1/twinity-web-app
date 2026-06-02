@@ -35,8 +35,8 @@ export default function LoginPage() {
   const [password, setPassword]         = useState('')
   const [error, setError]               = useState('')
 
-  async function handleGoogleSuccess(accessToken: string) {
-    const res = await authApi.googleAuth(accessToken)
+  async function handleGoogleSuccess(accessToken: string, accountType: string) {
+    const res = await authApi.googleAuth(accessToken, accountType)
     login(res.token, res.user)
     router.push('/studio')
   }

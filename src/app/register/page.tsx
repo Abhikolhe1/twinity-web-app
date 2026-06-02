@@ -38,13 +38,14 @@ export default function RegisterPage() {
   const [name, setName]                 = useState('')
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
+  const [accountType, setAccountType]   = useState('individual')
   const [otp, setOtp]                   = useState('')
   const [pendingToken, setPendingToken] = useState('')
   const [pendingUser, setPendingUser]   = useState<any>(null)
   const [error, setError]               = useState('')
 
-  async function handleGoogleSuccess(accessToken: string) {
-    const res = await authApi.googleAuth(accessToken)
+  async function handleGoogleSuccess(accessToken: string, accountType: string) {
+    const res = await authApi.googleAuth(accessToken, accountType)
     login(res.token, res.user)
     router.push('/studio')
   }
@@ -54,7 +55,7 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
     try {
-      const res = await authApi.register({ name, email, password })
+      const res = await authApi.register({ name, email, password, accountType })
       // Backend returns a token but user is still pending — send OTP for email verification
       setPendingToken(res.token)
       setPendingUser(res.user)
@@ -155,6 +156,21 @@ export default function RegisterPage() {
                     onFocus={(e) => Object.assign(e.currentTarget.style, INPUT_FOCUS)}
                     onBlur={(e)  => Object.assign(e.currentTarget.style, INPUT_BLUR)}
                   />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[12px] font-medium" style={{ color: 'rgba(15,10,30,0.55)' }}>Account type</label>
+                  <select
+                    value={accountType}
+                    onChange={(e) => setAccountType(e.target.value)}
+                    className="h-10 w-full rounded-lg px-3 text-[14px] focus:outline-none transition-all duration-150 cursor-pointer"
+                    style={{ ...INPUT_BASE, color: '#0F0A1E' }}
+                    onFocus={(e) => Object.assign(e.currentTarget.style, INPUT_FOCUS)}
+                    onBlur={(e)  => Object.assign(e.currentTarget.style, INPUT_BLUR)}
+                  >
+                    <option value="individual">Individual</option>
+                    <option value="agency">Business / Company</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">

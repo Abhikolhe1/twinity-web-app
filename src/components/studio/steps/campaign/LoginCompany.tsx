@@ -67,7 +67,7 @@ export function LoginCompany({ currentUser, onLogin }: LoginCompanyProps) {
     setError("");
     setBusy(true);
     try {
-      const res = await authApi.register({ name: regName, email: regEmail, password: regPwd, phone: regPhone });
+      const res = await authApi.register({ name: regName, email: regEmail, password: regPwd, phone: regPhone, accountType: "agency" });
       setToken(res.token);
       localStorage.setItem("twinity_user", JSON.stringify(res.user));
       onLogin();
