@@ -24,6 +24,10 @@ export function LoginCompany({ currentUser, onLogin }: LoginCompanyProps) {
   const [regPhone,   setRegPhone]   = useState("");
   const [regPwd,     setRegPwd]     = useState("");
 
+  function sanitizePhone(value: string) {
+    return value.replace(/\D/g, "")
+  }
+
   if (currentUser) {
     return (
       <div className="mx-auto max-w-xl">
@@ -152,9 +156,10 @@ export function LoginCompany({ currentUser, onLogin }: LoginCompanyProps) {
                 type={type}
                 required={label !== "Phone"}
                 value={value}
-                onChange={(e) => setter(e.target.value)}
+                onChange={(e) => setter(label === "Phone" ? sanitizePhone(e.target.value) : e.target.value)}
                 placeholder={ph}
                 className="mt-1.5 w-full rounded-lg border border-black/[0.09] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20"
+                inputMode={label === "Phone" ? "numeric" : undefined}
               />
             </label>
           ))}

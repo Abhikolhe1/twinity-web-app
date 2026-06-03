@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { ArrowRight, BadgeCheck, LockKeyhole, ShieldCheck, Sparkles, Star, UserCheck, WalletCards } from 'lucide-react'
-import { ADMIN_PORTAL_URL } from '@/lib/api'
 
 const TRUST_ITEMS = [
   'Private onboarding',
@@ -57,7 +56,7 @@ export default function JoinAsCelebrityPage() {
         background: 'linear-gradient(180deg, #fffdfa 0%, #ffffff 36%, #fffaf3 100%)',
       }}
     >
-      <section className="mx-auto max-w-[1180px] px-6 py-14 md:px-10 lg:px-12 lg:py-20">
+      <section className="mx-auto max-w-[1320px] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div
           className="overflow-hidden rounded-[36px] border border-[rgba(15,10,30,0.08)]"
           style={{
@@ -66,7 +65,7 @@ export default function JoinAsCelebrityPage() {
             boxShadow: '0 28px 70px rgba(15,10,30,0.08)',
           }}
         >
-          <div className="grid gap-10 px-6 py-8 md:px-10 md:py-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-14 lg:px-14 lg:py-14">
+          <div className="px-5 py-7 sm:px-8 sm:py-9 lg:px-12 lg:py-12">
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-[rgba(124,58,237,0.1)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#6D28D9]">
@@ -82,19 +81,15 @@ export default function JoinAsCelebrityPage() {
                 ))}
               </div>
 
-              <h1 className="mt-6 max-w-[620px] text-[clamp(32px,4.2vw,56px)] font-extrabold leading-[0.98] tracking-[-0.04em] text-[#211A37]">
-                Join Twinity
-                <br />
-                As A Celebrity
-                <br />
-                PARTNER
+              <h1 className="mt-6 max-w-[900px] text-[clamp(32px,4.2vw,56px)] font-extrabold leading-[1.02] tracking-[-0.04em] text-[#211A37]">
+                Join Twinity As A Celebrity Partner.
               </h1>
 
               <p className="mt-6 max-w-[610px] text-[17px] leading-8 text-[rgba(15,10,30,0.7)]">
                 Twinity gives approved talent a dedicated portal to complete onboarding, manage profile presence, and stay connected to platform-approved work in a secure, structured way.
               </p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <div className="mt-8 grid gap-4 md:grid-cols-3">
                 {VALUE_POINTS.map(({ Icon, title, text }) => (
                   <div
                     key={title}
@@ -110,26 +105,6 @@ export default function JoinAsCelebrityPage() {
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/join-as-celebrity/apply"
-                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
-                  style={{
-                    background: 'linear-gradient(135deg,#7C3AED,#5B21B6)',
-                    boxShadow: '0 18px 38px -18px rgba(124,58,237,0.65)',
-                  }}
-                >
-                  Start application
-                  <ArrowRight size={16} />
-                </Link>
-                <a
-                  href={`${ADMIN_PORTAL_URL}/celebrity-login`}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-[rgba(15,10,30,0.1)] bg-white px-6 py-3.5 text-sm font-semibold text-[rgba(15,10,30,0.72)] transition-all hover:border-[rgba(124,58,237,0.28)] hover:text-[#0F0A1E]"
-                >
-                  Already registered? Sign in
-                </a>
-              </div>
-
               <div className="mt-7 flex flex-wrap items-center gap-4 text-[12.5px] text-[rgba(15,10,30,0.54)]">
                 <span className="inline-flex items-center gap-2">
                   <BadgeCheck size={15} className="text-[#16A34A]" />
@@ -142,65 +117,71 @@ export default function JoinAsCelebrityPage() {
               </div>
             </div>
 
-            <div className="flex">
-              <div
-                className="w-full rounded-[32px] border border-[rgba(124,58,237,0.16)] p-6 md:p-7"
-                style={{
-                  background: 'linear-gradient(180deg, rgba(248,247,255,0.98) 0%, rgba(255,255,255,0.92) 100%)',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.75), 0 22px 48px rgba(124,58,237,0.08)',
-                }}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6D28D9]">How It Works</p>
-                    <h2 className="mt-2 text-[28px] font-bold tracking-[-0.03em] text-[#0F0A1E]">
-                      A guided path into the portal.
-                    </h2>
-                    <p className="mt-3 max-w-[420px] text-[14px] leading-7 text-[rgba(15,10,30,0.58)]">
-                      We keep the celebrity onboarding experience simple at the start, then unlock the full workspace only after approval and profile completion.
-                    </p>
-                  </div>
-                  <div className="hidden rounded-2xl bg-[rgba(124,58,237,0.1)] p-3 text-[#6D28D9] md:block">
-                    <Sparkles size={18} />
-                  </div>
+            <div className="mt-10 border-t border-[rgba(15,10,30,0.08)] pt-8">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6D28D9]">How It Works</p>
+                  <h2 className="mt-2 text-[28px] font-bold tracking-[-0.03em] text-[#0F0A1E]">
+                    A guided path into the portal.
+                  </h2>
+                  <p className="mt-3 max-w-[720px] text-[14px] leading-7 text-[rgba(15,10,30,0.58)]">
+                    We keep the celebrity onboarding experience simple at the start, then unlock the full workspace only after approval and profile completion.
+                  </p>
                 </div>
-
-                <div className="mt-7 space-y-4">
-                  {JOURNEY.map((item) => (
-                    <div
-                      key={item.step}
-                      className="rounded-[24px] border border-[rgba(15,10,30,0.07)] bg-white px-5 py-5"
-                      style={{ boxShadow: '0 10px 22px rgba(15,10,30,0.04)' }}
-                    >
-                      <div className="flex items-start gap-4">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#7C3AED] text-[12px] font-bold text-white">
-                          {item.step}
-                        </span>
-                        <div>
-                          <p className="text-[15px] font-bold text-[#0F0A1E]">{item.title}</p>
-                          <p className="mt-2 text-[13.5px] leading-6 text-[rgba(15,10,30,0.58)]">{item.text}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  {[
-                    { Icon: ShieldCheck, label: 'Restricted access' },
-                    { Icon: UserCheck, label: 'Human approval' },
-                    { Icon: Sparkles, label: 'Profile-first unlock' },
-                  ].map(({ Icon, label }) => (
-                    <div
-                      key={label}
-                      className="rounded-[22px] border border-[rgba(124,58,237,0.12)] bg-[rgba(124,58,237,0.05)] px-4 py-4"
-                    >
-                      <Icon size={16} className="text-[#6D28D9]" />
-                      <p className="mt-2 text-sm font-semibold leading-6 text-[#0F0A1E]">{label}</p>
-                    </div>
-                  ))}
+                <div className="hidden rounded-2xl bg-[rgba(124,58,237,0.1)] p-3 text-[#6D28D9] md:block">
+                  <Sparkles size={18} />
                 </div>
               </div>
+
+              <div className="mt-7 grid gap-4 lg:grid-cols-2">
+                {JOURNEY.map((item) => (
+                  <div
+                    key={item.step}
+                    className="rounded-[24px] border border-[rgba(15,10,30,0.07)] bg-white px-5 py-5"
+                    style={{ boxShadow: '0 10px 22px rgba(15,10,30,0.04)' }}
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#7C3AED] text-[12px] font-bold text-white">
+                        {item.step}
+                      </span>
+                      <div>
+                        <p className="text-[15px] font-bold text-[#0F0A1E]">{item.title}</p>
+                        <p className="mt-2 text-[13.5px] leading-6 text-[rgba(15,10,30,0.58)]">{item.text}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 grid gap-3 md:grid-cols-3">
+                {[
+                  { Icon: ShieldCheck, label: 'Restricted access' },
+                  { Icon: UserCheck, label: 'Human approval' },
+                  { Icon: Sparkles, label: 'Profile-first unlock' },
+                ].map(({ Icon, label }) => (
+                  <div
+                    key={label}
+                    className="rounded-[22px] border border-[rgba(124,58,237,0.12)] bg-[rgba(124,58,237,0.05)] px-4 py-4"
+                  >
+                    <Icon size={16} className="text-[#6D28D9]" />
+                    <p className="mt-2 text-sm font-semibold leading-6 text-[#0F0A1E]">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-10 flex">
+              <Link
+                href="/join-as-celebrity/apply"
+                className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+                style={{
+                  background: 'linear-gradient(135deg,#7C3AED,#5B21B6)',
+                  boxShadow: '0 18px 38px -18px rgba(124,58,237,0.65)',
+                }}
+              >
+                Start application
+                <ArrowRight size={16} />
+              </Link>
             </div>
           </div>
         </div>

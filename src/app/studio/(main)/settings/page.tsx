@@ -23,6 +23,10 @@ export default function SettingsPage() {
   const [errorMsg, setErrorMsg] = useState('')
   const [activeTab, setActiveTab] = useState<'profile' | 'business'>('profile')
 
+  function sanitizePhone(value: string) {
+    return value.replace(/\D/g, '')
+  }
+
   // Set initial states from user context
   useEffect(() => {
     if (user) {
@@ -209,7 +213,7 @@ export default function SettingsPage() {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => setPhone(sanitizePhone(e.target.value))}
                       placeholder="+966 5X XXX XXXX"
                       className="w-full rounded-lg border border-black/[0.09] bg-white pl-9 pr-3.5 py-2.5 text-sm outline-none focus:border-[#7C3AED]/50 focus:ring-2 focus:ring-[#7C3AED]/20 transition-all"
                       style={{ color: '#0F0A1E' }}
