@@ -15,7 +15,7 @@ import { SelectCampaignCelebrity } from "@/components/studio/steps/campaign/Sele
 import { SelectCampaignTemplate } from "@/components/studio/steps/campaign/SelectCampaignTemplate";
 import { ValidationStatus } from "@/components/studio/steps/campaign/ValidationStatus";
 import { useUser } from "@/contexts/UserContext";
-import type { ApiCelebrity, ApiTemplate } from "@/lib/api";
+import type { ApiCelebrity, ApiTemplate, SubmissionValidationResult } from "@/lib/api";
 import { celebrityApi, jobApi, templateApi } from "@/lib/api";
 import type { LicenseScope as LicenseScopeType } from "@/lib/studio/campaign-funnel-data";
 import {
@@ -26,8 +26,12 @@ import {
 
 import {
   readCampaignResumeDraft,
+  readCampaignGuestDraft,
   clearCampaignResumeDraft,
+  clearCampaignGuestDraft,
+  storeCampaignGuestDraft,
   type CampaignResumeDraft,
+  type CampaignGuestDraft,
 } from "@/lib/request-recovery";
 
 const hPrimaryStyle: React.CSSProperties  = { background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)", boxShadow: "0 8px 24px rgba(124,58,237,0.30)", border: "none" };
@@ -45,6 +49,49 @@ const SIDEBAR: { id: number; label: string; afterDivider?: boolean }[] = [
   { id: 9,  label: "Approval"        },
   { id: 10, label: "Delivery"        },
 ];
+
+function normalizeText(value: string) {
+  const normalized = value.toLowerCase().replace(/\s+/g, " ").trim();
+  switch (normalized) {
+    case "saudi arabian":
+    case "ksa":
+    case "kingdom of saudi arabia":
+      return "saudi arabia";
+    case "mena region":
+      return "mena";
+    case "global worldwide":
+    case "worldwide":
+      return "global";
+    default:
+      return normalized;
+  }
+}
+
+function territoryLevel(value: string): number | null {
+  switch (normalizeText(value)) {
+    case "saudi arabia":
+      return 1;
+    case "gcc":
+      return 2;
+    case "mena":
+      return 3;
+    case "global":
+      return 4;
+    default:
+      return null;
+  }
+}
+
+function territoryFallsWithin(rule: string, selected: string) {
+  const ruleLevel = territoryLevel(rule);
+  const selectedLevel = territoryLevel(selected);
+
+  if (ruleLevel !== null && selectedLevel !== null) {
+    return ruleLevel >= selectedLevel;
+  }
+
+  return normalizeText(rule) === normalizeText(selected);
+}
 
 function lockTitle(stepId: number, gateEntered: boolean, loggedIn: boolean, licenseStepDone: boolean, hasPaid: boolean) {
   if (stepId >= 4 && !gateEntered)   return "Start campaign to unlock";
@@ -99,8 +146,10 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
   const [submitting,  setSubmitting]  = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [showToast,   setShowToast]   = useState(false);
+  const [validationResult, setValidationResult] = useState<SubmissionValidationResult | null>(null);
 
   const [resumeDraft, setResumeDraft] = useState<CampaignResumeDraft | null>(null);
+  const [guestDraft, setGuestDraft] = useState<CampaignGuestDraft | null>(null);
 
   // Reset funnel when a new session starts
   useEffect(() => {
@@ -120,7 +169,9 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setSubmitting(false);
     setSubmitError("");
     setShowToast(false);
+    setValidationResult(null);
     setResumeDraft(null);
+    setGuestDraft(null);
 
     // Check for resume draft
     if (typeof window !== "undefined") {
@@ -147,14 +198,73 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
           setHasPaid(true);
           setCurrentStep(7); // Jump to Brief
         }
+      } else {
+        const draft = readCampaignGuestDraft();
+        if (draft) {
+          setGuestDraft(draft);
+          setTemplateId(draft.templateId);
+          setCelebrityId(draft.celebrityId);
+          setCurrentStep(Math.min(Math.max(draft.currentStep, 1), 7));
+          setGateEntered(draft.gateEntered);
+          setLoggedIn(Boolean(user) || draft.loggedIn);
+          setLicenseStepDone(draft.licenseStepDone);
+          setHasPaid(draft.hasPaid);
+          setScope(draft.scope);
+          setBriefObjective(draft.objective);
+          setBriefKeyMessage(draft.keyMessage);
+          setBriefCta(draft.cta);
+          setBriefAudience(draft.audience);
+          setBriefProhibited(draft.prohibited);
+        }
       }
     }
-  }, [sessionId]);
+  }, [sessionId, user]);
 
   // Sync login state from auth context
   useEffect(() => {
     if (user) setLoggedIn(true);
   }, [user]);
+
+  useEffect(() => {
+    if (resumeDraft) return;
+    if (!templateId && !celebrityId && !gateEntered && !briefObjective && !briefKeyMessage && !briefAudience) {
+      clearCampaignGuestDraft();
+      return;
+    }
+
+    const draft: CampaignGuestDraft = {
+      templateId,
+      celebrityId,
+      currentStep,
+      gateEntered,
+      loggedIn,
+      licenseStepDone,
+      hasPaid,
+      scope,
+      objective: briefObjective,
+      keyMessage: briefKeyMessage,
+      cta: briefCta,
+      audience: briefAudience,
+      prohibited: briefProhibited,
+    };
+    setGuestDraft(draft);
+    storeCampaignGuestDraft(draft);
+  }, [
+    templateId,
+    celebrityId,
+    currentStep,
+    gateEntered,
+    loggedIn,
+    licenseStepDone,
+    hasPaid,
+    scope,
+    briefObjective,
+    briefKeyMessage,
+    briefCta,
+    briefAudience,
+    briefProhibited,
+    resumeDraft,
+  ]);
 
   // ── Derived data ──────────────────────────────────────────
   const tpl = useMemo(() => templates.find((t) => t.id === templateId) ?? null, [templates, templateId]);
@@ -184,6 +294,26 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
   const subtotal = estimateCampaignSubtotal(null, cel?.price_range?.["video-ad"]?.min ?? 0, scope);
   const priced   = useMemo(() => withVat(subtotal), [subtotal]);
   const briefOk  = briefObjective.trim() && briefKeyMessage.trim() && briefAudience.trim();
+  const allowedRegions = Array.isArray(cel?.geographic_availability?.allowedRegions)
+    ? cel.geographic_availability.allowedRegions.filter(Boolean)
+    : [];
+  const restrictedRegions = Array.isArray(cel?.geographic_availability?.restrictedRegions)
+    ? cel.geographic_availability.restrictedRegions.filter(Boolean)
+    : [];
+  const restrictedTerritory = restrictedRegions.find((region) => territoryFallsWithin(region, scope.territory));
+  const territoryAllowed = allowedRegions.length === 0 || allowedRegions.some((region) => territoryFallsWithin(region, scope.territory));
+  const licenseRestrictionMessage = restrictedTerritory
+    ? `${cel?.name ?? "This celebrity"} is restricted for ${restrictedTerritory}. Choose another territory before continuing.`
+    : !territoryAllowed
+      ? `${cel?.name ?? "This celebrity"} is not approved for ${scope.territory}. Allowed regions: ${allowedRegions.join(", ")}.`
+      : "";
+
+  useEffect(() => {
+    if (currentStep !== 5) return;
+    if (!licenseRestrictionMessage && submitError) {
+      setSubmitError("");
+    }
+  }, [currentStep, licenseRestrictionMessage, submitError]);
 
   // ── Navigation ────────────────────────────────────────────
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -219,7 +349,17 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
   };
 
   // ── Job submission ────────────────────────────────────────
-  const handleFinalSubmit = async () => {
+  const handleContinueToPayment = () => {
+    if (licenseRestrictionMessage) {
+      setSubmitError(licenseRestrictionMessage);
+      return;
+    }
+    setSubmitError("");
+    setLicenseStepDone(true);
+    setCurrentStep(6);
+  };
+
+  const handleValidateBrief = async () => {
     if (!templateId || !celebrityId || submitting) return;
     setSubmitting(true);
     setSubmitError("");
@@ -243,17 +383,39 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
       if (!validation.data.valid) {
         throw new Error(validation.data.errors[0]?.message || "Please review the campaign brief before submitting.");
       }
+      setValidationResult(validation.data);
+      setCurrentStep(8);
+      setSubmitting(false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Validation failed";
+      setSubmitError(msg);
+      setSubmitting(false);
+    }
+  };
 
+  const handleFinalSubmit = async () => {
+    if (!templateId || !celebrityId || submitting) return;
+    setSubmitting(true);
+    setSubmitError("");
+    try {
+      const script = [briefKeyMessage, briefCta].filter(Boolean).join(". ") || briefObjective;
       const res = await jobApi.create({
         celebrityId,
         productType: "video-ad",
         purpose:     briefObjective || tpl?.purpose || "Advertisement Campaign",
         script:      script || "Advertisement Campaign",
         templateId:  templateId ?? undefined,
+        duration: scope.duration,
         channels:    scope.channels,
+        territory: scope.territory,
+        exclusivity: scope.exclusivity,
+        estimatedPrice: priced.subtotal,
+        briefObjective,
+        briefAudience,
         resumeReferenceId: resumeDraft?.requestId ?? null,
       });
       clearCampaignResumeDraft();
+      clearCampaignGuestDraft();
       setShowToast(true);
       setTimeout(() => {
         router.push(`/studio/requests/${res.data.reference_id}`);
@@ -425,10 +587,10 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                 onCtaChange={setBriefCta}
                 onAudienceChange={setBriefAudience}
                 onProhibitedChange={setBriefProhibited}
-                onSubmit={handleFinalSubmit}
+                onSubmit={handleValidateBrief}
               />
             )}
-            {currentStep === 8  && <ValidationStatus />}
+            {currentStep === 8  && <ValidationStatus validation={validationResult} />}
             {currentStep === 9  && (
               <CampaignApprovalStatus template={tpl} celebrity={cel} scope={scope} />
             )}
@@ -486,10 +648,10 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                 </button>
                 {currentStep === 3 && <button type="button" onClick={openGate} disabled={!selectionsComplete} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Start Campaign</button>}
                 {currentStep === 4 && <button type="button" onClick={() => loggedIn && setCurrentStep(5)} disabled={!loggedIn} title={!loggedIn ? "Sign in first" : undefined} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Continue →</button>}
-                {currentStep === 5 && <button type="button" onClick={() => { setLicenseStepDone(true); setCurrentStep(6); }} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Payment →</button>}
+                {currentStep === 5 && <button type="button" onClick={handleContinueToPayment} disabled={Boolean(licenseRestrictionMessage)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Continue to Payment →</button>}
                 {currentStep === 6 && <button type="button" onClick={handleAuthorize} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Pay — SAR {priced.total.toLocaleString("en-SA", { minimumFractionDigits: 2 })}</button>}
-                {currentStep === 7 && <button type="button" onClick={handleFinalSubmit} disabled={!briefOk || submitting} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>{submitting ? "Submitting…" : "Submit Brief →"}</button>}
-                {currentStep === 8 && <button type="button" onClick={() => setCurrentStep(9)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Approval →</button>}
+                {currentStep === 7 && <button type="button" onClick={handleValidateBrief} disabled={!briefOk || submitting} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>{submitting ? "Validating…" : "Validate Brief →"}</button>}
+                {currentStep === 8 && <button type="button" onClick={handleFinalSubmit} disabled={submitting} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>{submitting ? "Submitting…" : "Submit Request →"}</button>}
                 {currentStep === 9 && <button type="button" onClick={() => setCurrentStep(10)} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px" style={hPrimaryStyle}>Continue to Delivery →</button>}
                 {currentStep <= 2 && <button type="button" onClick={handleNext} disabled={!canNextEarly} className="flex h-12 flex-1 md:h-[44px] md:flex-none items-center justify-center rounded-xl px-4 text-[15px] md:text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px disabled:pointer-events-none disabled:opacity-40" style={hPrimaryStyle}>Next →</button>}
               </>

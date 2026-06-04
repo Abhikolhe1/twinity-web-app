@@ -46,9 +46,9 @@ const ALL_STEPS: { id: number; label: string }[] = [
   { id: 1, label: "Choose Occasion" },
   { id: 2, label: "Select Template" },
   { id: 3, label: "Select Celebrity" },
-  { id: 4, label: "Preview Sample" },
-  { id: 5, label: "Login" },
-  { id: 6, label: "Personalize" },
+  { id: 4, label: "Login" },
+  { id: 5, label: "Personalize" },
+  { id: 6, label: "Preview Sample" },
   { id: 7, label: "Pay & Confirm" },
   { id: 8, label: "Approval" },
   { id: 9, label: "Delivery" },
@@ -120,7 +120,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
               setFromName(draft.fromName ?? "");
               setMessageBody(draft.message);
               setSpecial(draft.special ?? "");
-              setCurrentStep(6); // Jump to Personalize
+              setCurrentStep(5); // Jump to Personalize
             }
           }
         }
@@ -179,7 +179,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
 
-  const openGateToPersonalize = () => setCurrentStep(user ? 6 : 5);
+  const openGateToPersonalize = () => setCurrentStep(user ? 5 : 4);
   const handlePayAndConfirm = async () => { await handleFinalSubmit(); };
 
   const handleFinalSubmit = async () => {
@@ -399,23 +399,16 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
               />
             )}
             {currentStep === 4 && (
-              <PreviewGreetingSample
-                occasion={selectedPurpose}
-                celebrity={selectedCelebrity}
-                template={selectedTemplate}
-              />
-            )}
-            {currentStep === 5 && (
               <LoginAndPay
                 isLoggedIn={!!user}
                 user={user}
                 occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
-                onLoginSuccess={(token, u) => { login(token, u); setCurrentStep(6); }}
+                onLoginSuccess={(token, u) => { login(token, u); setCurrentStep(5); }}
               />
             )}
-            {currentStep === 6 && (
+            {currentStep === 5 && (
               <PersonalizeMessage
                 recipientName={recipientName}
                 message={messageBody}
@@ -427,7 +420,14 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 onFromNameChange={setFromName}
                 onLanguageChange={setLanguage}
                 onSpecialChange={setSpecial}
-                onSubmit={() => setCurrentStep(7)}
+                onSubmit={() => setCurrentStep(6)}
+              />
+            )}
+            {currentStep === 6 && (
+              <PreviewGreetingSample
+                occasion={selectedPurpose}
+                celebrity={selectedCelebrity}
+                template={selectedTemplate}
               />
             )}
             {currentStep === 7 && (
@@ -505,7 +505,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                   <span className="hidden md:inline">← Back</span>
                 </button>
 
-                {currentStep === 4 && (
+                {currentStep === 3 && (
                   <button
                     type="button"
                     onClick={openGateToPersonalize}
@@ -521,10 +521,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                   </button>
                 )}
 
-                {currentStep === 5 && (
+                {currentStep === 4 && (
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(6)}
+                    onClick={() => setCurrentStep(5)}
                     disabled={!user}
                     className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
                     style={horizonPrimaryStyle}
@@ -533,15 +533,26 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                   </button>
                 )}
 
-                {currentStep === 6 && (
+                {currentStep === 5 && (
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(7)}
+                    onClick={() => setCurrentStep(6)}
                     disabled={!recipientName.trim() || !messageBody.trim()}
                     className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
                     style={horizonPrimaryStyle}
                   >
-                    {resumeDraft ? "Confirm Resubmission →" : "Continue to Payment →"}
+                    Continue to Preview →
+                  </button>
+                )}
+
+                {currentStep === 6 && (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(7)}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    style={horizonPrimaryStyle}
+                  >
+                    {resumeDraft ? "Continue to Resubmission →" : "Continue to Payment →"}
                   </button>
                 )}
 
@@ -561,7 +572,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                   </button>
                 )}
 
-                {currentStep <= 3 && (
+                {currentStep <= 2 && (
                   <button
                     type="button"
                     onClick={handleNext}

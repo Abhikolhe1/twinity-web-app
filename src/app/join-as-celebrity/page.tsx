@@ -71,14 +71,14 @@ export default function JoinAsCelebrityPage() {
                 <span className="rounded-full bg-[rgba(124,58,237,0.1)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-[#6D28D9]">
                   Celebrity Portal
                 </span>
-                {TRUST_ITEMS.map((item) => (
+                {/* {TRUST_ITEMS.map((item) => (
                   <span
                     key={item}
                     className="rounded-full border border-[rgba(15,10,30,0.08)] bg-white/80 px-3 py-1 text-[11px] font-medium text-[rgba(15,10,30,0.6)]"
                   >
                     {item}
                   </span>
-                ))}
+                ))} */}
               </div>
 
               <h1 className="mt-6 max-w-[900px] text-[clamp(32px,4.2vw,56px)] font-extrabold leading-[1.02] tracking-[-0.04em] text-[#211A37]">
@@ -179,7 +179,7 @@ export default function JoinAsCelebrityPage() {
                   boxShadow: '0 18px 38px -18px rgba(124,58,237,0.65)',
                 }}
               >
-                Start application
+                Join As Celebrity
                 <ArrowRight size={16} />
               </Link>
             </div>

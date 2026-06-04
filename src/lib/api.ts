@@ -68,6 +68,14 @@ export interface ApiCelebrity {
   id: string; name: string; name_ar: string; slug: string; industry: string
   nationality: string; nationality_ar: string; languages: string[]; tags: string[]; tags_ar: string[]
   initials: string; avatar_color: string; thumbnail_url?: string; is_active: boolean; is_featured: boolean
+  allowed_content_categories?: string[]
+  prohibited_industries?: string[]
+  competitor_brands?: string[]
+  geographic_availability?: {
+    mode?: string
+    allowedRegions?: string[]
+    restrictedRegions?: string[]
+  } | null
   price_range: { greeting: {min:number;max:number}; 'video-ad': {min:number;max:number} }
   total_orders: number
 }
@@ -218,6 +226,8 @@ export const jobApi = {
   create: (body: {
     celebrityId: string; productType: string; purpose: string; script: string
     templateId?: string; tone?: string; duration?: string; aspectRatio?: string; resolution?: string; channels?: string[]
+    territory?: string; exclusivity?: boolean | string; estimatedPrice?: number
+    briefObjective?: string; briefAudience?: string
     propImages?: string[]; sceneNotes?: string; backgroundImageUrl?: string
     voiceModel?: string; voiceSpeed?: number
     voiceChangeEnabled?: boolean; voiceChangeSourceUrl?: string
@@ -388,6 +398,7 @@ export const celebrityOnboardingApi = {
   submit: (body: {
     name: string
     email: string
+    otpCode: string
     phone?: string
     region?: string
     nationality: string

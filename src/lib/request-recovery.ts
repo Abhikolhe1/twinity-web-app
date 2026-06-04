@@ -1,8 +1,10 @@
 import type { FunnelCelebrity } from "@/lib/studio/studio-funnel-data";
+import type { LicenseScope } from "@/lib/studio/campaign-funnel-data";
 
 export const IMAGE_AD_RESUME_STORAGE_KEY = "twinity_image_ad_resume";
 export const GREETING_RESUME_STORAGE_KEY = "twinity_greeting_resume";
 export const CAMPAIGN_RESUME_STORAGE_KEY = "twinity_campaign_resume";
+export const CAMPAIGN_GUEST_DRAFT_STORAGE_KEY = "twinity_campaign_guest_draft";
 export const STUDIO_RESUME_TARGET_STORAGE_KEY = "twinity_resume_target";
 
 export type ImageAdResumeDraft = {
@@ -46,6 +48,22 @@ export type CampaignResumeDraft = {
   territory: string;
   exclusivity: string;
   validationReason?: string;
+};
+
+export type CampaignGuestDraft = {
+  templateId: string | null;
+  celebrityId: string | null;
+  currentStep: number;
+  gateEntered: boolean;
+  loggedIn: boolean;
+  licenseStepDone: boolean;
+  hasPaid: boolean;
+  scope: LicenseScope;
+  objective: string;
+  keyMessage: string;
+  cta: string;
+  audience: string;
+  prohibited: string;
 };
 
 type RawImageAdJob = {
@@ -252,6 +270,17 @@ export function readCampaignResumeDraft(): CampaignResumeDraft | null {
   return raw ? JSON.parse(raw) : null;
 }
 
+export function storeCampaignGuestDraft(draft: CampaignGuestDraft): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(CAMPAIGN_GUEST_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+}
+
+export function readCampaignGuestDraft(): CampaignGuestDraft | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.sessionStorage.getItem(CAMPAIGN_GUEST_DRAFT_STORAGE_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+
 export function markStudioResumeTarget(tab: "greeting" | "campaign" | "custom"): void {
   if (typeof window === "undefined") return;
   window.sessionStorage.setItem(STUDIO_RESUME_TARGET_STORAGE_KEY, tab);
@@ -275,6 +304,11 @@ export function clearGreetingResumeDraft(): void {
 export function clearCampaignResumeDraft(): void {
   if (typeof window === "undefined") return;
   window.sessionStorage.removeItem(CAMPAIGN_RESUME_STORAGE_KEY);
+}
+
+export function clearCampaignGuestDraft(): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem(CAMPAIGN_GUEST_DRAFT_STORAGE_KEY);
 }
 
 export function clearStudioResumeTarget(): void {
