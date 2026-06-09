@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { type ReactNode, useState } from 'react'
-import { Loader2, Mail, RefreshCw } from 'lucide-react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { AlertCircle, Check, ChevronDown, Loader2, Mail, RefreshCw, Upload } from 'lucide-react'
 import { authApi, celebrityOnboardingApi } from '@/lib/api'
 
 const INDUSTRIES = [
@@ -21,6 +21,8 @@ const INDUSTRIES = [
 
 export default function CelebrityApplicationPage() {
   const router = useRouter()
+  const licenseFileRef = useRef<HTMLInputElement>(null)
+  const languageMenuRef = useRef<HTMLDivElement>(null)
   const [step, setStep] = useState<'form' | 'otp'>('form')
   const [form, setForm] = useState({
     name: '',
@@ -29,14 +31,52 @@ export default function CelebrityApplicationPage() {
     region: '',
     nationality: '',
     industry: INDUSTRIES[0],
-    languages: '',
+    languages: [] as string[],
     bio: '',
+    commercialLicenseNumber: '',
+    commercialLicenseDocumentUrl: '',
   })
+  const [masters, setMasters] = useState({ nationalities: [] as string[], languages: [] as string[] })
   const [otp, setOtp] = useState('')
   const [loading, setLoading] = useState(false)
+  const [mastersLoading, setMastersLoading] = useState(true)
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false)
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [otpResent, setOtpResent] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    celebrityOnboardingApi.getMasters()
+      .then((res) => {
+        if (cancelled) return
+        setMasters({
+          nationalities: Array.isArray(res.data.nationalities) ? res.data.nationalities : [],
+          languages: Array.isArray(res.data.languages) ? res.data.languages : [],
+        })
+      })
+      .catch(() => {
+        if (cancelled) return
+        setMasters({ nationalities: [], languages: [] })
+      })
+      .finally(() => {
+        if (!cancelled) setMastersLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (!languageMenuRef.current?.contains(event.target as Node)) {
+        setLanguageMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   function setField<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
     setForm((current) => ({ ...current, [field]: value }))
@@ -46,11 +86,54 @@ export default function CelebrityApplicationPage() {
     return value.replace(/\D/g, '')
   }
 
+  function isRestrictedCommercialMarket(nationality: string) {
+    const normalized = nationality.trim().toLowerCase()
+    return normalized === 'saudi arabia'
+      || normalized === 'saudi'
+      || normalized === 'uae'
+      || normalized === 'united arab emirates'
+  }
+
+  function toggleLanguage(language: string) {
+    setForm((current) => {
+      const exists = current.languages.includes(language)
+      return {
+        ...current,
+        languages: exists
+          ? current.languages.filter((item) => item !== language)
+          : [...current.languages, language],
+      }
+    })
+  }
+
+  async function readFileAsDataUrl(file: File) {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.onerror = () => reject(new Error('Could not read the selected license file.'))
+      reader.readAsDataURL(file)
+    })
+  }
+
+  async function handleLicenseFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+      setField('commercialLicenseDocumentUrl', dataUrl)
+    } catch (err: any) {
+      setError(err.message || 'Could not read the selected license file.')
+    } finally {
+      if (licenseFileRef.current) licenseFileRef.current.value = ''
+    }
+  }
+
   async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess('')
+    setOtpResent(false)
     try {
       await authApi.sendOtp(form.email, 'email_verification')
       setStep('otp')
@@ -71,6 +154,7 @@ export default function CelebrityApplicationPage() {
     setLoading(true)
     setError('')
     setSuccess('')
+    setOtpResent(false)
     try {
       await celebrityOnboardingApi.submit({
         name: form.name,
@@ -80,8 +164,10 @@ export default function CelebrityApplicationPage() {
         region: form.region || undefined,
         nationality: form.nationality,
         industry: form.industry,
-        languages: form.languages.split(',').map((item) => item.trim()).filter(Boolean),
+        languages: form.languages,
         bio: form.bio || undefined,
+        commercialLicenseNumber: form.commercialLicenseNumber || undefined,
+        commercialLicenseDocumentUrl: form.commercialLicenseDocumentUrl || undefined,
       })
       setSuccess('Application submitted successfully. Redirecting you back to the celebrity portal overview...')
       window.setTimeout(() => {
@@ -98,16 +184,19 @@ export default function CelebrityApplicationPage() {
     setResending(true)
     setError('')
     setSuccess('')
+    setOtpResent(false)
     try {
       await authApi.sendOtp(form.email, 'email_verification')
       setOtp('')
-      setSuccess('A new verification code has been sent to your email.')
+      setOtpResent(true)
     } catch (err: any) {
       setError(err.message || 'Could not resend verification code.')
     } finally {
       setResending(false)
     }
   }
+
+  const requiresCommercialLicense = isRestrictedCommercialMarket(form.nationality)
 
   return (
     <div className="min-h-screen bg-white px-4 py-12 text-[#0F0A1E] sm:px-6 lg:px-8">
@@ -144,7 +233,20 @@ export default function CelebrityApplicationPage() {
                     <input value={form.region} onChange={(e) => setField('region', e.target.value)} className={inputCls} />
                   </Field>
                   <Field label="Nationality">
-                    <input value={form.nationality} onChange={(e) => setField('nationality', e.target.value)} className={inputCls} required />
+                    <select
+                      value={form.nationality}
+                      onChange={(e) => setField('nationality', e.target.value)}
+                      className={inputCls}
+                      disabled={mastersLoading}
+                      required
+                    >
+                      <option value="">{mastersLoading ? 'Loading nationalities...' : 'Select nationality'}</option>
+                      {masters.nationalities.map((nationality) => (
+                        <option key={nationality} value={nationality}>
+                          {nationality}
+                        </option>
+                      ))}
+                    </select>
                   </Field>
                   <Field label="Industry">
                     <select value={form.industry} onChange={(e) => setField('industry', e.target.value)} className={inputCls} required>
@@ -157,14 +259,52 @@ export default function CelebrityApplicationPage() {
                   </Field>
                 </div>
 
+                <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <p>
+                      If you are from <strong>UAE</strong> or <strong>Saudi Arabia</strong>, a license number or uploaded license is required for
+                      commercial ads and campaigns. Without one, your profile can still be approved for <strong>greeting</strong> requests only.
+                    </p>
+                  </div>
+                </div>
+
                 <div className="mt-4 grid gap-4">
                   <Field label="Languages">
-                    <input
-                      value={form.languages}
-                      onChange={(e) => setField('languages', e.target.value)}
-                      className={inputCls}
-                      placeholder="Arabic, English"
-                    />
+                    <div ref={languageMenuRef} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => !mastersLoading && setLanguageMenuOpen((current) => !current)}
+                        className={`${inputCls} flex min-h-[50px] items-center justify-between gap-3 text-left ${mastersLoading ? 'opacity-60' : ''}`}
+                        disabled={mastersLoading}
+                      >
+                        <span className={form.languages.length ? 'text-[#0F0A1E]' : 'text-[rgba(15,10,30,0.45)]'}>
+                          {form.languages.length ? form.languages.join(', ') : mastersLoading ? 'Loading languages...' : 'Select languages'}
+                        </span>
+                        <ChevronDown size={16} className={`shrink-0 transition-transform ${languageMenuOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {languageMenuOpen && (
+                        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-20 max-h-64 overflow-auto rounded-2xl border border-[rgba(0,0,0,0.1)] bg-white p-2 shadow-[0_16px_40px_rgba(15,10,30,0.10)]">
+                          {masters.languages.map((language) => {
+                            const selected = form.languages.includes(language)
+                            return (
+                              <button
+                                key={language}
+                                type="button"
+                                onClick={() => toggleLanguage(language)}
+                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-all ${
+                                  selected ? 'bg-[rgba(124,58,237,0.08)] text-[#7C3AED]' : 'text-[#0F0A1E] hover:bg-[rgba(124,58,237,0.05)]'
+                                }`}
+                              >
+                                <span>{language}</span>
+                                {selected && <Check size={15} />}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </Field>
                   <Field label="Short introduction">
                     <textarea
@@ -175,6 +315,38 @@ export default function CelebrityApplicationPage() {
                       placeholder="Tell us a little about yourself and the kind of presence you want to manage through the portal."
                     />
                   </Field>
+                  {requiresCommercialLicense && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="License number">
+                        <input
+                          value={form.commercialLicenseNumber}
+                          onChange={(e) => setField('commercialLicenseNumber', e.target.value)}
+                          className={inputCls}
+                          placeholder="Enter the Saudi/UAE license number"
+                        />
+                      </Field>
+                      <Field label="Upload license">
+                        <input
+                          ref={licenseFileRef}
+                          type="file"
+                          accept="image/*,.pdf"
+                          className="hidden"
+                          onChange={handleLicenseFileChange}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => licenseFileRef.current?.click()}
+                          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[rgba(0,0,0,0.1)] bg-white px-4 py-3 text-sm font-medium text-[rgba(15,10,30,0.72)]"
+                        >
+                          <Upload size={16} />
+                          {form.commercialLicenseDocumentUrl ? 'Replace uploaded license' : 'Upload license image or PDF'}
+                        </button>
+                        {form.commercialLicenseDocumentUrl && (
+                          <p className="mt-1.5 text-xs text-emerald-700">License file attached and ready to submit.</p>
+                        )}
+                      </Field>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-6 flex justify-end">
@@ -242,6 +414,11 @@ export default function CelebrityApplicationPage() {
                   {success}
                 </div>
               )}
+              {otpResent && !success && (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                  A new verification code has been sent to your email.
+                </div>
+              )}
 
               <Field label="Verification code">
                 <input
@@ -272,7 +449,7 @@ export default function CelebrityApplicationPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={loading || otp.length !== 6 || Boolean(success)}
+                  disabled={loading || otp.length !== 6}
                   className="rounded-xl px-5 py-3 text-sm font-semibold text-white transition-all disabled:opacity-60"
                   style={{ background: 'linear-gradient(135deg,#7C3AED,#5B21B6)' }}
                 >

@@ -88,6 +88,19 @@ export default function JoinAsCelebrityPage() {
               <p className="mt-6 max-w-[610px] text-[17px] leading-8 text-[rgba(15,10,30,0.7)]">
                 Twinity gives approved talent a dedicated portal to complete onboarding, manage profile presence, and stay connected to platform-approved work in a secure, structured way.
               </p>
+              <div className="mt-10 flex">
+                <Link
+                  href="/join-as-celebrity/apply"
+                  className="inline-flex items-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg,#7C3AED,#5B21B6)',
+                    boxShadow: '0 18px 38px -18px rgba(124,58,237,0.65)',
+                  }}
+                >
+                  Join As Celebrity
+                  <ArrowRight size={16} />
+                </Link>
+              </div>
 
               <div className="mt-8 grid gap-4 md:grid-cols-3">
                 {VALUE_POINTS.map(({ Icon, title, text }) => (

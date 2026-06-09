@@ -271,7 +271,7 @@ function CelebrityGrid({
   const [celebs, setCelebs] = useState<FunnelCelebrity[]>(FUNNEL_CELEBRITIES);
 
   useEffect(() => {
-    celebrityApi.list({ featured: true }).then(res => {
+    celebrityApi.list({ featured: true, productType: "image-ad" }).then(res => {
       if (res.data.length === 0) return;
       setCelebs(res.data.map(a => ({
         id:           a.id,

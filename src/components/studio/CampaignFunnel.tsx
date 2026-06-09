@@ -121,7 +121,7 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
       .then((res) => setTemplates(res.data))
       .catch(() => {})
       .finally(() => setTemplatesLoading(false));
-    celebrityApi.list()
+    celebrityApi.list({ productType: "video-ad" })
       .then((res) => setCelebrities(res.data))
       .catch(() => {})
       .finally(() => setCelebsLoading(false));

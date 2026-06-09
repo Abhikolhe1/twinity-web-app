@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useMemo } from "react";
+import { ExternalLink, FileText } from "lucide-react";
 
 import type { ApiCelebrity } from "@/lib/api";
 import type {
@@ -28,6 +29,7 @@ const SLA: { id: LicenseSla; label: string }[] = [
   { id: "priority", label: "Priority" },
   { id: "urgent", label: "Urgent" },
 ];
+const LICENSE_PDF_URL = "/pdfs/Draft_Campaign_License.pdf";
 
 export type LicenseScopeProps = {
   campaignTypeId: null;
@@ -251,6 +253,47 @@ export function LicenseScope({ celebrity, scope, onScopeChange }: LicenseScopePr
           </div>
         </div>
       </div>
+
+      <section className="mt-8 rounded-xl border border-black/[0.08] bg-white p-5">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(15,10,30,0.45)" }}>
+              License Document
+            </p>
+            <div className="mt-3 flex items-start gap-3">
+              <div
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                style={{ background: "rgba(124,58,237,0.10)", color: "#7C3AED" }}
+              >
+                <FileText size={20} />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold" style={{ color: "#0F0A1E" }}>
+                  Draft Campaign License
+                </p>
+                <p className="mt-1 text-sm leading-6" style={{ color: "rgba(15,10,30,0.50)" }}>
+                  Review the downloadable draft license before continuing to payment and approval.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <a
+            href={LICENSE_PDF_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:-translate-y-px"
+            style={{
+              borderColor: "rgba(124,58,237,0.18)",
+              color: "#7C3AED",
+              background: "rgba(124,58,237,0.04)",
+            }}
+          >
+            <ExternalLink size={16} />
+            Open PDF
+          </a>
+        </div>
+      </section>
     </div>
   );
 }

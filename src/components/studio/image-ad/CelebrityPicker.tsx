@@ -68,7 +68,7 @@ export function CelebrityPicker({ selected, onSelect }: CelebrityPickerProps) {
   /* Fetch celebrities from API on mount */
   useEffect(() => {
     let cancelled = false;
-    celebrityApi.list({ featured: undefined })
+    celebrityApi.list({ featured: undefined, productType: "image-ad" })
       .then((res) => {
         if (cancelled) return;
         if (res.data && res.data.length > 0) {

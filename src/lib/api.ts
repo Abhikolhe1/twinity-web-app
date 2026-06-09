@@ -32,26 +32,51 @@ export function clearToken(): void {
   document.cookie = 'twinity_auth=; path=/; SameSite=Lax; Max-Age=0'
 }
 
+function resolveUserFriendlyMessage(status: number, message?: string): string {
+  const normalized = String(message || '').trim()
+  const lower = normalized.toLowerCase()
+
+  if (status === 413 || lower.includes('entity too large') || lower.includes('payload too large')) {
+    return 'The uploaded files are too large. Please reduce the file size or upload fewer files at once.'
+  }
+  if (status === 401) return normalized || 'Your session has expired. Please sign in again.'
+  if (status === 403) return normalized || 'You do not have access to perform this action.'
+  if (status === 404) return normalized || 'The requested record could not be found.'
+  if (status === 409) return normalized || 'This record already exists or is already linked elsewhere.'
+  if (status === 429) return 'Too many attempts. Please wait a moment and try again.'
+  if (lower.includes('internal server error')) return 'Something went wrong on our side. Please try again in a moment.'
+  if (lower.includes('fetch failed') || lower.includes('network') || lower.includes('timeout')) {
+    return 'We could not reach the server right now. Please check the connection and try again.'
+  }
+  if (status >= 500) return 'Something went wrong on our side. Please try again in a moment.'
+  return normalized || 'Something went wrong. Please try again.'
+}
+
 // ── Base fetch ─────────────────────────────────────────────
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken()
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options?.headers || {}),
-    },
-  })
-  if (res.status === 429) throw new Error('Too many attempts. Please wait a moment and try again.')
-  const data = await res.json()
+  let res: Response
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options?.headers || {}),
+      },
+    })
+  } catch {
+    throw new Error('We could not reach the server right now. Please check the connection and try again.')
+  }
+  const data = await res.json().catch(() => ({})) as any
+  if (res.status === 429) throw new Error(resolveUserFriendlyMessage(res.status, data.message))
   if (res.status === 401 && getToken()) {
     // Token invalid or account blocked — force logout immediately
     clearToken()
     if (typeof window !== 'undefined')
-    throw new Error(data.message || 'Session expired')
+    throw new Error(resolveUserFriendlyMessage(res.status, data.message || 'Session expired'))
   }
-  if (!res.ok) throw new Error(data.message || 'Request failed')
+  if (!res.ok) throw new Error(resolveUserFriendlyMessage(res.status, data.message))
   return data as T
 }
 
@@ -160,6 +185,11 @@ export interface SubmissionValidationResult {
   }
 }
 
+export interface CelebrityOnboardingMasters {
+  languages: string[]
+  nationalities: string[]
+}
+
 // ── Auth ───────────────────────────────────────────────────
 export const authApi = {
   register: (body: { name: string; email: string; password: string; phone?: string; company?: string; accountType?: string }) =>
@@ -195,8 +225,13 @@ export const authApi = {
 
 // ── Celebrities ────────────────────────────────────────────
 export const celebrityApi = {
-  list: (params?: { industry?: string; search?: string; featured?: boolean }) => {
-    const qs = new URLSearchParams(params as Record<string, string>).toString()
+  list: (params?: { industry?: string; search?: string; featured?: boolean; productType?: string }) => {
+    const query = new URLSearchParams()
+    if (params?.industry) query.set('industry', params.industry)
+    if (params?.search) query.set('search', params.search)
+    if (params?.featured !== undefined) query.set('featured', String(params.featured))
+    if (params?.productType) query.set('productType', params.productType)
+    const qs = query.toString()
     return api<{ success: boolean; data: ApiCelebrity[]; total: number }>(`/celebrities${qs ? '?' + qs : ''}`)
   },
 
@@ -395,6 +430,8 @@ export const leadApi = {
 }
 
 export const celebrityOnboardingApi = {
+  getMasters: () =>
+    api<{ success: boolean; data: CelebrityOnboardingMasters }>('/celebrity-onboarding/masters'),
   submit: (body: {
     name: string
     email: string
@@ -405,6 +442,8 @@ export const celebrityOnboardingApi = {
     industry: string
     languages?: string[]
     bio?: string
+    commercialLicenseNumber?: string
+    commercialLicenseDocumentUrl?: string
   }) => api<{ success: boolean; message: string }>('/celebrity-onboarding', { method: 'POST', body: JSON.stringify(body) }),
 }
 
