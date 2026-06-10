@@ -78,10 +78,19 @@ export function SelectCampaignTemplate({ selectedId, onSelect, templates, loadin
                     : "border-black/[0.08] hover:border-black/[0.18]",
                 ].join(" ")}
               >
-                <div
-                  className="absolute inset-0"
-                  style={{ backgroundImage: `linear-gradient(135deg, ${g.from}, ${g.to})` }}
-                />
+                {t.background_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={t.background_image_url}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0"
+                    style={{ backgroundImage: `linear-gradient(135deg, ${g.from}, ${g.to})` }}
+                  />
+                )}
                 <span className="absolute start-2 top-2 rounded bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-sm">
                   Sample
                 </span>
@@ -91,7 +100,12 @@ export function SelectCampaignTemplate({ selectedId, onSelect, templates, loadin
                   </span>
                 )}
                 <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-black/90 to-transparent p-4 pt-14">
-                  <span className="font-display text-xs font-bold uppercase tracking-wide text-white sm:text-sm">{t.name}</span>
+                  <span
+                    className="font-display text-xs font-bold uppercase tracking-wide text-white sm:text-sm"
+                    dir={t.language === "ar" ? "rtl" : "ltr"}
+                  >
+                    {t.name}
+                  </span>
                   {t.duration && (
                     <span className="rounded-md bg-black/50 px-2 py-0.5 text-xs font-medium text-white/90 backdrop-blur-sm">
                       {t.duration}

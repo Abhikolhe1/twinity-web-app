@@ -51,12 +51,21 @@ export function SelectGreetingTemplate({ templates, loading, selectedId, onSelec
                     : "border-black/[0.08] hover:border-black/[0.25]",
                 ].join(" ")}
               >
-                <div
-                  className="absolute inset-0"
-                  style={{ backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
-                />
-                <span className="absolute start-2 top-2 rounded bg-black/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-sm">
-                  Sample
+                {t.background_image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={t.background_image_url}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0"
+                    style={{ backgroundImage: `linear-gradient(135deg, ${from}, ${to})` }}
+                  />
+                )}
+                <span className="absolute start-2 top-2 rounded bg-black/45 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/90 backdrop-blur-sm">
+                  {t.language === "ar" ? "AR" : "EN"}
                 </span>
                 {on && (
                   <span className="absolute end-3 top-3 flex size-8 items-center justify-center rounded-full bg-[#7C3AED] text-sm text-white shadow-lg">

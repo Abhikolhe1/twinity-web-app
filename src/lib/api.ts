@@ -311,6 +311,7 @@ export const jobApi = {
 
   previewVoice: (body: {
     celebrityId: string; script: string
+    templateId?: string
     voiceModel?: string; voiceSpeed?: number
     voiceChangeEnabled?: boolean; voiceChangeSourceUrl?: string
   }) => api<{ success: boolean; audioUrl: string; durationSecs?: number }>('/jobs/preview-voice', { method: 'POST', body: JSON.stringify(body) }),
@@ -385,6 +386,10 @@ export interface ApiTemplate {
   sample_script_ar: string
   product_types: string[]
   duration: string
+  language?: string
+  background_image_url?: string | null
+  creatify_prompt?: string | null
+  video_generation_prompt?: string | null
 }
 
 export const templateApi = {
@@ -392,6 +397,13 @@ export const templateApi = {
     const qs = productType ? `?productType=${encodeURIComponent(productType)}` : ''
     return api<{ success: boolean; data: ApiTemplate[]; total: number }>(`/templates${qs}`)
   },
+}
+
+export const templateAssetApi = {
+  getComposite: (templateId: string, celebrityId: string) =>
+    api<{ success: boolean; data: { composite_image_url: string } | null }>(
+      `/template-assets/composite?templateId=${templateId}&celebrityId=${celebrityId}`,
+    ),
 }
 
 // ── Product Types (public) ─────────────────────────────────

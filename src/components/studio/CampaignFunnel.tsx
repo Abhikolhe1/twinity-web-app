@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2 } from "lucide-react";
 
-import { BriefAndAssets } from "@/components/studio/steps/campaign/BriefAndAssets";
+import { BriefAndAssets, type UploadedFile } from "@/components/studio/steps/campaign/BriefAndAssets";
 import { CampaignApprovalStatus } from "@/components/studio/steps/campaign/ApprovalStatus";
 import { DeliveryLicense } from "@/components/studio/steps/campaign/DeliveryLicense";
 import { LicenseScope } from "@/components/studio/steps/campaign/LicenseScope";
@@ -142,6 +142,10 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
   const [briefCta,        setBriefCta]        = useState("");
   const [briefAudience,   setBriefAudience]   = useState("");
   const [briefProhibited, setBriefProhibited] = useState("");
+  const [addMusic,        setAddMusic]        = useState(false);
+  const [logoFile,        setLogoFile]        = useState<UploadedFile | null>(null);
+  const [productFile,     setProductFile]     = useState<UploadedFile | null>(null);
+  const [musicFile,       setMusicFile]       = useState<UploadedFile | null>(null);
 
   const [submitting,  setSubmitting]  = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -166,6 +170,10 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setBriefCta("");
     setBriefAudience("");
     setBriefProhibited("");
+    setAddMusic(false);
+    setLogoFile(null);
+    setProductFile(null);
+    setMusicFile(null);
     setSubmitting(false);
     setSubmitError("");
     setShowToast(false);
@@ -398,7 +406,34 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
     setSubmitting(true);
     setSubmitError("");
     try {
+      const propImages: string[] = [];
+      for (const uploadedFile of [logoFile, productFile]) {
+        if (!uploadedFile) continue;
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Failed to read selected asset."));
+          reader.readAsDataURL(uploadedFile.file);
+        });
+        const uploadRes = await jobApi.uploadAsset(dataUrl);
+        propImages.push(uploadRes.url);
+      }
+
+      let voiceAudioUrl: string | undefined;
+      if (musicFile) {
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("Failed to read selected audio file."));
+          reader.readAsDataURL(musicFile.file);
+        });
+        const uploadRes = await jobApi.uploadAsset(dataUrl);
+        voiceAudioUrl = uploadRes.url;
+      }
+
       const script = [briefKeyMessage, briefCta].filter(Boolean).join(". ") || briefObjective;
+      const sceneNotesParts = [briefProhibited.trim()].filter(Boolean);
+      if (!musicFile && addMusic) sceneNotesParts.push("Background music: enabled");
       const res = await jobApi.create({
         celebrityId,
         productType: "video-ad",
@@ -412,6 +447,9 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
         estimatedPrice: priced.subtotal,
         briefObjective,
         briefAudience,
+        propImages: propImages.length ? propImages : undefined,
+        sceneNotes: sceneNotesParts.length ? sceneNotesParts.join(" | ") : undefined,
+        voiceAudioUrl,
         resumeReferenceId: resumeDraft?.requestId ?? null,
       });
       clearCampaignResumeDraft();
@@ -582,11 +620,19 @@ export function CampaignFunnelWorkspace({ onClose, sessionId }: CampaignFunnelWo
                 cta={briefCta}
                 audience={briefAudience}
                 prohibited={briefProhibited}
+                addMusic={addMusic}
+                logoFile={logoFile}
+                productFile={productFile}
+                musicFile={musicFile}
                 onObjectiveChange={setBriefObjective}
                 onKeyMessageChange={setBriefKeyMessage}
                 onCtaChange={setBriefCta}
                 onAudienceChange={setBriefAudience}
                 onProhibitedChange={setBriefProhibited}
+                onAddMusicChange={setAddMusic}
+                onLogoFile={setLogoFile}
+                onProductFile={setProductFile}
+                onMusicFile={setMusicFile}
                 onSubmit={handleValidateBrief}
               />
             )}

@@ -19,6 +19,7 @@ import {
   celebrityApi,
   jobApi,
   templateApi,
+  templateAssetApi,
 } from "@/lib/api";
 import { useUser } from "@/contexts/UserContext";
 
@@ -32,14 +33,14 @@ const horizonPrimaryBtn =
   "inline-flex h-[44px] items-center justify-center gap-2 rounded-xl px-5 text-[14px] font-bold text-white transition-all duration-200 hover:-translate-y-px";
 const horizonPrimaryStyle: React.CSSProperties = {
   background: "linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%)",
-  boxShadow:  "0 8px 24px rgba(124,58,237,0.30)",
-  border:     "none",
+  boxShadow: "0 8px 24px rgba(124,58,237,0.30)",
+  border: "none",
 };
 
 const horizonSecondaryStyle: React.CSSProperties = {
   background: "rgba(0,0,0,0.04)",
-  border:     "1px solid rgba(0,0,0,0.10)",
-  color:      "rgba(15,10,30,0.60)",
+  border: "1px solid rgba(0,0,0,0.10)",
+  color: "rgba(15,10,30,0.60)",
 };
 
 const ALL_STEPS: { id: number; label: string }[] = [
@@ -62,24 +63,28 @@ export type GreetingFunnelWorkspaceProps = {
 export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWorkspaceProps) {
   const { user, login } = useUser();
 
-  const [currentStep, setCurrentStep]     = useState(1);
+  const [currentStep, setCurrentStep] = useState(1);
   const [selectedPurpose, setSelectedPurpose] = useState<string | null>(null);
-  const [templateId, setTemplateId]       = useState<string | null>(null);
-  const [celebrityId, setCelebrityId]     = useState<string | null>(null);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [celebrityId, setCelebrityId] = useState<string | null>(null);
 
   const [recipientName, setRecipientName] = useState("");
-  const [messageBody, setMessageBody]     = useState("");
-  const [fromName, setFromName]           = useState("");
-  const [language, setLanguage]           = useState<"ar" | "en" | "both">("en");
-  const [special, setSpecial]             = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [fromName, setFromName] = useState("");
+  const [language, setLanguage] = useState<"ar" | "en" | "both">("en");
+  const [special, setSpecial] = useState("");
+  const [voiceFile, setVoiceFile] = useState<File | null>(null);
+  const [voiceAudioUrl, setVoiceAudioUrl] = useState<string | undefined>(undefined);
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [compositeImageUrl, setCompositeImageUrl] = useState<string | undefined>(undefined);
 
-  const [allTemplates, setAllTemplates]   = useState<ApiTemplate[]>([]);
-  const [celebrities, setCelebrities]     = useState<ApiCelebrity[]>([]);
-  const [loadingInit, setLoadingInit]     = useState(true);
+  const [allTemplates, setAllTemplates] = useState<ApiTemplate[]>([]);
+  const [celebrities, setCelebrities] = useState<ApiCelebrity[]>([]);
+  const [loadingInit, setLoadingInit] = useState(true);
 
-  const [referenceId, setReferenceId]         = useState<string | null>(null);
-  const [submitting, setSubmitting]           = useState(false);
-  const [submitError, setSubmitError]         = useState("");
+  const [referenceId, setReferenceId] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [showSubmitToast, setShowSubmitToast] = useState(false);
 
   const [resumeDraft, setResumeDraft] = useState<GreetingResumeDraft | null>(null);
@@ -94,6 +99,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     setFromName("");
     setLanguage("en");
     setSpecial("");
+    setVoiceFile(null);
+    setVoiceAudioUrl(undefined);
+    setVoiceLoading(false);
+    setCompositeImageUrl(undefined);
     setReferenceId(null);
     setSubmitError("");
     setShowSubmitToast(false);
@@ -106,7 +115,6 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
         setAllTemplates(tplRes.data);
         setCelebrities(celebsRes.data);
 
-        // Check for resume draft
         if (typeof window !== "undefined") {
           const params = new URLSearchParams(window.location.search);
           if (params.get("resume") === "1") {
@@ -120,7 +128,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
               setFromName(draft.fromName ?? "");
               setMessageBody(draft.message);
               setSpecial(draft.special ?? "");
-              setCurrentStep(5); // Jump to Personalize
+              setCurrentStep(5);
             }
           }
         }
@@ -129,13 +137,11 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
       .finally(() => setLoadingInit(false));
   }, [sessionId]);
 
-  // Unique ordered purposes from all greeting templates
   const occasions = useMemo(
     () => [...new Set(allTemplates.map((t) => t.purpose))],
     [allTemplates],
   );
 
-  // Templates filtered by the selected purpose
   const templates = useMemo(
     () => (selectedPurpose ? allTemplates.filter((t) => t.purpose === selectedPurpose) : []),
     [allTemplates, selectedPurpose],
@@ -176,11 +182,73 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
     setMessageBody(selectedTemplate?.sample_script ?? "");
   }, [templateId]);
 
+  useEffect(() => {
+    if (!templateId || !celebrityId) {
+      setCompositeImageUrl(undefined);
+      return;
+    }
+    templateAssetApi.getComposite(templateId, celebrityId)
+      .then((res) => setCompositeImageUrl(res.data?.composite_image_url ?? undefined))
+      .catch(() => setCompositeImageUrl(undefined));
+  }, [templateId, celebrityId]);
+
+  useEffect(() => {
+    setVoiceAudioUrl(undefined);
+  }, [messageBody, voiceFile]);
+
   const scrollRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { scrollRef.current?.scrollTo({ top: 0 }); }, [currentStep]);
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 });
+  }, [currentStep]);
 
   const openGateToPersonalize = () => setCurrentStep(user ? 5 : 4);
-  const handlePayAndConfirm = async () => { await handleFinalSubmit(); };
+
+  const fileToDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+  const handlePersonalizeNext = async () => {
+    if (!selectedCelebrity || !recipientName.trim() || !messageBody.trim()) return;
+    setVoiceLoading(true);
+    setVoiceAudioUrl(undefined);
+    setSubmitError("");
+
+    try {
+      if (voiceFile) {
+        const dataUrl = await fileToDataUrl(voiceFile);
+        const uploadRes = await jobApi.uploadAsset(dataUrl);
+        setVoiceAudioUrl(uploadRes.url);
+      } else {
+        try {
+          const voiceRes = await jobApi.previewVoice({
+            celebrityId: selectedCelebrity.id,
+            script: messageBody,
+            templateId: selectedTemplate?.id,
+          });
+          setVoiceAudioUrl(voiceRes.audioUrl);
+        } catch (voiceErr) {
+          const msg = voiceErr instanceof Error ? voiceErr.message : "";
+          if (
+            msg === "Authentication required" ||
+            msg === "Session expired" ||
+            msg === "Account is not active"
+          ) {
+            throw voiceErr;
+          }
+        }
+      }
+
+      setCurrentStep(6);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to prepare voice preview");
+    } finally {
+      setVoiceLoading(false);
+    }
+  };
 
   const handleFinalSubmit = async () => {
     if (!selectedCelebrity || !messageBody.trim()) return;
@@ -202,34 +270,45 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
         throw new Error(validation.data.errors[0]?.message || "Please review your request before submitting.");
       }
 
-      let voiceAudioUrl: string | undefined;
-      try {
-        const voiceRes = await jobApi.previewVoice({
-          celebrityId: selectedCelebrity.id,
-          script:      messageBody,
-        });
-        voiceAudioUrl = voiceRes.audioUrl;
-      } catch (voiceErr) {
-        const msg = voiceErr instanceof Error ? voiceErr.message : "";
-        if (msg === "Authentication required" || msg === "Session expired" || msg === "Account is not active") {
-          throw voiceErr;
+      let finalVoiceAudioUrl = voiceAudioUrl;
+      if (voiceFile && !finalVoiceAudioUrl) {
+        const dataUrl = await fileToDataUrl(voiceFile);
+        const uploadRes = await jobApi.uploadAsset(dataUrl);
+        finalVoiceAudioUrl = uploadRes.url;
+      } else if (!voiceFile && !finalVoiceAudioUrl) {
+        try {
+          const voiceRes = await jobApi.previewVoice({
+            celebrityId: selectedCelebrity.id,
+            script: messageBody,
+            templateId: selectedTemplate?.id,
+          });
+          finalVoiceAudioUrl = voiceRes.audioUrl;
+        } catch (voiceErr) {
+          const msg = voiceErr instanceof Error ? voiceErr.message : "";
+          if (
+            msg === "Authentication required" ||
+            msg === "Session expired" ||
+            msg === "Account is not active"
+          ) {
+            throw voiceErr;
+          }
+          throw new Error("Voice preview could not be generated. Please try again before submitting your greeting request.");
         }
-        throw new Error("Voice preview could not be generated. Please try again before submitting your greeting request.");
       }
 
       const res = await jobApi.create({
-        celebrityId:  selectedCelebrity.id,
-        productType:  "greeting",
-        purpose:      selectedPurpose ?? "Custom",
-        script:       messageBody,
-        templateId:   selectedTemplate?.id,
-        duration:     selectedTemplate?.duration,
-        sceneNotes:   [
+        celebrityId: selectedCelebrity.id,
+        productType: "greeting",
+        purpose: selectedPurpose ?? "Custom",
+        script: messageBody,
+        templateId: selectedTemplate?.id,
+        duration: selectedTemplate?.duration,
+        sceneNotes: [
           recipientName ? `Recipient: ${recipientName}` : "",
-          fromName      ? `From: ${fromName}` : "",
-          special       ? `Notes: ${special}` : "",
+          fromName ? `From: ${fromName}` : "",
+          special ? `Notes: ${special}` : "",
         ].filter(Boolean).join(" | ") || undefined,
-        voiceAudioUrl,
+        voiceAudioUrl: finalVoiceAudioUrl,
         resumeReferenceId: resumeDraft?.requestId ?? null,
       });
 
@@ -269,25 +348,34 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
   return (
     <div className="flex min-h-0 flex-1 flex-col md:flex-row">
       {showSubmitToast && (
-        <div style={{
-          position: "fixed", top: 24, insetInlineEnd: 24, zIndex: 9999,
-          display: "flex", alignItems: "center", gap: 12,
-          background: "#FFFFFF", border: "1px solid rgba(34,197,94,0.25)", borderRadius: 12,
-          padding: "14px 18px", boxShadow: "0 0 24px rgba(34,197,94,0.12), 0 8px 32px rgba(0,0,0,0.10)",
-        }}>
+        <div
+          style={{
+            position: "fixed",
+            top: 24,
+            insetInlineEnd: 24,
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: "#FFFFFF",
+            border: "1px solid rgba(34,197,94,0.25)",
+            borderRadius: 12,
+            padding: "14px 18px",
+            boxShadow: "0 0 24px rgba(34,197,94,0.12), 0 8px 32px rgba(0,0,0,0.10)",
+          }}
+        >
           <CheckCircle2 size={20} color="#16A34A" style={{ flexShrink: 0 }} />
           <div>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#0F0A1E" }}>
               Request submitted successfully
             </p>
             <p style={{ margin: 0, fontSize: 12, color: "rgba(15,10,30,0.45)", marginTop: 2 }}>
-              {referenceId ? `Order ${referenceId}` : "Tracking your request…"}
+              {referenceId ? `Order ${referenceId}` : "Tracking your request..."}
             </p>
           </div>
         </div>
       )}
 
-      {/* Sidebar */}
       <nav
         className="hidden md:flex w-[220px] shrink-0 flex-col py-4"
         aria-label="Greeting funnel steps"
@@ -297,23 +385,26 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           {SIDEBAR.map((s) => {
             const locked = isSidebarStepLocked(s.id);
             const active = !locked && s.id === currentStep;
-            const done   = !locked && s.id < currentStep;
+            const done = !locked && s.id < currentStep;
 
             const rowContent = (
               <>
                 <span
                   className="flex shrink-0 items-center justify-center rounded-full text-[12px] font-bold transition-all duration-200"
                   style={{
-                    width:      28, height: 28,
-                    background: done   ? "linear-gradient(135deg, #7C3AED, #5B21B6)"
-                              : active ? "rgba(124,58,237,0.10)"
-                              :          "rgba(0,0,0,0.05)",
-                    border: done   ? "none"
-                          : active ? "2px solid #7C3AED"
-                          :          "1px solid rgba(0,0,0,0.10)",
-                    color: done   ? "#FFFFFF"
-                         : active ? "#7C3AED"
-                         :          "rgba(15,10,30,0.25)",
+                    width: 28,
+                    height: 28,
+                    background: done
+                      ? "linear-gradient(135deg, #7C3AED, #5B21B6)"
+                      : active
+                        ? "rgba(124,58,237,0.10)"
+                        : "rgba(0,0,0,0.05)",
+                    border: done
+                      ? "none"
+                      : active
+                        ? "2px solid #7C3AED"
+                        : "1px solid rgba(0,0,0,0.10)",
+                    color: done ? "#FFFFFF" : active ? "#7C3AED" : "rgba(15,10,30,0.25)",
                     boxShadow: done ? "0 4px 12px rgba(124,58,237,0.25)" : "none",
                   }}
                 >
@@ -323,10 +414,13 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                   className="min-w-0 flex-1 truncate text-[13px]"
                   style={{
                     fontWeight: active ? 600 : 400,
-                    color: locked ? "rgba(15,10,30,0.20)"
-                         : active ? "#0F0A1E"
-                         : done   ? "rgba(15,10,30,0.45)"
-                         :          "rgba(15,10,30,0.35)",
+                    color: locked
+                      ? "rgba(15,10,30,0.20)"
+                      : active
+                        ? "#0F0A1E"
+                        : done
+                          ? "rgba(15,10,30,0.45)"
+                          : "rgba(15,10,30,0.35)",
                   }}
                 >
                   {s.label}
@@ -345,7 +439,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-start transition-all duration-200"
                     style={{
                       background: active ? "rgba(124,58,237,0.07)" : "transparent",
-                      border:     active ? "1px solid rgba(124,58,237,0.18)" : "1px solid transparent",
+                      border: active ? "1px solid rgba(124,58,237,0.18)" : "1px solid transparent",
                     }}
                   >
                     {rowContent}
@@ -357,18 +451,21 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
         </ul>
       </nav>
 
-      {/* Main content */}
       <div className="flex min-h-0 min-w-0 flex-1 flex-col" style={{ background: "#FFFFFF" }}>
-        {/* Mobile step indicator */}
         <div className="md:hidden shrink-0 px-4 pb-2.5 pt-3" style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="text-[13px] font-medium" style={{ color: "#0F0A1E" }}>Step {currentStep} of {SIDEBAR.length}</span>
+            <span className="text-[13px] font-medium" style={{ color: "#0F0A1E" }}>
+              Step {currentStep} of {SIDEBAR.length}
+            </span>
             <span className="text-[12px]" style={{ color: "rgba(15,10,30,0.40)" }}>
               {SIDEBAR.find((s) => s.id === currentStep)?.label ?? ""}
             </span>
           </div>
           <div className="h-[2px] overflow-hidden rounded-full" style={{ background: "rgba(0,0,0,0.08)" }}>
-            <div className="h-full rounded-full transition-all duration-300" style={{ width: `${Math.round((currentStep / SIDEBAR.length) * 100)}%`, background: "#7C3AED" }} />
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${Math.round((currentStep / SIDEBAR.length) * 100)}%`, background: "#7C3AED" }}
+            />
           </div>
         </div>
 
@@ -379,7 +476,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 occasions={occasions}
                 loading={loadingInit}
                 selectedPurpose={selectedPurpose}
-                onSelect={(p) => { setSelectedPurpose(p); setTemplateId(null); }}
+                onSelect={(p) => {
+                  setSelectedPurpose(p);
+                  setTemplateId(null);
+                }}
               />
             )}
             {currentStep === 2 && (
@@ -405,7 +505,10 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
-                onLoginSuccess={(token, u) => { login(token, u); setCurrentStep(5); }}
+                onLoginSuccess={(token, u) => {
+                  login(token, u);
+                  setCurrentStep(5);
+                }}
               />
             )}
             {currentStep === 5 && (
@@ -415,12 +518,18 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 fromName={fromName}
                 language={language}
                 special={special}
+                voiceFile={voiceFile}
                 onRecipientNameChange={setRecipientName}
                 onMessageChange={setMessageBody}
                 onFromNameChange={setFromName}
                 onLanguageChange={setLanguage}
                 onSpecialChange={setSpecial}
-                onSubmit={() => setCurrentStep(6)}
+                onVoiceFileSelected={setVoiceFile}
+                onVoiceFileRemoved={() => {
+                  setVoiceFile(null);
+                  setVoiceAudioUrl(undefined);
+                }}
+                onSubmit={handlePersonalizeNext}
               />
             )}
             {currentStep === 6 && (
@@ -428,6 +537,9 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
+                compositeImageUrl={compositeImageUrl}
+                voiceAudioUrl={voiceAudioUrl}
+                voiceLoading={voiceLoading}
               />
             )}
             {currentStep === 7 && (
@@ -435,7 +547,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 occasion={selectedPurpose}
                 celebrity={selectedCelebrity}
                 template={selectedTemplate}
-                onConfirm={handlePayAndConfirm}
+                onConfirm={handleFinalSubmit}
                 isSubmitting={submitting}
                 error={submitError}
                 isAlreadyPaid={!!resumeDraft}
@@ -462,7 +574,6 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           </div>
         </div>
 
-        {/* Footer */}
         <div
           className="flex shrink-0 flex-col gap-2 px-4 py-3 md:h-auto md:flex-row md:items-center md:justify-between md:px-6 md:py-3"
           style={{ background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)", borderTop: "1px solid rgba(0,0,0,0.08)" }}
@@ -472,11 +583,11 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
           )}
           {!submitError && (
             <p className="hidden md:block min-w-0 flex-1 truncate text-sm" style={{ color: "rgba(15,10,30,0.38)" }}>
-              <span style={{ color: selectedPurpose ? "#0F0A1E" : undefined }}>🎂 {summaryParts.o ?? "Occasion"}</span>
+              <span style={{ color: selectedPurpose ? "#0F0A1E" : undefined }}>Occasion: {summaryParts.o ?? "Occasion"}</span>
               {" · "}
-              <span style={{ color: templateId     ? "#0F0A1E" : undefined }}>🎬 {summaryParts.t ?? "Template"}</span>
+              <span style={{ color: templateId ? "#0F0A1E" : undefined }}>Template: {summaryParts.t ?? "Template"}</span>
               {" · "}
-              <span style={{ color: celebrityId    ? "#0F0A1E" : undefined }}>⭐ {summaryParts.c ?? "Celebrity"}</span>
+              <span style={{ color: celebrityId ? "#0F0A1E" : undefined }}>Celebrity: {summaryParts.c ?? "Celebrity"}</span>
               {" · "}
               <span style={{ color: "#0F0A1E" }}>{summaryParts.p}</span>
             </p>
@@ -487,7 +598,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-12 flex-1 md:h-[44px] md:flex-none md:px-5 items-center justify-center rounded-xl text-[13px] font-semibold transition-all duration-200"
+                className="flex h-12 flex-1 items-center justify-center rounded-xl text-[13px] font-semibold transition-all duration-200 md:h-[44px] md:flex-none md:px-5"
                 style={horizonSecondaryStyle}
               >
                 Back to Home
@@ -497,8 +608,8 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 <button
                   type="button"
                   onClick={handleBack}
-                  disabled={currentStep <= 1}
-                  className="flex h-12 w-12 shrink-0 md:h-[44px] md:w-auto md:px-5 items-center justify-center rounded-xl text-[13px] font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-30"
+                  disabled={currentStep <= 1 || voiceLoading}
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-[13px] font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-30 md:h-[44px] md:w-auto md:px-5"
                   style={horizonSecondaryStyle}
                 >
                   <span className="md:hidden">←</span>
@@ -510,13 +621,16 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                     type="button"
                     onClick={openGateToPersonalize}
                     disabled={!selectionsComplete}
-                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 disabled:pointer-events-none disabled:opacity-40 md:h-[44px] md:flex-none`}
                     style={horizonPrimaryStyle}
                   >
                     {user ? (
                       "Personalize Greeting →"
                     ) : (
-                      <><Lock size={14} aria-hidden />Login to Personalize</>
+                      <>
+                        <Lock size={14} aria-hidden />
+                        Login to Personalize
+                      </>
                     )}
                   </button>
                 )}
@@ -526,7 +640,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                     type="button"
                     onClick={() => setCurrentStep(5)}
                     disabled={!user}
-                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 disabled:pointer-events-none disabled:opacity-40 md:h-[44px] md:flex-none`}
                     style={horizonPrimaryStyle}
                   >
                     Continue to Personalize →
@@ -536,12 +650,19 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 {currentStep === 5 && (
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(6)}
-                    disabled={!recipientName.trim() || !messageBody.trim()}
-                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    onClick={handlePersonalizeNext}
+                    disabled={!recipientName.trim() || !messageBody.trim() || voiceLoading}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 disabled:pointer-events-none disabled:opacity-40 md:h-[44px] md:flex-none`}
                     style={horizonPrimaryStyle}
                   >
-                    Continue to Preview →
+                    {voiceLoading ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        {voiceFile ? "Uploading voice..." : "Generating preview..."}
+                      </>
+                    ) : (
+                      "Continue to Preview →"
+                    )}
                   </button>
                 )}
 
@@ -549,7 +670,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                   <button
                     type="button"
                     onClick={() => setCurrentStep(7)}
-                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 disabled:pointer-events-none disabled:opacity-40 md:h-[44px] md:flex-none`}
                     style={horizonPrimaryStyle}
                   >
                     {resumeDraft ? "Continue to Resubmission →" : "Continue to Payment →"}
@@ -559,13 +680,16 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                 {currentStep === 7 && (
                   <button
                     type="button"
-                    onClick={handlePayAndConfirm}
+                    onClick={handleFinalSubmit}
                     disabled={submitting}
-                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 disabled:pointer-events-none disabled:opacity-40 md:h-[44px] md:flex-none`}
                     style={horizonPrimaryStyle}
                   >
                     {submitting ? (
-                      <><Loader2 size={16} className="animate-spin" /> Submitting…</>
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        Submitting...
+                      </>
                     ) : (
                       "Confirm & Submit →"
                     )}
@@ -577,7 +701,7 @@ export function GreetingFunnelWorkspace({ onClose, sessionId }: GreetingFunnelWo
                     type="button"
                     onClick={handleNext}
                     disabled={!canNextEarly}
-                    className={`${horizonPrimaryBtn} flex h-12 flex-1 md:h-[44px] md:flex-none disabled:pointer-events-none disabled:opacity-40`}
+                    className={`${horizonPrimaryBtn} flex h-12 flex-1 disabled:pointer-events-none disabled:opacity-40 md:h-[44px] md:flex-none`}
                     style={horizonPrimaryStyle}
                   >
                     Next →
@@ -599,7 +723,9 @@ export type GreetingFunnelProps = {
 
 export function GreetingFunnel({ open, onClose }: GreetingFunnelProps) {
   const [sessionId, setSessionId] = useState(0);
-  useEffect(() => { if (open) setSessionId((s) => s + 1); }, [open]);
+  useEffect(() => {
+    if (open) setSessionId((s) => s + 1);
+  }, [open]);
   if (!open) return null;
 
   return (
@@ -624,7 +750,7 @@ export function GreetingFunnel({ open, onClose }: GreetingFunnelProps) {
           style={{ borderBottom: "1px solid rgba(0,0,0,0.08)", background: "rgba(255,255,255,0.97)" }}
         >
           <h2 id="greeting-funnel-title" className="font-display text-[15px] font-bold" style={{ color: "#0F0A1E" }}>
-            Twinity Studio — Personal Greeting
+            Twinity Studio - Personal Greeting
           </h2>
           <button
             type="button"
